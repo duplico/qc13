@@ -1,0 +1,1 @@
+"./leds.obj" "./main.obj" "./radio.obj" "./rfm75.obj" "../lnk_msp430fr5949.cmd" -l"configPkg/linker.cmd" -l"libmath.a" -l"libc.a" 
