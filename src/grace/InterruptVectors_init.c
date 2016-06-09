@@ -31,4 +31,11 @@ void InterruptVectors_graceInit(void)
 {
 }
 
-
+/*
+ * ======== Preserved user code snippets ========
+ */
+#if 0
+/* USER CODE START (section: TIMER0_A0_ISR_HOOK) */
+    /* replace this comment with your code */
+    /* USER CODE END (section: TIMER0_A0_ISR_HOOK) */
+#endif

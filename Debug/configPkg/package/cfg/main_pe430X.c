@@ -175,12 +175,6 @@ Void ti_catalog_msp430_init_Boot_init(Void)
 /* EUSCI stuff from D:/ti/grace_3_10_00_82/packages/ti/mcu/msp430/csl2/communication/./EUSCI.xdt */
 
 /*
- * ======== ti.mcu.msp430.csl2.timer.Timer1_A3 TEMPLATE ========
- */
-
-/* Timer_A stuff from D:/ti/grace_3_10_00_82/packages/ti/mcu/msp430/csl2/timer/./ITimer_A.xdt */
-
-/*
  * ======== ti.mcu.msp430.csl2.watchdog.WDT_A TEMPLATE ========
  */
 

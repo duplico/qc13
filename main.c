@@ -10,7 +10,8 @@
 #include <ti/mcu/msp430/Grace.h>
 
 // Project includes:
-#include "qc12.h"
+#include <stdint.h>
+#include "qc13.h"
 #include "rfm75.h"
 #include "leds.h"
 
@@ -28,10 +29,6 @@
  * B2:     P2.7
  *
  */
-
-// Defines for the TLC:
-#define LATPORT     GPIO_PORT_P1
-#define LATPIN      GPIO_PIN4
 
 void init() {
     Grace_init(); // Activate Grace-generated configuration
@@ -54,30 +51,34 @@ void init() {
      */
 //    init_radio();
 
-    init_leds();
+    init_tlc();
+
+    Timer_A_initUpModeParam gsclk_init = {};
+    gsclk_init.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
+    gsclk_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
+    gsclk_init.timerPeriod = 2;
+    gsclk_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+    gsclk_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
+    gsclk_init.timerClear = TIMER_A_SKIP_CLEAR;
+    gsclk_init.startTimer = false;
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION);
+
+    Timer_A_initUpMode(TIMER_A1_BASE, &gsclk_init);
+    Timer_A_setOutputMode(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_1, TIMER_A_OUTPUTMODE_TOGGLE_RESET);
+    Timer_A_setCompareValue(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_1, 1);
+    Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_UP_MODE);
+
+    Timer_A_initUpModeParam initUpParam = {};
+    initUpParam.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
+    initUpParam.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
+    initUpParam.timerPeriod = 50;
+    initUpParam.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+    initUpParam.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
+    initUpParam.timerClear = TIMER_A_SKIP_CLEAR;
+    initUpParam.startTimer = false;
+    Timer_A_initUpMode(TIMER_A0_BASE, &initUpParam);
+    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
 }
-
-// 1-origined because fuck you
-#define LED_BANK1_PORT GPIO_PORT_PJ
-#define LED_BANK2_PORT GPIO_PORT_PJ
-#define LED_BANK3_PORT GPIO_PORT_PJ
-#define LED_BANK4_PORT GPIO_PORT_PJ
-#define LED_BANK5_PORT GPIO_PORT_P3
-#define LED_BANK6_PORT GPIO_PORT_P3
-
-#define LED_BANK1_OUT PJOUT
-#define LED_BANK2_OUT PJOUT
-#define LED_BANK3_OUT PJOUT
-#define LED_BANK4_OUT PJOUT
-#define LED_BANK5_OUT P3OUT
-#define LED_BANK6_OUT P3OUT
-
-#define LED_BANK1_PIN GPIO_PIN0
-#define LED_BANK2_PIN GPIO_PIN1
-#define LED_BANK3_PIN GPIO_PIN2
-#define LED_BANK4_PIN GPIO_PIN3
-#define LED_BANK5_PIN GPIO_PIN7
-#define LED_BANK6_PIN GPIO_PIN6
 
 void delay_millis(unsigned long mils) {
     while (mils) {
@@ -92,49 +93,18 @@ int main(void)
 
     init();
 
-    uint8_t shift = 0;
-    while (1) {
 
-        LED_BANK1_OUT |= LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN | LED_BANK4_PIN;
-        LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
+    tlc_stage_blank(0);
+    tlc_set_fun();
 
-        tlc_set_gs(0);
+    while (1);
 
-        switch (shift) {
-        case 0:
-//            GPIO_setOutputLowOnPin(LED_BANK1_PORT, LED_BANK1_PIN);
-            LED_BANK1_OUT &= ~LED_BANK1_PIN;
-            shift++;
-            break;
-        case 1:
-//            GPIO_setOutputLowOnPin(LED_BANK2_PORT, LED_BANK2_PIN);
-            LED_BANK2_OUT &= ~LED_BANK2_PIN;
-            shift++;
-            break;
-        case 2:
-//            GPIO_setOutputLowOnPin(LED_BANK3_PORT, LED_BANK3_PIN);
-            LED_BANK3_OUT &= ~LED_BANK3_PIN;
-            shift++;
-            break;
-        case 3:
-//            GPIO_setOutputLowOnPin(LED_BANK4_PORT, LED_BANK4_PIN);
-            LED_BANK4_OUT &= ~LED_BANK4_PIN;
-            shift++;
-            break;
-        case 4:
-//            GPIO_setOutputLowOnPin(LED_BANK5_PORT, LED_BANK5_PIN);
-            LED_BANK5_OUT &= ~LED_BANK5_PIN;
-            shift++;
-            break;
-        case 5:
-//            GPIO_setOutputLowOnPin(LED_BANK6_PORT, LED_BANK6_PIN);
-            LED_BANK6_OUT &= ~LED_BANK6_PIN;
-            shift=0;
-            break;
-        }
 
-        delay_millis(5);
-    }
+
+//    {
+
+//        delay_millis(3);
+//    }
 
     /*
     {
@@ -145,4 +115,35 @@ int main(void)
 //    	__delay_cycles(2000000);
     }
     */
+}
+
+volatile uint8_t shift = 0;
+
+//#pragma vector=TIMER0_A1_VECTOR
+//__interrupt void isr_ta0_other(void) {
+//    switch (__even_in_range(TA0IV, 10)) {
+//    case 0x00: break; // None
+//    case 0x02: break; // CCR1
+//    case 0x04: break; // CCR2;
+//    case 0x06: break; // CCR3
+//    case 0x08: break; // CCR4
+//    case 0x0a: break; // CCR5
+//    case 0x0c: break; // CCR6
+//    case 0x0e: // TA0IFG
+//        LED_BANK1_OUT |= LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
+//                | LED_BANK4_PIN;
+//        LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
+//        bank++;
+//        tlc_set_gs();
+//        break;
+//    }
+//}
+
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void TIMER0_A0_ISR_HOOK(void)
+{
+    LED_BANK1_OUT |= LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
+            | LED_BANK4_PIN;
+    LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
+    tlc_set_gs();
 }

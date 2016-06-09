@@ -4,9 +4,10 @@
  * 3-clause BSD license; see license.md.
  */
 
-#include "qc12.h"
 #include "leds.h"
+#include <stdint.h>
 #include <string.h>
+#include "qc13.h"
 
 /*
  *   LED controller (TLC5948A)
@@ -18,146 +19,239 @@
  *        LAT       P1.4
  */
 
-volatile uint8_t f_time_loop = 0; // TODO
+#define TLC_THISISGS    0x00
+#define TLC_THISISFUN   0x01
 
-void usci_a0_send_sync(uint8_t data) {
-    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, data);
-    while (!EUSCI_A_SPI_getInterruptStatus(EUSCI_A0_BASE,
-              EUSCI_A_SPI_TRANSMIT_INTERRUPT));
-    while (!EUSCI_A_SPI_getInterruptStatus(EUSCI_A0_BASE,
-            EUSCI_A_SPI_RECEIVE_INTERRUPT));
-    EUSCI_A_SPI_receiveData(EUSCI_A0_BASE); // Throw away the stale garbage we got while sending.
-}
+// Current TLC sending state:
+uint8_t tlc_send_type = TLC_SEND_IDLE;
 
-uint8_t usci_a0_recv_sync(uint8_t data) {
-    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, data);
-    while (!EUSCI_A_SPI_getInterruptStatus(EUSCI_A0_BASE,
-              EUSCI_A_SPI_TRANSMIT_INTERRUPT));
-    while (!EUSCI_A_SPI_getInterruptStatus(EUSCI_A0_BASE,
-            EUSCI_A_SPI_RECEIVE_INTERRUPT));
-    return EUSCI_A_SPI_receiveData(EUSCI_A0_BASE);
-}
+uint8_t tlc_tx_index = 0;   // Index of currently sending buffer
 
-uint16_t gs_data[16] = {
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
-		0xffff,
+
+uint8_t tlc_loopback_data_out = 0x00;
+volatile uint8_t tlc_loopback_data_in = 0x00;
+
+// Buffers containing actual data to send to the TLC:
+
+uint8_t fun_base[] = {
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00, // ...reserved...
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        // B135 / PSM(D1)       0
+        // B134 / PSM(D0)       0
+        // B133 / OLDENA        0
+        // B132 / IDMCUR(D1)    0
+        // B131 / IDMCUR(D0)    0
+        // B130 / IDMRPT(D0)    0
+        // B129 / IDMENA        0
+        // B128 / LATTMG(D1)    1:
+        0x01,
+        // B127 / LATTMG(D0)    1
+        // B126 / LSDVLT(D1)    0
+        // B125 / LSDVLT(D0)    0
+        // B124 / LODVLT(D1)    0
+        // B123 / LODVLT(D0)    0
+        // B122 / ESPWM         1
+        // B121 / TMGRST        1
+        // B120 / DSPRPT        1:
+        0x87,
+        // B119 / BLANK
+        // and 7 bits of global brightness correction:
+        0x08,
+        // HERE WE SWITCH TO 7-BIT SPI.
+        // The following index is 18:
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
+        0x7F,
 };
 
-void tlc_set_gs(uint8_t shift) {
-    while (!EUSCI_A_SPI_getInterruptStatus(EUSCI_A0_BASE,
-            EUSCI_A_SPI_TRANSMIT_INTERRUPT));
-
-    // We need a 0 to show it's GS:
-    usci_a0_send_sync(0x00);
-    // Now the GS data itself.
-
-    // 5 RGB LEDs:
-    for (uint8_t channel=0; channel<16; channel++) {
-    	usci_a0_send_sync((uint8_t) (gs_data[(channel) % 16] >> 8));
-    	usci_a0_send_sync((uint8_t) (gs_data[(channel) % 16] & 0x00ff));
-    }
-
-    // LATCH:
-    GPIO_pulse(GPIO_PORT_P1, GPIO_PIN4);
+void tlc_set_gs() {
+    if (tlc_send_type != TLC_SEND_IDLE)
+        return;
+    tlc_send_type = TLC_SEND_TYPE_GS;
+    tlc_tx_index = 0;
+    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, TLC_THISISGS);
 }
 
-void tlc_set_fun(uint8_t blank) {
-    while (!EUSCI_A_SPI_getInterruptStatus(EUSCI_A0_BASE,
-            EUSCI_A_SPI_TRANSMIT_INTERRUPT));
-
-    usci_a0_send_sync(0x01); // 1 for Function
-
-    for (uint8_t i=0; i<14; i++) {
-        usci_a0_send_sync(0x00);
-    }
-
-    usci_a0_send_sync(0x00); // LSB of this is PSM(D2)
-
-    // B135 / PSM(D1)
-    // B134 / PSM(D0)
-    // B133 / OLDENA
-    // B132 / IDMCUR(D1)
-    // B131 / IDMCUR(D0)
-    // B130 / IDMRPT(D0)
-    // B129 / IDMENA
-    // B128 / LATTMG(D1)
-
-    usci_a0_send_sync(0x01);
-
-    // B127 / LATTMG(D0)
-    // B126 / LSDVLT(D1)
-    // B125 / LSDVLT(D0)
-    // B124 / LODVLT(D1)
-    // B123 / LODVLT(D0)
-    // B122 / ESPWM
-    // B121 / TMGRST
-    // B120 / DSPRPT
-
-    usci_a0_send_sync(0x85);
-
-    // B119 / BLANK
-    // MSB is BLANK; remainder are BC:
-    usci_a0_send_sync(0x08 + (blank << 7));
-
-
-    UCA0CTLW0 |= UCSWRST;
-    UCA0CTLW0 |= UC7BIT;
-    UCA0CTLW0 &= ~UCSWRST;
-
-    // 16 dot-correct 7-tets:
-    for (uint8_t i=0; i<16; i++) {
-    	usci_a0_send_sync(0x7F);
-    }
-
-    // LATCH:
-    GPIO_pulse(GPIO_PORT_P1, GPIO_PIN4);
-
-    UCA0CTLW0 |= UCSWRST;
-    UCA0CTLW0 &= ~UC7BIT;
-    UCA0CTLW0 &= ~UCSWRST;
+void tlc_set_fun() {
+    while (tlc_send_type != TLC_SEND_IDLE)
+        __no_operation(); // shouldn't ever actually have to block on this.
+    tlc_send_type = TLC_SEND_TYPE_FUN;
+    tlc_tx_index = 0;
+    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, TLC_THISISFUN);
 }
 
-uint8_t led_loopback(uint8_t test_pattern) {
-	volatile uint8_t tlc_loopback_data_in = 0;
-	for (uint8_t i=0; i<35; i++) {
-		tlc_loopback_data_in = usci_a0_recv_sync(test_pattern);
-	}
-
-	__no_operation();
-
-	return tlc_loopback_data_in != (uint8_t) ((test_pattern << 7) | (test_pattern >> 1));
+// Stage the blank bit:
+void tlc_stage_blank(uint8_t blank) {
+    if (blank) {
+        fun_base[17] |= BIT7;
+        fun_base[16] &= ~BIT1;
+    } else {
+        fun_base[17] &= ~BIT7;
+        fun_base[16] |= BIT1;
+    }
 }
 
-void init_leds() {
+// Test the TLC chip with a shift-register loopback.
+// Returns 0 for success and 1 for failure.
+uint8_t tlc_test_loopback(uint8_t test_pattern) {
+    // Send the test pattern 34 times, and expect to receive it shifted
+    // a bit.
+    tlc_loopback_data_out = test_pattern;
+    while (tlc_send_type != TLC_SEND_IDLE); // I don't see this happening...
 
+    EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
+    EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
+
+    tlc_send_type = TLC_SEND_TYPE_LB;
+    tlc_tx_index = 0;
+    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, test_pattern);
+    // Spin while we send and receive:
+    while (tlc_send_type != TLC_SEND_IDLE);
+
+    EUSCI_A_SPI_disableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_RECEIVE_INTERRUPT);
+
+    return tlc_loopback_data_in != (uint8_t) ((test_pattern << 7) | (test_pattern >> 1));
+}
+
+// Stage global brightness if different from default:
+void tlc_stage_bc(uint8_t bc) {
+    bc = bc & 0b01111111; // Mask out BLANK just in case.
+    fun_base[17] &= 0b10000000;
+    fun_base[17] |= bc;
+}
+
+void init_tlc() {
+    // This is just out of an abundance of caution:
     UCA0CTLW0 |= UCSWRST;
     UCA0CTLW0 &= ~UC7BIT;
     UCA0CTLW0 &= ~UCSWRST;
 
-    led_loopback(0b10011101);
+    EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+    EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 
-    tlc_set_fun(1);
-    tlc_set_gs(0);
-    tlc_set_fun(0);
+    tlc_set_gs();
+
+    tlc_stage_blank(1);
+    tlc_set_fun();
 }
 
-void led_enable(uint16_t duty_cycle) {
-}
+uint8_t bank = 0;
+uint8_t bank_brightness[] = {0xff, 0x01, 0x10, 0x80, 0x01, 0x0f};
 
-void led_disable( void )
+#pragma vector=USCI_A0_VECTOR
+__interrupt void EUSCI_A0_ISR(void)
 {
+    switch (__even_in_range(UCA0IV, 4)) {
+    //Vector 2 - RXIFG
+    case 2:
+        // We received some garbage sent to us while we were sending.
+        if (tlc_send_type == TLC_SEND_TYPE_LB) {
+            // We're only interested in it if we're doing a loopback test.
+            tlc_loopback_data_in = EUSCI_B_SPI_receiveData(EUSCI_A0_BASE);
+        } else {
+            EUSCI_B_SPI_receiveData(EUSCI_A0_BASE); // Throw it away.
+        }
+        break; // End of RXIFG ///////////////////////////////////////////////////////
+
+    case 4: // Vector 4 - TXIFG : I just sent a byte.
+        if (tlc_send_type == TLC_SEND_TYPE_GS) {
+            if (tlc_tx_index == 32) { // done
+                GPIO_pulse(TLC_LATPORT, TLC_LATPIN); // LATCH.
+                tlc_send_type = TLC_SEND_IDLE;
+
+                switch (bank) {
+                case 0:
+                    LED_BANK1_OUT &= ~LED_BANK1_PIN;
+                    bank++;
+                    break;
+                case 1:
+                    LED_BANK2_OUT &= ~LED_BANK2_PIN;
+                    bank++;
+                    break;
+                case 2:
+                    LED_BANK3_OUT &= ~LED_BANK3_PIN;
+                    bank++;
+                    break;
+                case 3:
+                    LED_BANK4_OUT &= ~LED_BANK4_PIN;
+                    bank++;
+                    break;
+                case 4:
+                    LED_BANK5_OUT &= ~LED_BANK5_PIN;
+                    bank++;
+                    break;
+                case 5:
+                    LED_BANK6_OUT &= ~LED_BANK6_PIN;
+                    bank = 0;
+                    break;
+                }
+
+                break;
+            } else { // gs - MSB first; this starts with 0.
+                if (tlc_tx_index & 0x01) { // odd; less significant byte
+                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, 0x00);
+                } else { // even; more significant byte
+                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, bank_brightness[bank]); // TODO
+                }
+            }
+            tlc_tx_index++;
+        } else if (tlc_send_type == TLC_SEND_TYPE_FUN) {
+            if (tlc_tx_index == 18) { // after 18 we have to switch to 7-bit mode.
+                UCA0CTLW0 |= UCSWRST;
+                UCA0CTLW0 |= UC7BIT;
+                UCA0CTLW0 &= ~UCSWRST;
+                EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+                EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+            } else if (tlc_tx_index == 34) {
+                GPIO_pulse(TLC_LATPORT, TLC_LATPIN); // LATCH.
+                UCA0CTLW0 |= UCSWRST;
+                UCA0CTLW0 &= ~UC7BIT;
+                UCA0CTLW0 &= ~UCSWRST;
+                EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+                EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+                tlc_send_type = TLC_SEND_IDLE;
+                break;
+            }
+            EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, fun_base[tlc_tx_index]);
+            tlc_tx_index++;
+        } else if (tlc_send_type == TLC_SEND_TYPE_LB) { // Loopback for POST
+            if (tlc_tx_index == 33) {
+                tlc_send_type = TLC_SEND_IDLE;
+                break;
+            }
+            EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, tlc_loopback_data_out);
+            tlc_tx_index++;
+        } else {
+            tlc_send_type = TLC_SEND_IDLE; // probably shouldn't reach.
+        }
+        break; // End of TXIFG /////////////////////////////////////////////////////
+
+    default: break;
+    } // End of ISR flag switch ////////////////////////////////////////////////////
 }

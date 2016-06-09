@@ -2,8 +2,8 @@
 
 rfm75.obj: ../rfm75.c
 rfm75.obj: ../rfm75.h
-rfm75.obj: ../qc12.h
 rfm75.obj: D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdint.h
+rfm75.obj: ../qc13.h
 rfm75.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h
 rfm75.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/inc/hw_memmap.h
 rfm75.obj: D:/ti/ccsv6/ccs_base/msp430/include/msp430.h
@@ -50,8 +50,8 @@ rfm75.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/w
 
 ../rfm75.c: 
 ../rfm75.h: 
-../qc12.h: 
 D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdint.h: 
+../qc13.h: 
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h: 
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/inc/hw_memmap.h: 
 D:/ti/ccsv6/ccs_base/msp430/include/msp430.h: 

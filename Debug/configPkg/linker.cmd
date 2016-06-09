@@ -129,8 +129,6 @@
 
 /* Content from ti.mcu.msp430.csl.system (null): */
 
-/* Content from ti.mcu.msp430.csl2.timer (null): */
-
 /* Content from ti.mcu.msp430.csl2.watchdog (null): */
 
 /* Content from ti.mcu.msp430.csl2.clock (null): */

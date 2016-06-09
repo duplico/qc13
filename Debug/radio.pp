@@ -3,7 +3,7 @@
 radio.obj: ../radio.c
 radio.obj: ../radio.h
 radio.obj: D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdint.h
-radio.obj: ../qc12.h
+radio.obj: ../leds.h
 radio.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h
 radio.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/inc/hw_memmap.h
 radio.obj: D:/ti/ccsv6/ccs_base/msp430/include/msp430.h
@@ -47,14 +47,14 @@ radio.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/t
 radio.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/timer_b.h
 radio.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/tlv.h
 radio.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/wdt_a.h
-radio.obj: ../leds.h
-radio.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h
 radio.obj: D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/string.h
+radio.obj: ../qc13.h
+radio.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h
 
 ../radio.c: 
 ../radio.h: 
 D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdint.h: 
-../qc12.h: 
+../leds.h: 
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h: 
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/inc/hw_memmap.h: 
 D:/ti/ccsv6/ccs_base/msp430/include/msp430.h: 
@@ -98,6 +98,6 @@ D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/timer_a.h:
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/timer_b.h: 
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/tlv.h: 
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/wdt_a.h: 
-../leds.h: 
-D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h: 
 D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/string.h: 
+../qc13.h: 
+D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h: 
