@@ -1,9 +1,0 @@
-package/cfg/main_pe430X.oe430X: package/cfg/main_pe430X.c D:/ti/xdctools_3_31_01_33_core/packages/xdc/std.h D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdarg.h D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stddef.h D:/ti/grace_3_10_00_82/packages/ti/targets/msp430/elf/std.h D:/ti/grace_3_10_00_82/packages/ti/targets/select.h D:/ti/grace_3_10_00_82/packages/ti/targets/std.h D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdint.h 
-package/cfg/main_pe430X.c:
-D:/ti/xdctools_3_31_01_33_core/packages/xdc/std.h:
-D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdarg.h:
-D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stddef.h:
-D:/ti/grace_3_10_00_82/packages/ti/targets/msp430/elf/std.h:
-D:/ti/grace_3_10_00_82/packages/ti/targets/select.h:
-D:/ti/grace_3_10_00_82/packages/ti/targets/std.h:
-D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdint.h:
