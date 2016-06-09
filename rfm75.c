@@ -76,11 +76,11 @@ void rfm75_select_bank(uint8_t bank) {
     }
 }
 
-void delay_millis(unsigned long mils) {
-    while (mils) {
-        __delay_cycles(4000);
-    }
-}
+//void delay_millis(unsigned long mils) {
+//    while (mils) {
+//        __delay_cycles(4000);
+//    }
+//}
 
 void rfm75_init()
 {

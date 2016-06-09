@@ -12,7 +12,7 @@
  *   LED controller (TLC5948A)
  *        (write on rise, change on fall,
  *         clock inactive low, MSB first)
- *        eUSCI_A0 - LEDs  (shared)
+ *        eUSCI_A0 - LEDs
  *        somi, miso, clk
  *        GSCLK     P1.2 (timer TA1.1)
  *        LAT       P1.4

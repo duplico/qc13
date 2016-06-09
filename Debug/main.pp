@@ -50,7 +50,7 @@ main.obj: D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdarg.h
 main.obj: D:/ti/grace_3_10_00_82/packages/ti/mcu/msp430/Grace.h
 main.obj: ../qc12.h
 main.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h
-main.obj: ../radio.h
+main.obj: ../rfm75.h
 main.obj: ../leds.h
 
 ../main.c: 
@@ -103,5 +103,5 @@ D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdarg.h:
 D:/ti/grace_3_10_00_82/packages/ti/mcu/msp430/Grace.h: 
 ../qc12.h: 
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h: 
-../radio.h: 
+../rfm75.h: 
 ../leds.h: 
