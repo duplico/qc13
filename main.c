@@ -86,6 +86,8 @@ void delay_millis(unsigned long mils) {
         mils--;
     }
 }
+volatile uint16_t light = 0;
+volatile uint16_t temp = 0;
 
 int main(void)
 {
@@ -97,24 +99,17 @@ int main(void)
     tlc_stage_blank(0);
     tlc_set_fun();
 
-    while (1);
+    delay_millis(10);
 
-
-
-//    {
-
-//        delay_millis(3);
-//    }
-
-    /*
+    while(1)
     {
-    	tlc_set_fun(1);
-//    	tlc_set_gs(shift);
-//    	tlc_set_fun(0);
-//    	shift = (shift + 3) % 15;
-//    	__delay_cycles(2000000);
+        light = ADC12MEM0;
+        temp = ADC12MEM1;
+
+        __bis_SR_register(LPM0_bits + GIE);     // LPM0, ADC12_B_ISR will force exit
+        __no_operation();                       // For debugger
     }
-    */
+
 }
 
 volatile uint8_t shift = 0;
@@ -146,4 +141,5 @@ __interrupt void TIMER0_A0_ISR_HOOK(void)
             | LED_BANK4_PIN;
     LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
     tlc_set_gs();
+    __bic_SR_register_on_exit(LPM0_bits);
 }

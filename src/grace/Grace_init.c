@@ -50,6 +50,9 @@ void Grace_init(void)
     /* initialize Config for the MSP430 EUSCI_B0 */
     EUSCI_B0_graceInit();
 
+    /* initialize Config for the MSP430 12-bit Analog to Digital Converter (ADC12) */
+    ADC12_B_graceInit();
+
     /* initialize Interrupt vector support */
     InterruptVectors_graceInit();
 

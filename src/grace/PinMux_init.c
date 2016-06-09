@@ -57,8 +57,11 @@ void PinMux_graceInit(void)
     /* Port 1 Output Register */
     P1OUT = 0;
 
+    /* Port 1 Port Select Register 0 */
+    P1SEL0 = BIT0 | BIT1;
+
     /* Port 1 Port Select Register 1 */
-    P1SEL1 = BIT3 | BIT5 | BIT6 | BIT7;
+    P1SEL1 = BIT0 | BIT1 | BIT3 | BIT5 | BIT6 | BIT7;
 
     /* Port 1 Direction Register */
     P1DIR = BIT4;
@@ -88,7 +91,7 @@ void PinMux_graceInit(void)
     P2IFG = 0;
 
     /* Port J Output Register */
-    PJOUT = 0;
+    PJOUT = BIT0 | BIT1 | BIT2 | BIT3;
 
     /* Port J Port Select Register 0 */
     PJSEL0 = BIT4 | BIT5;

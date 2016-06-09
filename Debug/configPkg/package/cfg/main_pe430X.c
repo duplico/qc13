@@ -181,6 +181,12 @@ Void ti_catalog_msp430_init_Boot_init(Void)
 /* WDT_A stuff from D:/ti/grace_3_10_00_82/packages/ti/mcu/msp430/csl2/watchdog/./WDT_A.xdt */
 
 /*
+ * ======== ti.mcu.msp430.csl2.adc.ADC12_B TEMPLATE ========
+ */
+
+/* ADC12 stuff from D:/ti/grace_3_10_00_82/packages/ti/mcu/msp430/csl2/adc/./ADC12_B.xdt */
+
+/*
  * ======== ti.mcu.msp430.csl2.clock.CS_A TEMPLATE ========
  */
 

@@ -14,6 +14,7 @@ void CS_A_graceInit(void);
 void EUSCI_A0_graceInit(void);
 void EUSCI_A1_graceInit(void);
 void EUSCI_B0_graceInit(void);
+void ADC12_B_graceInit(void);
 void InterruptVectors_graceInit(void);
 void System_graceInit(void);
 void WDT_A_graceInit(void);
