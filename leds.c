@@ -217,7 +217,7 @@ __interrupt void EUSCI_A0_ISR(void)
                 if (tlc_tx_index & 0x01) { // odd; less significant byte
                     EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, 0x00);
                 } else { // even; more significant byte
-                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, bank_brightness[bank]); // TODO
+                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, light); //bank_brightness[bank]); // TODO
                 }
             }
             tlc_tx_index++;

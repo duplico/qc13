@@ -61,6 +61,9 @@ extern volatile uint8_t f_time_loop;
 extern volatile uint8_t f_rfm_rx_done;
 extern volatile uint8_t f_rfm_tx_done;
 
+extern uint16_t light;
+extern uint16_t temp;
+
 typedef struct {
 	uint8_t to_addr, from_addr, base_id, clock_authority;
 	uint8_t prop_from;
