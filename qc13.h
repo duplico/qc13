@@ -5,19 +5,15 @@
  * 3-clause BSD license; see license.md.
  */
 
-#ifndef QC12_H_
-#define QC12_H_
+#ifndef QC13_H_
+#define QC13_H_
 
 #include <stdint.h>
 #include <driverlib/MSP430FR5xx_6xx/driverlib.h>
 
 void usci_a_send(uint16_t base, uint8_t data);
 
-
-
-
-
-
+void delay_millis(unsigned long);
 
 // Configuration flags
 #define BADGE_TARGET 1
@@ -87,4 +83,4 @@ extern qcxipayload in_payload, out_payload;
 	extern uint8_t ws_frameBuffer[];
 #endif
 
-#endif /* QC12_H_ */
+#endif /* QC13_H_ */
