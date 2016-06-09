@@ -6,8 +6,8 @@
  */
 
 #include "rfm75.h"
-#include "qc12.h"
 #include <stdint.h>
+#include "qc13.h"
 
 // Radio (RFM75):
 // CE   P3.2

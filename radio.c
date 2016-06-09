@@ -6,12 +6,12 @@
  */
 
 #include "radio.h"
-#include "qc12.h"
 #include "leds.h"
 
 #include <stdint.h>
 #include <driverlib/MSP430FR5xx_6xx/driverlib.h>
 #include <string.h>
+#include "qc13.h"
 
 #define SPICLK 8000000
 

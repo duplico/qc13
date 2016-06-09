@@ -48,7 +48,7 @@ main.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/wd
 main.obj: D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdio.h
 main.obj: D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdarg.h
 main.obj: D:/ti/grace_3_10_00_82/packages/ti/mcu/msp430/Grace.h
-main.obj: ../qc12.h
+main.obj: ../qc13.h
 main.obj: D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h
 main.obj: ../rfm75.h
 main.obj: ../leds.h
@@ -101,7 +101,7 @@ D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/wdt_a.h:
 D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdio.h: 
 D:/ti/ccsv6/tools/compiler/ti-cgt-msp430_4.4.7/include/stdarg.h: 
 D:/ti/grace_3_10_00_82/packages/ti/mcu/msp430/Grace.h: 
-../qc12.h: 
+../qc13.h: 
 D:/ti/msp430/MSPWare_3_30_00_18/driverlib/driverlib/MSP430FR5xx_6xx/driverlib.h: 
 ../rfm75.h: 
 ../leds.h: 
