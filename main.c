@@ -78,6 +78,49 @@ void init() {
     initUpParam.startTimer = false;
     Timer_A_initUpMode(TIMER_A0_BASE, &initUpParam);
     Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
+
+
+
+
+    /* Struct to pass to ADC12_B_init */
+    ADC12_B_initParam initParam = {0};
+
+    /* Struct to pass to ADC12_B_configureMemory */
+    ADC12_B_configureMemoryParam configureMemoryParam = {0};
+
+    /* Initializes ADC12_B */
+    initParam.sampleHoldSignalSourceSelect = ADC12_B_SAMPLEHOLDSOURCE_SC;
+    initParam.clockSourceSelect = ADC12_B_CLOCKSOURCE_ADC12OSC;
+    initParam.clockSourceDivider = ADC12_B_CLOCKDIVIDER_1;
+    initParam.clockSourcePredivider = ADC12_B_CLOCKPREDIVIDER__1;
+    initParam.internalChannelMap = 0;
+    ADC12_B_init(ADC12_B_BASE, &initParam);
+
+    /* Enables ADC12_B */
+    ADC12_B_enable(ADC12_B_BASE);
+
+    /* Sets up and enables the Sampling Timer Pulse Mode */
+    ADC12_B_setupSamplingTimer(ADC12_B_BASE, ADC12_B_CYCLEHOLD_8_CYCLES, ADC12_B_CYCLEHOLD_8_CYCLES, ADC12_B_MULTIPLESAMPLESENABLE);
+
+    /* Configures the memory buffer 1 */
+    configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_1;
+    configureMemoryParam.inputSourceSelect = ADC12_B_INPUT_A1;
+    configureMemoryParam.refVoltageSourceSelect = ADC12_B_VREFPOS_AVCC_VREFNEG_VSS;
+    configureMemoryParam.endOfSequence = ADC12_B_ENDOFSEQUENCE;
+    configureMemoryParam.windowComparatorSelect = ADC12_B_WINDOW_COMPARATOR_DISABLE;
+    configureMemoryParam.differentialModeSelect = ADC12_B_DIFFERENTIAL_MODE_DISABLE;
+    ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
+
+    /* Inverts/Uninverts the sample/hold signal */
+    ADC12_B_setSampleHoldSignalInversion(ADC12_B_BASE, ADC12_B_NONINVERTEDSIGNAL);
+
+    /* Sets the read-back format of the converted data */
+    ADC12_B_setDataReadBackFormat(ADC12_B_BASE, ADC12_B_UNSIGNED_BINARY);
+//
+//    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE0, 0, 0); // MEM0
+//    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE1, 0, 0); // MEM1
+
+    ADC12_B_startConversion(ADC12_B_BASE, ADC12_B_START_AT_ADC12MEM0, ADC12_B_REPEATED_SEQOFCHANNELS);
 }
 
 void delay_millis(unsigned long mils) {
@@ -86,15 +129,15 @@ void delay_millis(unsigned long mils) {
         mils--;
     }
 }
-volatile uint16_t light = 0;
-volatile uint16_t temp = 0;
+
+uint16_t light = 0;
+uint16_t temp = 0;
 
 int main(void)
 {
     volatile uint8_t in = 0;
 
     init();
-
 
     tlc_stage_blank(0);
     tlc_set_fun();
@@ -103,9 +146,9 @@ int main(void)
 
     while(1)
     {
-        light = ADC12MEM0;
-        temp = ADC12MEM1;
-
+        delay_millis(100); // 10 Hz busywait.
+        light = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
+        temp = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1);
         __bis_SR_register(LPM0_bits + GIE);     // LPM0, ADC12_B_ISR will force exit
         __no_operation();                       // For debugger
     }
@@ -113,26 +156,6 @@ int main(void)
 }
 
 volatile uint8_t shift = 0;
-
-//#pragma vector=TIMER0_A1_VECTOR
-//__interrupt void isr_ta0_other(void) {
-//    switch (__even_in_range(TA0IV, 10)) {
-//    case 0x00: break; // None
-//    case 0x02: break; // CCR1
-//    case 0x04: break; // CCR2;
-//    case 0x06: break; // CCR3
-//    case 0x08: break; // CCR4
-//    case 0x0a: break; // CCR5
-//    case 0x0c: break; // CCR6
-//    case 0x0e: // TA0IFG
-//        LED_BANK1_OUT |= LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
-//                | LED_BANK4_PIN;
-//        LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
-//        bank++;
-//        tlc_set_gs();
-//        break;
-//    }
-//}
 
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR_HOOK(void)
@@ -143,3 +166,16 @@ __interrupt void TIMER0_A0_ISR_HOOK(void)
     tlc_set_gs();
     __bic_SR_register_on_exit(LPM0_bits);
 }
+//
+//#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+//#pragma vector=ADC12_VECTOR
+//__interrupt
+//#elif defined(__GNUC__)
+//__attribute__((interrupt(ADC12_VECTOR)))
+//#endif
+//void ADC12_ISR(void)
+//{
+//    light = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
+//    temp = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1);
+//}
+//
