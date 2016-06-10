@@ -1,9 +1,6 @@
 /*
  * ======== Standard MSP430 includes ========
  */
-#include <msp430fr5949.h>
-#include <driverlib/MSP430FR5xx_6xx/driverlib.h>
-#include <stdint.h>
 #include <stdio.h>
 
 // Grace includes:
@@ -30,57 +27,11 @@
  *
  */
 
-void init() {
-    Grace_init(); // Activate Grace-generated configuration
+uint16_t light = 0;
+uint16_t temp = 0;
 
-    LED_BANK1_OUT |= LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN | LED_BANK4_PIN;
-    LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
-
-    PM5CTL0 &= ~LOCKLPM5;
-
-    /*
-     * Peripherals:
-     *
-     *  Radio (RFM69CW)
-     *        (MSB first, clock inactive low,
-     *         write on rise, change on fall, MSB first)
-     *        eUSCI_B0 - radio
-     *        somi, miso, clk, ste
-     *        DIO0      P3.1
-     *        RESET     P3.2
-     */
-//    init_radio();
-
-    init_tlc();
-
-    Timer_A_initUpModeParam gsclk_init = {};
-    gsclk_init.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
-    gsclk_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    gsclk_init.timerPeriod = 2;
-    gsclk_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
-    gsclk_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
-    gsclk_init.timerClear = TIMER_A_SKIP_CLEAR;
-    gsclk_init.startTimer = false;
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION);
-
-    Timer_A_initUpMode(TIMER_A1_BASE, &gsclk_init);
-    Timer_A_setOutputMode(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_1, TIMER_A_OUTPUTMODE_TOGGLE_RESET);
-    Timer_A_setCompareValue(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_1, 1);
-    Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_UP_MODE);
-
-    Timer_A_initUpModeParam initUpParam = {};
-    initUpParam.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
-    initUpParam.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    initUpParam.timerPeriod = 50;
-    initUpParam.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
-    initUpParam.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
-    initUpParam.timerClear = TIMER_A_SKIP_CLEAR;
-    initUpParam.startTimer = false;
-    Timer_A_initUpMode(TIMER_A0_BASE, &initUpParam);
-    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
-
-
-
+void init_adc() {
+    // TODO: Better documentation
 
     /* Struct to pass to ADC12_B_init */
     ADC12_B_initParam initParam = {0};
@@ -116,14 +67,20 @@ void init() {
 
     /* Sets the read-back format of the converted data */
     ADC12_B_setDataReadBackFormat(ADC12_B_BASE, ADC12_B_UNSIGNED_BINARY);
-//
-//    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE0, 0, 0); // MEM0
-//    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE1, 0, 0); // MEM1
+    //
+    //    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE0, 0, 0); // MEM0
+    //    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE1, 0, 0); // MEM1
 
     ADC12_B_startConversion(ADC12_B_BASE, ADC12_B_START_AT_ADC12MEM0, ADC12_B_REPEATED_SEQOFCHANNELS);
+}
 
-    rfm75_init();
+void init() {
+    PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
+    Grace_init(); // Activate Grace-generated configuration
 
+    tlc_init();   // Initialize our LED system
+    rfm75_init(); // Initialize our radio
+    init_adc();   // Start up the ADC for light and temp sensors.
 }
 
 void delay_millis(unsigned long mils) {
@@ -132,9 +89,6 @@ void delay_millis(unsigned long mils) {
         mils--;
     }
 }
-
-uint16_t light = 0;
-uint16_t temp = 0;
 
 int main(void)
 {

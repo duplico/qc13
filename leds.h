@@ -55,7 +55,7 @@ typedef struct {
     int_fast32_t blue;
 } rgbdelta_t;
 
-void init_tlc();
+void tlc_init();
 
 uint8_t tlc_test_loopback(uint8_t);
 
