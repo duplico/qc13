@@ -10,12 +10,18 @@
 #include "qc13.h"
 
 // Radio (RFM75):
-// CE   P3.2
+// CE   P3.2 (or 1.2 for launchpad)
 // CSN  P1.3
 // SCK  P2.2
 // MOSI P1.6
 // MISO P1.7
-// IRQ  P3.1
+// IRQ  P3.1 (or 3.0 for launchpad)
+
+#define CSN_OUT P1OUT
+#define CSN_PIN  GPIO_PIN3
+
+#define CSN_LOW_START CSN_OUT &= ~CSN_PIN
+#define CSN_HIGH_END  CSN_OUT |= CSN_PIN
 
 //Bank0 register initialization value
 const uint8_t bank0_init_data[][2] = {
@@ -56,31 +62,46 @@ void usci_b0_send_sync(uint8_t data) {
     usci_b0_recv_sync(data);
 }
 
-void send_rfm75_cmd(uint8_t cmd, uint8_t *data, uint8_t data_len) {
+uint8_t rfm75_get_status() {
+    uint8_t recv;
+    CSN_LOW_START;
+    recv = usci_b0_recv_sync(NOP_NOP);
+    CSN_HIGH_END;
+    return recv;
+}
+
+void send_rfm75_cmd(uint8_t cmd, uint8_t data) {
+    CSN_LOW_START;
+    usci_b0_send_sync(cmd);
+    usci_b0_send_sync(data);
+    CSN_HIGH_END;
+}
+
+void send_rfm75_cmd_buf(uint8_t cmd, uint8_t *data, uint8_t data_len) {
+    CSN_LOW_START;
     usci_b0_send_sync(cmd);
     for (uint8_t i=0; i<data_len; i++) {
         usci_b0_send_sync(data[i]);
     }
+    CSN_HIGH_END;
 }
 
 uint8_t rfm75_read_byte(uint8_t cmd) {
+    cmd &= 0b00011111;
+    CSN_LOW_START;
     usci_b0_send_sync(cmd);
-    return usci_b0_recv_sync(0b10101010);
+    uint8_t recv = usci_b0_recv_sync(0xff);
+    CSN_HIGH_END;
+    return recv;
 }
 
 void rfm75_select_bank(uint8_t bank) {
-    volatile uint8_t currbank = rfm75_read_byte(STATUS);
+    volatile uint8_t currbank = rfm75_get_status() & 0x80; // Get MSB, which is active bank.
     if ((currbank && (bank==0)) || ((currbank==0) && bank)) {
         uint8_t switch_bank = 0x53;
-        send_rfm75_cmd(ACTIVATE_CMD, &switch_bank, 1);
+        send_rfm75_cmd(ACTIVATE_CMD, switch_bank);
     }
 }
-
-//void delay_millis(unsigned long mils) {
-//    while (mils) {
-//        __delay_cycles(4000);
-//    }
-//}
 
 void rfm75_init()
 {
@@ -91,6 +112,15 @@ void rfm75_init()
     rfm75_select_bank(0);
     rfm75_select_bank(1);
     rfm75_select_bank(0);
+
+    volatile uint8_t test_in = 0;
+    test_in = rfm75_read_byte(RX_ADDR_P0);
+    test_in = rfm75_read_byte(RX_ADDR_P1);
+    test_in = rfm75_read_byte(RX_ADDR_P2);
+    test_in = rfm75_read_byte(RX_ADDR_P3);
+    __no_operation();
+
+
 
     // Write Bank0 registers
     //  Write [0..5) from buffer

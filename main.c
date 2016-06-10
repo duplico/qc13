@@ -121,6 +121,9 @@ void init() {
 //    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE1, 0, 0); // MEM1
 
     ADC12_B_startConversion(ADC12_B_BASE, ADC12_B_START_AT_ADC12MEM0, ADC12_B_REPEATED_SEQOFCHANNELS);
+
+    rfm75_init();
+
 }
 
 void delay_millis(unsigned long mils) {
