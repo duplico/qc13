@@ -11,10 +11,10 @@
 
 /*
  *   LED controller (TLC5948A)
+ *        eUSCI_A0 - LEDs
  *        (write on rise, change on fall,
  *         clock inactive low, MSB first)
- *        eUSCI_A0 - LEDs
- *        somi, miso, clk
+ *        somi, miso, clk (3-wire)
  *        GSCLK     P1.2 (timer TA1.1)
  *        LAT       P1.4
  */
@@ -24,31 +24,16 @@
 
 // Current TLC sending state:
 uint8_t tlc_send_type = TLC_SEND_IDLE;
-
 uint8_t tlc_tx_index = 0;   // Index of currently sending buffer
-
 
 uint8_t tlc_loopback_data_out = 0x00;
 volatile uint8_t tlc_loopback_data_in = 0x00;
 
-// Buffers containing actual data to send to the TLC:
-
+// This is the basic set of function data.
+// A few of them can be edited.
 uint8_t fun_base[] = {
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00, // ...reserved...
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // ...reserved...
         // B135 / PSM(D1)       0
         // B134 / PSM(D0)       0
         // B133 / OLDENA        0
@@ -69,25 +54,11 @@ uint8_t fun_base[] = {
         0x87,
         // B119 / BLANK
         // and 7 bits of global brightness correction:
-        0x08,
+        0x08, // TODO: check this out.
         // HERE WE SWITCH TO 7-BIT SPI.
         // The following index is 18:
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
-        0x7F,
+        0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F,
+        0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F,
 };
 
 void tlc_set_gs() {
@@ -146,17 +117,58 @@ void tlc_stage_bc(uint8_t bc) {
     fun_base[17] |= bc;
 }
 
-void init_tlc() {
+void tlc_init() {
+
+    // First, we're going to configure the timer that outputs GSCLK.
+    //  We want this to go as fast as possible.
+    //   (its max, 33 MHz, is faster than our fastest possible source, 24MHz)
+    //  Below this is configured to toggle every cycle of SMCLK,
+    //  which should be our fastest clock.
+
+    Timer_A_initUpModeParam gsclk_init = {};
+    gsclk_init.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
+    gsclk_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
+    gsclk_init.timerPeriod = 2;
+    gsclk_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+    gsclk_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
+    gsclk_init.timerClear = TIMER_A_SKIP_CLEAR;
+    gsclk_init.startTimer = false;
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION);
+
+    // Next we configure the clock that tells us when it's time to select the
+    //  next LED channel bank.
+    // We'll run this off of ACLK, which is driven by our 32K LFXT.
+
+    Timer_A_initUpModeParam next_channel_timer_init = {};
+    next_channel_timer_init.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
+    next_channel_timer_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
+    next_channel_timer_init.timerPeriod = 50;
+    next_channel_timer_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+    next_channel_timer_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
+    next_channel_timer_init.timerClear = TIMER_A_SKIP_CLEAR;
+    next_channel_timer_init.startTimer = false;
+
+    // Start the clocks:
+
+    // A1 / GSCLK:
+    Timer_A_initUpMode(TIMER_A1_BASE, &gsclk_init);
+    Timer_A_setOutputMode(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_1, TIMER_A_OUTPUTMODE_TOGGLE_RESET);
+    Timer_A_setCompareValue(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_1, 1);
+    Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_UP_MODE);
+
+    // A0 / LED channel timer:
+    Timer_A_initUpMode(TIMER_A0_BASE, &next_channel_timer_init);
+    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
+
     // This is just out of an abundance of caution:
-    UCA0CTLW0 |= UCSWRST;
-    UCA0CTLW0 &= ~UC7BIT;
-    UCA0CTLW0 &= ~UCSWRST;
+    UCA0CTLW0 |= UCSWRST;  // Shut down USCI_A0,
+    UCA0CTLW0 &= ~UC7BIT;  //  put it in 8-bit mode
+    UCA0CTLW0 &= ~UCSWRST; //  and enable it again.
 
     EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
     EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 
     tlc_set_gs();
-
     tlc_stage_blank(1);
     tlc_set_fun();
 }

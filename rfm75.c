@@ -17,11 +17,11 @@
 // MISO P1.7
 // IRQ  P3.1 (or 3.0 for launchpad)
 
-#define CSN_OUT P1OUT
-#define CSN_PIN  GPIO_PIN3
+#define RFM75_CSN_OUT P1OUT
+#define RFM75_CSN_PIN  GPIO_PIN3
 
-#define CSN_LOW_START CSN_OUT &= ~CSN_PIN
-#define CSN_HIGH_END  CSN_OUT |= CSN_PIN
+#define CSN_LOW_START RFM75_CSN_OUT &= ~RFM75_CSN_PIN
+#define CSN_HIGH_END  RFM75_CSN_OUT |= RFM75_CSN_PIN
 
 //Bank0 register initialization value
 const uint8_t bank0_init_data[][2] = {
