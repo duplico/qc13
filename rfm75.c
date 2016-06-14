@@ -23,6 +23,16 @@
 #define CSN_LOW_START RFM75_CSN_OUT &= ~RFM75_CSN_PIN
 #define CSN_HIGH_END  RFM75_CSN_OUT |= RFM75_CSN_PIN
 
+#if BADGE_TARGET
+    // Target is the actual badge:
+    #define CE_ACTIVATE P3OUT   |=  BIT2
+    #define CE_DEACTIVATE P3OUT &= ~BIT2
+#else
+    // Target is the Launchpad+shield:
+    #define CE_ACTIVATE P1OUT   |=  BIT2
+    #define CE_DEACTIVATE P1OUT &= ~BIT2
+#endif
+
 //Bank0 register initialization value
 const uint8_t bank0_init_data[][2] = {
     { 0x00, 0x0F }, //reflect RX_DR\TX_DS\MAX_RT,Enable CRC ,2byte,POWER UP,PRX
@@ -120,9 +130,10 @@ void rfm75_select_bank(uint8_t bank) {
 }
 
 uint8_t rfm75_post() {
-    uint8_t active = send_rfm75_cmd(READ_REG|0x1d, 0x00);
+    volatile uint8_t active = send_rfm75_cmd(READ_REG|0x1d, 0x00);
     send_rfm75_cmd(ACTIVATE_CMD, 0x73);
-    if (send_rfm75_cmd(READ_REG|0x1d, 0x00) != (active ^ 0b00000111)) {
+    volatile uint8_t active2 = send_rfm75_cmd(READ_REG|0x1d, 0x00);
+    if (active2 != (active ^ 0b00000111)) {
         return 0;
     }
     // TODO: More
@@ -133,10 +144,11 @@ void rfm75_init()
 {
 
     delay_millis(100); // Delay more than 50ms.
+    rfm75_post();
 
     // Activate:
     uint8_t i = send_rfm75_cmd(READ_REG|0x1d, 0x00);
-    if(i==0) // If already active this would be nonzero.
+    if(i==0) // If already active this would be nonzero. Maybe.
         send_rfm75_cmd(ACTIVATE_CMD, 0x73);
 
     // Let's start with bank 0:
@@ -144,6 +156,14 @@ void rfm75_init()
 
     for(i=0;i<23;i++)
         rfm75_write_reg(bank0_init_data[i][0], bank0_init_data[i][1]);
+
+    volatile uint8_t temp = 0;
+    volatile uint8_t test = 0;
+    for(i=0;i<23;i++) {
+        temp = rfm75_read_byte(bank0_init_data[i][0]);
+        test = temp == bank0_init_data[i][1];
+        __no_operation();
+    }
 
     // Next fill address buffers (TODO):
     //  Reg 0x0a: 5 bytes RX0 addr (unicast)
@@ -157,37 +177,46 @@ void rfm75_init()
     // We're going to send the first three words (like they're buffers).
     // They get sent LEAST SIGNIFICANT BYTE FIRST: so we start with {0x40, 0c4B, 0x01, 0xE2}
     // Like this:
-//    {0x40, 0x4b, 0x01, 0xe2}
-//    {0xc0, 0x4b, 0x00, 0x00}
-//    {0xd0, 0xfc, 0x8c, 0x02}
-//    {0x99, 0x00, 0x39, 0x41}
-//    {0xf9, 0x96, 0x82, 0x1b} // 1 Mbps
-//    {0x24, 0x06, 0x0f, 0xa6} // 1 Mbps
-//
-//    // 0x0c:
-//    {0x00, 0x73, 0x12, 0x00} // 120 us mode (PLL settle time?)
-//    {0x00, 0x80, 0xb4, 0x36} // reserved?
-//    {0x41, 0x20, 0x08, 0x04, 0x81, 0x20, 0xcf, 0xf7, 0xfe, 0xff, 0xff}
-    /*
-     * 0xE2014B40, // reserved
-     * 0x00004BC0, // reserved
-     * 0x028CFCD0, // reserved
-     * 0x41390099, // reserved
-     * 0x1B8296F9, // 1Mbps
-     * 0xA60F0624, // 1Mbps
-     * ... skip to 0x0C:
-     * 0x00127300, // 120 us mode, whatever that means. (PLL settle time?)
-     * 0x36B48000, // reserved
-     * Lastly: 0x41,0x20,0x08,0x04,0x81,0x20,0xCF,0xF7,0xFE,0xFF,0xFF
-     */
+    uint8_t bank1_config_0x00[][4] = {
+        {0x40, 0x4b, 0x01, 0xe2}, // reserved (prescribed)
+        {0xc0, 0x4b, 0x00, 0x00}, // reserved (prescribed)
+        {0xd0, 0xfc, 0x8c, 0x02}, // reserved (prescribed)
+        {0x99, 0x00, 0x39, 0x41}, // reserved (prescribed)
+        {0xf9, 0x96, 0x82, 0x1b}, // 1 Mbps
+        {0x24, 0x06, 0x0f, 0xa6}, // 1 Mbps
+    };
 
-    // Then the sample code does some kind of toggle thing that isn't in the datasheet.
+    for (uint8_t i=0; i<6; i++) {
+        rfm75_write_reg_buf(i, bank1_config_0x00[i], 4);
+    }
+
+    uint8_t bank1_config_0x0c[][4] = {
+        {0x00, 0x73, 0x12, 0x00}, // 120 us mode (PLL settle time?)
+        {0x00, 0x80, 0xb4, 0x36}, // reserved?
+    };
+
+    for (uint8_t i=0; i<2; i++) {
+        rfm75_write_reg_buf(i, bank1_config_0x0c[0x0c+i], 4);
+    }
+
+    uint8_t bank1_config_0x0e[11] = {0x41, 0x20, 0x08, 0x04, 0x81, 0x20, 0xcf, 0xf7, 0xfe, 0xff, 0xff}; // ramp curve, prescribed
+    rfm75_write_reg_buf(i, bank1_config_0x0e, 11);
+
+    // TODO: Then the sample code does some kind of toggle thing that isn't in the datasheet.
 
     rfm75_select_bank(0);
 
     // And we're off to see the wizard!
 
-    //
-    //    SwitchToRxMode();//switch to RX mode
-    //    //SwitchToTxMode();//switch to RX mode
+    // Go into RX mode:
+
+    __no_operation();
+    rfm75_write_reg(0x00, 0b00001011); // power-up
+    delay_millis(3); // 1.5 ms at least.
+
+    temp = rfm75_read_byte(0x00);
+    test = temp == 0b00001011;
+    __no_operation();
+
+    CE_ACTIVATE;
 }
