@@ -22,6 +22,20 @@
 #define TLC_THISISGS    0x00
 #define TLC_THISISFUN   0x01
 
+#define ADC_WINDOW 32
+
+volatile uint16_t lights[ADC_WINDOW] = {0};
+volatile uint16_t temps[ADC_WINDOW] = {0};
+
+volatile uint16_t light = 0;
+volatile uint16_t temp = 0;
+
+volatile uint16_t light_tot = 0;
+volatile uint16_t temp_tot = 0;
+
+volatile uint8_t light_index = 0;
+volatile uint8_t temp_index = 0;
+
 // Current TLC sending state:
 uint8_t tlc_send_type = TLC_SEND_IDLE;
 uint8_t tlc_tx_index = 0;   // Index of currently sending buffer
@@ -119,6 +133,15 @@ void tlc_stage_bc(uint8_t bc) {
 
 void tlc_init() {
 
+    P3DIR |= LED_BANK5_PIN | LED_BANK6_PIN;
+
+
+    LED_BANK1_OUT |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
+            | LED_BANK4_PIN);
+    LED_BANK5_OUT |= (LED_BANK5_PIN | LED_BANK6_PIN);
+
+    __no_operation();
+
     // First, we're going to configure the timer that outputs GSCLK.
     //  We want this to go as fast as possible.
     //   (its max, 33 MHz, is faster than our fastest possible source, 24MHz)
@@ -142,7 +165,7 @@ void tlc_init() {
     Timer_A_initUpModeParam next_channel_timer_init = {};
     next_channel_timer_init.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
     next_channel_timer_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    next_channel_timer_init.timerPeriod = 50;
+    next_channel_timer_init.timerPeriod = 50; // previously 50
     next_channel_timer_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
     next_channel_timer_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
     next_channel_timer_init.timerClear = TIMER_A_SKIP_CLEAR;
@@ -199,6 +222,21 @@ __interrupt void EUSCI_A0_ISR(void)
 
                 switch (bank) {
                 case 0:
+                    light_tot -= lights[light_index];
+                    temp_tot -= temps[temp_index];
+                    lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
+                    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1);
+
+                    if (lights[light_index] < 10) lights[light_index] = 10;
+                    light_tot += lights[light_index];
+                    temp_tot += temps[temp_index];
+                    light_index++;
+                    temp_index++;
+                    if (light_index == ADC_WINDOW) light_index = 0;
+                    if (temp_index == ADC_WINDOW) temp_index = 0;
+                    light = light_tot / ADC_WINDOW;
+                    temp = temp_tot / ADC_WINDOW;
+
                     LED_BANK1_OUT &= ~LED_BANK1_PIN;
                     bank++;
                     break;
@@ -227,9 +265,17 @@ __interrupt void EUSCI_A0_ISR(void)
                 break;
             } else { // gs - MSB first; this starts with 0.
                 if (tlc_tx_index & 0x01) { // odd; less significant byte
-                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, 0x00);
+                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, 0xff);
                 } else { // even; more significant byte
-                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, 0xf0); //bank_brightness[bank]); // TODO
+                    static uint8_t bright = 0x01;
+                    static uint8_t delay = 150;
+                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, light); // 0xf0); //bank_brightness[bank]); // TODO
+                    if (delay) {
+                        delay--;
+                    } else {
+                        bright++;
+                        delay = 150;
+                    }
                 }
             }
             tlc_tx_index++;

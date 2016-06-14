@@ -34,8 +34,8 @@ void delay_millis(unsigned long);
 // Useful defines:
 #define GPIO_pulse(port, pin) do { GPIO_setOutputHighOnPin(port, pin); GPIO_setOutputLowOnPin(port, pin); } while (0)
 
-extern uint16_t light;
-extern uint16_t temp;
+extern volatile uint16_t light;
+extern volatile uint16_t temp;
 
 typedef struct {
 	uint8_t to_addr, from_addr, base_id, clock_authority;

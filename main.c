@@ -27,9 +27,6 @@
  *
  */
 
-uint16_t light = 0;
-uint16_t temp = 0;
-
 void init_adc() {
     // TODO: Better documentation
 
@@ -43,7 +40,7 @@ void init_adc() {
     initParam.sampleHoldSignalSourceSelect = ADC12_B_SAMPLEHOLDSOURCE_SC;
     initParam.clockSourceSelect = ADC12_B_CLOCKSOURCE_ADC12OSC;
     initParam.clockSourceDivider = ADC12_B_CLOCKDIVIDER_1;
-    initParam.clockSourcePredivider = ADC12_B_CLOCKPREDIVIDER__1;
+    initParam.clockSourcePredivider = ADC12_B_CLOCKPREDIVIDER__32;
     initParam.internalChannelMap = 0;
     ADC12_B_init(ADC12_B_BASE, &initParam);
 
@@ -67,9 +64,9 @@ void init_adc() {
 
     /* Sets the read-back format of the converted data */
     ADC12_B_setDataReadBackFormat(ADC12_B_BASE, ADC12_B_UNSIGNED_BINARY);
-    //
-    //    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE0, 0, 0); // MEM0
-    //    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE1, 0, 0); // MEM1
+
+//    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE0, 0, 0); // MEM0
+//    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE1, 0, 0); // MEM1
 
     ADC12_B_startConversion(ADC12_B_BASE, ADC12_B_START_AT_ADC12MEM0, ADC12_B_REPEATED_SEQOFCHANNELS);
 }
@@ -104,8 +101,6 @@ int main(void)
     while(1)
     {
         delay_millis(100); // 10 Hz busywait.
-        light = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
-        temp = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1);
         __bis_SR_register(LPM0_bits + GIE);     // LPM0, ADC12_B_ISR will force exit
         __no_operation();                       // For debugger
     }
@@ -123,7 +118,7 @@ __interrupt void TIMER0_A0_ISR_HOOK(void)
     tlc_set_gs();
     __bic_SR_register_on_exit(LPM0_bits);
 }
-//
+
 //#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 //#pragma vector=ADC12_VECTOR
 //__interrupt
@@ -132,7 +127,12 @@ __interrupt void TIMER0_A0_ISR_HOOK(void)
 //#endif
 //void ADC12_ISR(void)
 //{
-//    light = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
-//    temp = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1);
+//    switch(__even_in_range(ADC12IV, 0x010)) {
+//    case ADC12IV_ADC12IFG0:
+//        light = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
+//        break;
+//    case ADC12IV_ADC12IFG1:
+//        temp = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
+//        break;
+//    }
 //}
-//
