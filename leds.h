@@ -9,12 +9,6 @@
 
 #include <stdint.h>
 
-// LED sending types:
-#define TLC_SEND_IDLE     0
-#define TLC_SEND_TYPE_GS  1
-#define TLC_SEND_TYPE_FUN 2
-#define TLC_SEND_TYPE_LB  3
-
 // Defines for pins:
 
 // 1-origined because fuck you
