@@ -227,7 +227,7 @@ __interrupt void EUSCI_A0_ISR(void)
                     lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
                     temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1);
 
-                    if (lights[light_index] < 10) lights[light_index] = 10;
+                    if (lights[light_index] < 3) lights[light_index] = 3;
                     light_tot += lights[light_index];
                     temp_tot += temps[temp_index];
                     light_index++;

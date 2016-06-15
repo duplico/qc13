@@ -27,6 +27,24 @@
  *
  */
 
+qc13conf my_conf = {0};
+const qc13conf default_conf = {0};
+qcpayload in_payload, out_payload;
+
+uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
+uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
+uint8_t neighbor_count = 0;
+
+// Flags to main loop raised by interrupts (so must be volatile):
+volatile uint8_t f_time_loop = 0;
+
+// Signals to the main loop (not caused by interrupts):
+uint8_t s_b_start = 0;
+uint8_t s_b_select = 0;
+
+// Declarations:
+void poll_buttons();
+
 void init_adc() {
     // TODO: Better documentation
 
@@ -75,9 +93,20 @@ void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
     Grace_init(); // Activate Grace-generated configuration
 
+    // Buttons:
+    P3DIR &= ~BIT4;
+    P3REN |= BIT4;
+    P3OUT |= BIT4;
+
+    Timer_B_enableCaptureCompareInterrupt(TIMER_B0_BASE, TIMER_B_CAPTURECOMPARE_REGISTER_0);
+
     tlc_init();   // Initialize our LED system
     rfm75_init(); // Initialize our radio
     init_adc();   // Start up the ADC for light and temp sensors.
+}
+
+void post() {
+
 }
 
 void delay_millis(unsigned long mils) {
@@ -87,11 +116,39 @@ void delay_millis(unsigned long mils) {
     }
 }
 
+void poll_buttons() { // TODO: inline
+
+    static uint8_t b_start_read_prev = 1;
+    static uint8_t b_start_read = 1;
+    static uint8_t b_start_state = 1;
+
+    static uint8_t b_select_read_prev = 1;
+    static uint8_t b_select_read = 1;
+    static uint8_t b_select_state = 1;
+
+    // Poll the buttons two time loops in a row to debounce and
+    // if there's a change, raise a flag.
+    b_start_read = GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7);
+    if (b_start_read == b_start_read_prev && b_start_read != b_start_state) {
+        s_b_start = b_start_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
+        b_start_state = b_start_read;
+    }
+    b_start_read_prev = b_start_read;
+
+    b_select_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN4);
+    if (b_select_read == b_select_read_prev && b_select_read != b_select_state) {
+        s_b_select = b_select_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
+        b_select_state = b_select_read;
+    }
+    b_select_read_prev = b_select_read;
+} // poll_buttons
+
 int main(void)
 {
     volatile uint8_t in = 0;
 
     init();
+    post();
 
     tlc_stage_blank(0);
     tlc_set_fun();
@@ -100,15 +157,28 @@ int main(void)
 
     while(1)
     {
-        delay_millis(100); // 10 Hz busywait.
-        __bis_SR_register(LPM0_bits + GIE);     // LPM0, ADC12_B_ISR will force exit
-        __no_operation();                       // For debugger
+
+        if (f_time_loop) {
+            poll_buttons();
+            f_time_loop = 0;
+        }
+
+        if (s_b_start == BUTTON_PRESS) {
+            __no_operation();
+            s_b_start = 0;
+        }
+
+        if (s_b_select == BUTTON_PRESS) {
+            __no_operation();
+            s_b_select = 0;
+        }
+
+        __bis_SR_register(SLEEP_BITS + GIE);
     }
 
 }
 
-volatile uint8_t shift = 0;
-
+// Dedicated ISR for CCR0. Vector is cleared on service.
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR_HOOK(void)
 {
@@ -119,20 +189,10 @@ __interrupt void TIMER0_A0_ISR_HOOK(void)
     __bic_SR_register_on_exit(LPM0_bits);
 }
 
-//#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-//#pragma vector=ADC12_VECTOR
-//__interrupt
-//#elif defined(__GNUC__)
-//__attribute__((interrupt(ADC12_VECTOR)))
-//#endif
-//void ADC12_ISR(void)
-//{
-//    switch(__even_in_range(ADC12IV, 0x010)) {
-//    case ADC12IV_ADC12IFG0:
-//        light = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
-//        break;
-//    case ADC12IV_ADC12IFG1:
-//        temp = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0);
-//        break;
-//    }
-//}
+// Dedicated ISR for CCR0. Vector is cleared on service.
+#pragma vector=TIMER0_B0_VECTOR
+__interrupt void TIMER0_B0_ISR_HOOK(void) {
+    // This is the TIME LOOP MACHINE
+    f_time_loop = 1;
+    __bic_SR_register_on_exit(LPM0_bits);
+}
