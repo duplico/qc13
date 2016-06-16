@@ -68,7 +68,7 @@ uint8_t fun_base[] = {
         0x87,
         // B119 / BLANK
         // and 7 bits of global brightness correction:
-        0x08, // TODO: check this out.
+        0x00,
         // HERE WE SWITCH TO 7-BIT SPI.
         // The following index is 18:
         0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F,
@@ -165,7 +165,7 @@ void tlc_init() {
     Timer_A_initUpModeParam next_channel_timer_init = {};
     next_channel_timer_init.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
     next_channel_timer_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    next_channel_timer_init.timerPeriod = 50; // previously 50
+    next_channel_timer_init.timerPeriod = 100; // previously 50
     next_channel_timer_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
     next_channel_timer_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
     next_channel_timer_init.timerClear = TIMER_A_SKIP_CLEAR;
@@ -196,8 +196,17 @@ void tlc_init() {
     tlc_set_fun();
 }
 
-uint8_t bank = 0;
-uint8_t bank_brightness[] = {0xff, 0x01, 0x10, 0x80, 0x01, 0x0f};
+uint8_t tlc_active_bank = 0;
+
+// Let's make these 12-bit. So the most significant hexadigit will be brightness-correct.
+uint16_t tlc_bank_gs[6][16] = {
+    {0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
+    {0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
+    {0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
+    {0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
+    {0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
+    {0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
+};
 
 #pragma vector=USCI_A0_VECTOR
 __interrupt void EUSCI_A0_ISR(void)
@@ -217,11 +226,16 @@ __interrupt void EUSCI_A0_ISR(void)
     case 4: // Vector 4 - TXIFG : I just sent a byte.
         if (tlc_send_type == TLC_SEND_TYPE_GS) {
             if (tlc_tx_index == 32) { // done
+                LED_BANK1_OUT |= LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
+                        | LED_BANK4_PIN;
+                LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
                 GPIO_pulse(TLC_LATPORT, TLC_LATPIN); // LATCH.
                 tlc_send_type = TLC_SEND_IDLE;
 
-                switch (bank) {
+                switch (tlc_active_bank) {
                 case 0:
+                    LED_BANK1_OUT &= ~LED_BANK1_PIN;
+                    tlc_active_bank++;
                     light_tot -= lights[light_index];
                     temp_tot -= temps[temp_index];
                     lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
@@ -236,48 +250,39 @@ __interrupt void EUSCI_A0_ISR(void)
                     if (temp_index == ADC_WINDOW) temp_index = 0;
 
                     light = light_tot / ADC_WINDOW;
-                    if (light > 254) light = 255;
+                    if (light > 2047) light = 2047;
                     temp = temp_tot / ADC_WINDOW;
-
-                    LED_BANK1_OUT &= ~LED_BANK1_PIN;
-                    bank++;
                     break;
                 case 1:
                     LED_BANK2_OUT &= ~LED_BANK2_PIN;
-                    bank++;
+                    tlc_active_bank++;
                     break;
                 case 2:
                     LED_BANK3_OUT &= ~LED_BANK3_PIN;
-                    bank++;
+                    tlc_active_bank++;
                     break;
                 case 3:
                     LED_BANK4_OUT &= ~LED_BANK4_PIN;
-                    bank++;
+                    tlc_active_bank++;
                     break;
                 case 4:
                     LED_BANK5_OUT &= ~LED_BANK5_PIN;
-                    bank++;
+                    tlc_active_bank++;
                     break;
                 case 5:
                     LED_BANK6_OUT &= ~LED_BANK6_PIN;
-                    bank = 0;
+                    tlc_active_bank = 0;
                     break;
                 }
 
                 break;
             } else { // gs - MSB first; this starts with 0.
+                volatile static uint16_t channel_gs = 0;
+                channel_gs = (tlc_bank_gs[tlc_active_bank][tlc_tx_index>>1] & 0x0fff) | ((light<<5) &   0xf000);
                 if (tlc_tx_index & 0x01) { // odd; less significant byte
-                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, 0xff);
+                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, (uint8_t) (channel_gs & 0xff));
                 } else { // even; more significant byte
-                    static uint8_t bright = 0x01;
-                    static uint8_t delay = 150;
-                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, light); // 0xf0); //bank_brightness[bank]); // TODO
-                    if (delay) {
-                        delay--;
-                    } else {
-                        bright++;
-                        delay = 150;
-                    }
+                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, (uint8_t) ((channel_gs >> 8) & 0xff));
                 }
             }
             tlc_tx_index++;
