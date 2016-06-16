@@ -41,6 +41,7 @@ volatile uint8_t f_time_loop = 0;
 // Signals to the main loop (not caused by interrupts):
 uint8_t s_b_start = 0;
 uint8_t s_b_select = 0;
+uint8_t s_b_ohai = 0;
 
 // Declarations:
 void poll_buttons();
@@ -99,6 +100,14 @@ void init() {
     P3REN |= BIT4;
     P3OUT |= BIT4;
 
+    P3DIR &= ~BIT0;
+    P3REN |= BIT0;
+    P3OUT |= BIT0;
+
+    P2DIR &= ~BIT7;
+    P2REN |= BIT7;
+    P2OUT |= BIT7;
+
     Timer_B_enableCaptureCompareInterrupt(TIMER_B0_BASE, TIMER_B_CAPTURECOMPARE_REGISTER_0);
 
     tlc_init();   // Initialize our LED system
@@ -127,6 +136,10 @@ void poll_buttons() { // TODO: inline
     static uint8_t b_select_read = 1;
     static uint8_t b_select_state = 1;
 
+    static uint8_t b_ohai_read_prev = 1;
+    static uint8_t b_ohai_read = 1;
+    static uint8_t b_ohai_state = 1;
+
     // Poll the buttons two time loops in a row to debounce and
     // if there's a change, raise a flag.
     b_start_read = GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7);
@@ -142,6 +155,14 @@ void poll_buttons() { // TODO: inline
         b_select_state = b_select_read;
     }
     b_select_read_prev = b_select_read;
+
+    b_ohai_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN0);
+    if (b_ohai_read == b_ohai_read_prev && b_ohai_read != b_ohai_state) {
+        s_b_ohai = b_ohai_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
+        b_ohai_state = b_ohai_read;
+    }
+    b_ohai_read_prev = b_ohai_read;
+
 } // poll_buttons
 
 int main(void)
@@ -172,6 +193,11 @@ int main(void)
         if (s_b_select == BUTTON_PRESS) {
             __no_operation();
             s_b_select = 0;
+        }
+
+        if (s_b_ohai == BUTTON_PRESS) {
+            __no_operation();
+            s_b_ohai = 0;
         }
 
         __bis_SR_register(SLEEP_BITS + GIE);
