@@ -57,7 +57,7 @@ void tlc_set_gs();
 void tlc_set_fun();
 void tlc_stage_blank(uint8_t);
 
-extern uint8_t bank;
+extern uint8_t tlc_active_bank;
 extern uint8_t bank_brightness[];
 extern uint8_t tlc_send_type;
 

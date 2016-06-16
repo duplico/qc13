@@ -93,6 +93,7 @@ void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
     Grace_init(); // Activate Grace-generated configuration
 
+
     // Buttons:
     P3DIR &= ~BIT4;
     P3REN |= BIT4;
@@ -182,9 +183,6 @@ int main(void)
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR_HOOK(void)
 {
-    LED_BANK1_OUT |= LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
-            | LED_BANK4_PIN;
-    LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
     tlc_set_gs();
     __bic_SR_register_on_exit(LPM0_bits);
 }
