@@ -197,6 +197,9 @@ int main(void)
 
         if (s_b_ohai == BUTTON_PRESS) {
             __no_operation();
+            EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
+            delay_millis(1000);
+            EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 0xAA);
             s_b_ohai = 0;
         }
 
@@ -210,7 +213,7 @@ int main(void)
 __interrupt void TIMER0_A0_ISR_HOOK(void)
 {
     tlc_set_gs();
-    __bic_SR_register_on_exit(LPM0_bits);
+//    __bic_SR_register_on_exit(LPM0_bits);
 }
 
 // Dedicated ISR for CCR0. Vector is cleared on service.
@@ -219,4 +222,23 @@ __interrupt void TIMER0_B0_ISR_HOOK(void) {
     // This is the TIME LOOP MACHINE
     f_time_loop = 1;
     __bic_SR_register_on_exit(LPM0_bits);
+}
+
+volatile uint8_t oh_hai_in = 0;
+
+#pragma vector=USCI_A1_VECTOR
+__interrupt void EUSCI_A1_ISR(void)
+{
+    switch (__even_in_range(UCA1IV, 4)) {
+    //Vector 2 - RXIFG
+    case 2:
+        oh_hai_in = EUSCI_B_SPI_receiveData(EUSCI_A1_BASE);
+        __no_operation();
+        break; // End of RXIFG ///////////////////////////////////////////////////////
+
+    case 4: // Vector 4 - TXIFG : I just sent a byte.
+        break; // End of TXIFG /////////////////////////////////////////////////////
+
+    default: break;
+    } // End of ISR flag switch ////////////////////////////////////////////////////
 }
