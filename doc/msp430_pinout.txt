@@ -1,0 +1,39 @@
+P1.0    in  light sensor
+P1.1    in  temp sensor
+P1.2  TA1.1 LSD_GSCLK
+P1.3   UCB0 RFM STE
+P1.4    out TLC LAT
+P1.5   UCA0 TLC SCLK
+P1.6   UCB0 RFM out
+P1.7   UCB0 RFM in
+P2.0   UCA0 TLC out
+P2.1   UCA0 TLC in
+P2.2   UCB0 RFM CLK
+P2.3   UCA1 pair STE
+P2.4   UCA1 pair CLK
+P2.5   UCA1 pair out
+P2.6   UCA1 pair in
+P2.7    in  B2      (pull-up / active low)
+P3.0    in  oh_hai  (pull-up / active low)
+P3.1    in  RFM_IRQ (active low)
+P3.2    out RFM_EN  (active high)
+P3.3    in  HAT_INPUT (analog)
+P3.4    in  B1      (pull-up / active low)
+P3.5    out CTRL_7
+P3.6    out CTRL_6
+P3.7    out CTRL_5
+PJ.0    out CTRL_1
+PJ.1    out CTRL_2
+PJ.2    out CTRL_3
+PJ.3    out CTRL_4
+
+Peripherals
+===========
+
+TLC:    USCI_A0
+RFM:    USCI_B0
+Pair:   USCI_A1
+Light:  P1.0
+Temp:   P1.1
+B1:     P3.4 (active low)
+B2:     P2.7 (active low)
