@@ -63,6 +63,8 @@ const uint8_t bank0_init_data[][2] = {
     { 0x1d, 0x07 } //Enables Dynamic Payload Length,Enables Payload with ACK,Enables the W_TX_PAYLOAD_NOACK command
 };
 
+uint8_t payload[32] = {0xff, 0x00, 0xff, 0xaa, 0xaa, 0xaa, 0xaa, 0};
+
 uint8_t usci_b0_recv_sync(uint8_t data) {
     EUSCI_A_SPI_transmitData(EUSCI_B0_BASE, data);
     while (!EUSCI_B_SPI_getInterruptStatus(EUSCI_B0_BASE,
@@ -143,6 +145,8 @@ uint8_t rfm75_post() {
 void rfm75_init()
 {
 
+    // TODO: Power down, just in case.
+
     delay_millis(100); // Delay more than 50ms.
     rfm75_post();
 
@@ -206,17 +210,34 @@ void rfm75_init()
 
     rfm75_select_bank(0);
 
+    // Enable the interrupt.
+    P3DIR &= ~BIT1;
+    GPIO_selectInterruptEdge(GPIO_PORT_P3, GPIO_PIN1, GPIO_HIGH_TO_LOW_TRANSITION);
+    GPIO_enableInterrupt(GPIO_PORT_P3, GPIO_PORT_P1);
+
     // And we're off to see the wizard!
 
-    // Go into RX mode:
+    delay_millis(5);
 
     __no_operation();
-    rfm75_write_reg(0x00, 0b00001011); // power-up
-    delay_millis(3); // 1.5 ms at least.
+    rfm75_write_reg(0x00, 0b00001011); // PWR_UP! TX MODE.
+    delay_millis(5); // 1.5 ms at least.
 
     temp = rfm75_read_byte(0x00);
-    test = temp == 0b00001011;
+    test = temp == 0b00001010;
     __no_operation();
 
+    send_rfm75_cmd_buf(WR_TX_PLOAD, payload, 32);
     CE_ACTIVATE;
+    delay_millis(1);
+}
+
+#pragma vector=PORT3_VECTOR
+__interrupt void RFM_ISR(void)
+{
+    switch(__even_in_range(P3IV, 0x0010)) {
+    case P3IV_P3IFG1:
+        __no_operation(); // RFM75 interrupt
+        break;
+    }
 }
