@@ -1,6 +1,6 @@
 /*
- * leds.c
- * (c) 2014 George Louthan
+ * tlc5948a.c
+ * (c) 2016 George Louthan
  * 3-clause BSD license; see license.md.
  */
 
@@ -18,6 +18,10 @@
  *        somi, miso, clk (3-wire)
  *        GSCLK     P1.2 (timer TA1.1)
  *        LAT       P1.4
+ *
+ *   This file's job is to keep the display going. Application logic will go
+ *   elsewhere - this is strictly a driver for our 6 banks and 15 channels.
+ *
  */
 
 #define TLC_THISISGS    0x00
@@ -37,12 +41,26 @@ volatile uint16_t temp_tot = 0;
 volatile uint8_t light_index = 0;
 volatile uint8_t temp_index = 0;
 
+volatile uint16_t on_brightness = 0;
+
 // Current TLC sending state:
 uint8_t tlc_send_type = TLC_SEND_IDLE;
 uint8_t tlc_tx_index = 0;   // Index of currently sending buffer
 
 uint8_t tlc_loopback_data_out = 0x00;
 volatile uint8_t tlc_loopback_data_in = 0x00;
+
+uint8_t tlc_active_bank = 0;
+
+// Let's make these 12-bit. So the most significant hexadigit will be brightness-correct.
+uint16_t tlc_bank_gs[6][16] = {
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+};
 
 // This is the basic set of function data.
 // A few of them can be edited.
@@ -132,23 +150,41 @@ void tlc_stage_bc(uint8_t bc) {
     fun_base[17] |= bc;
 }
 
-void tlc_init() {
+void tlc_start() {
+    // Start the clocks:
 
+    // A1 / GSCLK:
+    Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_UP_MODE);
+
+    // A0 / LED channel timer:
+    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
+
+    EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+    EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
+
+    tlc_set_gs();
+    tlc_stage_blank(1);
+    tlc_set_fun();
+}
+
+void tlc_stop() {
+    __no_operation(); // TODO: Do I need to write this? Probably not.
+}
+
+void tlc_init() {
+    // Initialize the GPIO pins for each bank:
     P3DIR |= (LED_BANK5_PIN | LED_BANK6_PIN);
     PJDIR |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN | LED_BANK4_PIN);
-
 
     LED_BANK1_OUT |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
             | LED_BANK4_PIN);
     LED_BANK5_OUT |= (LED_BANK5_PIN | LED_BANK6_PIN);
 
-    __no_operation();
-
     // First, we're going to configure the timer that outputs GSCLK.
-    //  We want this to go as fast as possible.
-    //   (its max, 33 MHz, is faster than our fastest possible source, 24MHz)
+    //  We want this to go as fast as possible. (Meaning as fast as we can, as
+    //   its max, 33 MHz, is faster than our fastest possible source, 24MHz)
     //  Below this is configured to toggle every cycle of SMCLK,
-    //  which should be our fastest clock.
+    //  which should always be our fastest clock.
 
     Timer_A_initUpModeParam gsclk_init = {};
     gsclk_init.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
@@ -162,7 +198,7 @@ void tlc_init() {
 
     // Next we configure the clock that tells us when it's time to select the
     //  next LED channel bank.
-    // We'll run this off of ACLK, which is driven by our 32K LFXT.
+    // We'll run this off of ACLK, which is driven by our internal 39K clock.
 
     Timer_A_initUpModeParam next_channel_timer_init = {};
     next_channel_timer_init.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
@@ -202,18 +238,6 @@ void tlc_init() {
     tlc_set_fun();
 }
 
-uint8_t tlc_active_bank = 0;
-
-// Let's make these 12-bit. So the most significant hexadigit will be brightness-correct.
-uint16_t tlc_bank_gs[6][16] = {
-    {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0}, //xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
-    {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
-    {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
-    {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
-    {0, 0, 0, 0, 0xfff, 0xfff, 0x0f, 0xfff, 0xfff, 0x0f, 0xfff, 0xfff, 0x0f, 0xfff, 0xfff, 0x0f},
-    {0, 0, 0, 0, 0xfff, 0, 0xfff, 0xfff, 0, 0xfff, 0xfff, 0, 0xfff, 0xfff, 0, 0xfff},
-};
-
 #pragma vector=USCI_A0_VECTOR
 __interrupt void EUSCI_A0_ISR(void)
 {
@@ -242,22 +266,6 @@ __interrupt void EUSCI_A0_ISR(void)
                 case 0:
                     LED_BANK1_OUT &= ~LED_BANK1_PIN;
                     tlc_active_bank++;
-//                    light_tot -= lights[light_index];
-//                    temp_tot -= temps[temp_index];
-//                    lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
-//                    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1) >> 1;
-//
-//                    if (lights[light_index] < 3) lights[light_index] = 3;
-//                    light_tot += lights[light_index];
-//                    temp_tot += temps[temp_index];
-//                    light_index++;
-//                    temp_index++;
-//                    if (light_index == ADC_WINDOW) light_index = 0;
-//                    if (temp_index == ADC_WINDOW) temp_index = 0;
-//
-//                    light = light_tot / ADC_WINDOW;
-//                    if (light > 2047) light = 2047;
-//                    temp = temp_tot / ADC_WINDOW;
                     break;
                 case 1:
                     LED_BANK2_OUT &= ~LED_BANK2_PIN;
@@ -280,11 +288,10 @@ __interrupt void EUSCI_A0_ISR(void)
                     tlc_active_bank = 0;
                     break;
                 }
-
                 break;
             } else { // gs - MSB first; this starts with 0.
                 volatile static uint16_t channel_gs = 0;
-                channel_gs = 0x0010; // (tlc_bank_gs[tlc_active_bank][tlc_tx_index>>1]); // & 0x0fff) | ((light<<5) &   0xf000);
+                channel_gs = (tlc_bank_gs[tlc_active_bank][tlc_tx_index>>1]);
                 if (tlc_tx_index & 0x01) { // odd; less significant byte
                     EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, (uint8_t) (channel_gs & 0xff));
                 } else { // even; more significant byte
@@ -322,7 +329,6 @@ __interrupt void EUSCI_A0_ISR(void)
             tlc_send_type = TLC_SEND_IDLE; // probably shouldn't reach.
         }
         break; // End of TXIFG /////////////////////////////////////////////////////
-
     default: break;
     } // End of ISR flag switch ////////////////////////////////////////////////////
 }
