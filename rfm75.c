@@ -1,8 +1,10 @@
 /*
  * rfm75.c
  *
- *  Created on: Jun 7, 2016
- *      Author: George
+ * Queercon 13 radio driver for the HopeRF RFM75.
+ *
+ * (c) 2016 George Louthan
+ * 3-clause BSD license; see license.md.
  */
 
 #include "rfm75.h"
