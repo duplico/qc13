@@ -68,7 +68,7 @@ uint8_t fun_base[] = {
         0x87,
         // B119 / BLANK
         // and 7 bits of global brightness correction:
-        0x00,
+        0x7f,
         // HERE WE SWITCH TO 7-BIT SPI.
         // The following index is 18:
         0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F,
@@ -133,7 +133,8 @@ void tlc_stage_bc(uint8_t bc) {
 
 void tlc_init() {
 
-    P3DIR |= LED_BANK5_PIN | LED_BANK6_PIN;
+    P3DIR |= (LED_BANK5_PIN | LED_BANK6_PIN);
+    PJDIR |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN | LED_BANK4_PIN);
 
 
     LED_BANK1_OUT |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
@@ -191,6 +192,10 @@ void tlc_init() {
     EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
     EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 
+    volatile uint8_t tlc_fault = tlc_test_loopback(0x7a);
+    if (tlc_fault)
+        __no_operation();
+
     tlc_set_gs();
     tlc_stage_blank(1);
     tlc_set_fun();
@@ -200,7 +205,7 @@ uint8_t tlc_active_bank = 0;
 
 // Let's make these 12-bit. So the most significant hexadigit will be brightness-correct.
 uint16_t tlc_bank_gs[6][16] = {
-    {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
+    {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0}, //xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
     {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
     {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
     {0, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff, 0xfff},
@@ -236,22 +241,22 @@ __interrupt void EUSCI_A0_ISR(void)
                 case 0:
                     LED_BANK1_OUT &= ~LED_BANK1_PIN;
                     tlc_active_bank++;
-                    light_tot -= lights[light_index];
-                    temp_tot -= temps[temp_index];
-                    lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
-                    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1) >> 1;
-
-                    if (lights[light_index] < 3) lights[light_index] = 3;
-                    light_tot += lights[light_index];
-                    temp_tot += temps[temp_index];
-                    light_index++;
-                    temp_index++;
-                    if (light_index == ADC_WINDOW) light_index = 0;
-                    if (temp_index == ADC_WINDOW) temp_index = 0;
-
-                    light = light_tot / ADC_WINDOW;
-                    if (light > 2047) light = 2047;
-                    temp = temp_tot / ADC_WINDOW;
+//                    light_tot -= lights[light_index];
+//                    temp_tot -= temps[temp_index];
+//                    lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
+//                    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1) >> 1;
+//
+//                    if (lights[light_index] < 3) lights[light_index] = 3;
+//                    light_tot += lights[light_index];
+//                    temp_tot += temps[temp_index];
+//                    light_index++;
+//                    temp_index++;
+//                    if (light_index == ADC_WINDOW) light_index = 0;
+//                    if (temp_index == ADC_WINDOW) temp_index = 0;
+//
+//                    light = light_tot / ADC_WINDOW;
+//                    if (light > 2047) light = 2047;
+//                    temp = temp_tot / ADC_WINDOW;
                     break;
                 case 1:
                     LED_BANK2_OUT &= ~LED_BANK2_PIN;
@@ -278,7 +283,7 @@ __interrupt void EUSCI_A0_ISR(void)
                 break;
             } else { // gs - MSB first; this starts with 0.
                 volatile static uint16_t channel_gs = 0;
-                channel_gs = (tlc_bank_gs[tlc_active_bank][tlc_tx_index>>1] & 0x0fff) | ((light<<5) &   0xf000);
+                channel_gs = 0x0010; // (tlc_bank_gs[tlc_active_bank][tlc_tx_index>>1]); // & 0x0fff) | ((light<<5) &   0xf000);
                 if (tlc_tx_index & 0x01) { // odd; less significant byte
                     EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, (uint8_t) (channel_gs & 0xff));
                 } else { // even; more significant byte
