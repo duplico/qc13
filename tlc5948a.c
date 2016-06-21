@@ -4,7 +4,8 @@
  * 3-clause BSD license; see license.md.
  */
 
-#include "leds.h"
+#include "tlc5948a.h"
+
 #include <stdint.h>
 #include <string.h>
 #include "qc13.h"

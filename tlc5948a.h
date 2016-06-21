@@ -4,8 +4,8 @@
  * 3-clause BSD license; see license.md.
  */
 
-#ifndef LEDS_H_
-#define LEDS_H_
+#ifndef TLC5948A_H_
+#define TLC5948A_H_
 
 #include <stdint.h>
 
@@ -61,4 +61,4 @@ extern uint8_t tlc_active_bank;
 extern uint8_t bank_brightness[];
 extern uint8_t tlc_send_type;
 
-#endif /* LEDS_H_ */
+#endif /* TLC5948A_H_ */
