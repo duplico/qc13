@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include "qc13.h"
 #include "rfm75.h"
+#include "led_display.h"
 #include "tlc5948a.h"
 
 /*
@@ -177,11 +178,15 @@ int main(void)
 
     delay_millis(10);
 
-    while(1)
+//    tlc_start();
+    leds_timestep();
+
+    while (1)
     {
 
         if (f_time_loop) {
             poll_buttons();
+            leds_timestep();
             f_time_loop = 0;
         }
 
@@ -212,15 +217,17 @@ int main(void)
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void TIMER0_A0_ISR_HOOK(void)
 {
+    f_time_loop = 1;
     tlc_set_gs();
-//    __bic_SR_register_on_exit(LPM0_bits);
+    __bic_SR_register_on_exit(LPM0_bits);
 }
 
 // Dedicated ISR for CCR0. Vector is cleared on service.
 #pragma vector=TIMER0_B0_VECTOR
 __interrupt void TIMER0_B0_ISR_HOOK(void) {
     // This is the TIME LOOP MACHINE
-    f_time_loop = 1;
+    // TODO: Or is it?
+//    f_time_loop = 1;
     __bic_SR_register_on_exit(LPM0_bits);
 }
 

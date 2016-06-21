@@ -37,19 +37,9 @@
 #define TLC_LATPORT GPIO_PORT_P1
 #define TLC_LATPIN  GPIO_PIN4
 
-typedef struct {
-    uint16_t red;
-    uint16_t green;
-    uint16_t blue;
-} rgbcolor_t;
-
-typedef struct {
-    int_fast32_t red;
-    int_fast32_t green;
-    int_fast32_t blue;
-} rgbdelta_t;
-
 void tlc_init();
+void tlc_start();
+void tlc_stop(); //TODO: Not guaranteed to work. (read: guaranteed not to work)
 
 uint8_t tlc_test_loopback(uint8_t);
 
@@ -57,8 +47,7 @@ void tlc_set_gs();
 void tlc_set_fun();
 void tlc_stage_blank(uint8_t);
 
-extern uint8_t tlc_active_bank;
-extern uint8_t bank_brightness[];
 extern uint8_t tlc_send_type;
+extern uint16_t tlc_bank_gs[6][16];
 
 #endif /* TLC5948A_H_ */
