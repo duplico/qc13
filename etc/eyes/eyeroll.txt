@@ -1,0 +1,4 @@
+blink, blink, 800
+left, left, 600
+up, up, 1200
+cute, cute, 400

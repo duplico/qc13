@@ -1,0 +1,5 @@
+blink, blink, 600
+left, right, 2000
+blink, blink, 1100
+left, right, 3000
+blink, blink, 400

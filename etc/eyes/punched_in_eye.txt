@@ -1,0 +1,6 @@
+open, spazz, 200
+open, off, 800
+blink, off, 400
+open, off, 600
+right, off, 1200
+blink, off, 400

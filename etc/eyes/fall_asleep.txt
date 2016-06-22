@@ -1,0 +1,4 @@
+squint, squint, 2000
+open, open, 3000
+squint, squint, 2000
+blink, blink, 5000

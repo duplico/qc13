@@ -1,0 +1,3 @@
+blink, blink, 400
+spazz, spazz, 1100
+blink, blink, 400

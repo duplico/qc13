@@ -1,0 +1,7 @@
+blink, blink, 400
+cuteleft, cuteleft, 1600
+blink, blink, 400
+cuteleft, cuteleft, 600
+blink, blink, 400
+cuteleft, cuteleft, 2000
+blink, blink, 400

@@ -1,0 +1,6 @@
+blink, blink, 400
+cute, cute, 1600
+blink, blink, 400
+cute, cute, 600
+blink, blink, 400
+cute, cute, 2000
