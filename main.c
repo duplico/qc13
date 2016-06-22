@@ -47,6 +47,9 @@ uint8_t s_b_ohai = 0;
 // Declarations:
 void poll_buttons();
 
+// Initialization functions
+///////////////////////////
+
 void init_adc() {
     // TODO: Better documentation
 
@@ -85,16 +88,12 @@ void init_adc() {
     /* Sets the read-back format of the converted data */
     ADC12_B_setDataReadBackFormat(ADC12_B_BASE, ADC12_B_UNSIGNED_BINARY);
 
-//    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE0, 0, 0); // MEM0
-//    ADC12_B_enableInterrupt(ADC12_B_BASE, ADC12_B_IE1, 0, 0); // MEM1
-
     ADC12_B_startConversion(ADC12_B_BASE, ADC12_B_START_AT_ADC12MEM0, ADC12_B_REPEATED_SEQOFCHANNELS);
 }
 
 void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
     Grace_init(); // Activate Grace-generated configuration
-
 
     // Buttons:
     P3DIR &= ~BIT4;
@@ -166,6 +165,41 @@ void poll_buttons() { // TODO: inline
 
 } // poll_buttons
 
+#define ADC_WINDOW 32
+
+volatile uint16_t lights[ADC_WINDOW] = {0};
+volatile uint16_t temps[ADC_WINDOW] = {0};
+
+volatile uint16_t light = 0;
+volatile uint16_t temp = 0;
+
+volatile uint16_t light_tot = 0;
+volatile uint16_t temp_tot = 0;
+
+volatile uint8_t light_index = 0;
+volatile uint8_t temp_index = 0;
+
+void poll_adc() {
+    light_tot -= lights[light_index];
+    temp_tot -= temps[temp_index];
+    lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
+    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1) >> 1;
+
+    if (lights[light_index] < 3) lights[light_index] = 3;
+
+    light_tot += lights[light_index];
+    temp_tot += temps[temp_index];
+
+    light_index++;
+    temp_index++;
+
+    if (light_index == ADC_WINDOW) light_index = 0;
+    if (temp_index == ADC_WINDOW) temp_index = 0;
+
+    light = light_tot / ADC_WINDOW;
+    temp = temp_tot / ADC_WINDOW;
+}
+
 int main(void)
 {
     volatile uint8_t in = 0;
@@ -178,14 +212,12 @@ int main(void)
 
     delay_millis(10);
 
-//    tlc_start();
-    leds_timestep();
-
     while (1)
     {
 
         if (f_time_loop) {
             poll_buttons();
+            poll_adc();
             leds_timestep();
             f_time_loop = 0;
         }

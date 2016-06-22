@@ -11,6 +11,9 @@
 #include "led_display.h"
 #include "tlc5948a.h"
 
+// It's a PLUGIN.
+#include "etc/eyes/eye_anims.h"
+
 const rgbcolor_t rainbow_colors[] = {
         {0xe400, 0x0300, 0x0300}, // Red
         {0xff00, 0x8c00, 0x0000}, // Orange
@@ -67,6 +70,9 @@ void face_start_anim() {
 
 }
 
+uint32_t curr_l_frame = 0;
+uint32_t curr_r_frame = 0;
+
 void leds_timestep() {
     // Face:
     //  Check whether we need to change the brightness because of:
@@ -80,9 +86,43 @@ void leds_timestep() {
     //  Apply our current delta animation timestep.
 
     // For now:
-    for (uint8_t bank=0; bank<4; bank++) {
-        for (uint8_t channel=0; channel<15; channel++) {
-            tlc_bank_gs[bank][channel+1] = 0x0010;
+
+    curr_l_frame = angry_l_frames[0];
+    curr_r_frame = angry_l_frames[0];
+
+    // bank 0:
+    for (uint8_t channel=0; channel<15; channel++) {
+        if (curr_l_frame & ((uint32_t) 1 << (17+channel)))
+            tlc_bank_gs[0][channel+1] = 0x0f00;
+        else
+            tlc_bank_gs[0][channel+1] = 0;
+    }
+    // bank 1:
+    for (uint8_t channel=0; channel<15; channel++) {
+        if (curr_l_frame & ((uint32_t) 1 << (1+channel)))
+            tlc_bank_gs[1][channel+1] = 0x0f00;
+        else
+            tlc_bank_gs[1][channel+1] = 0;
+    }
+    // bank 2:
+    for (uint8_t channel=0; channel<15; channel++) {
+        if (curr_r_frame & ((uint32_t) 1 << (17+channel)))
+            tlc_bank_gs[2][channel+1] = 0x0f00;
+        else
+            tlc_bank_gs[2][channel+1] = 0;
+    }
+    // bank 3:
+    for (uint8_t channel=0; channel<15; channel++) {
+        if (curr_r_frame & ((uint32_t) 1 << (1+channel)))
+            tlc_bank_gs[3][channel+1] = 0x0f00;
+        else
+            tlc_bank_gs[3][channel+1] = 0;
+    }
+
+    // For now:
+    for (uint8_t bank=4; bank<6; bank++) {
+        for (uint8_t channel=0; channel<12; channel++) {
+            tlc_bank_gs[bank][channel+4] = 0x0f00;
         }
     }
 }

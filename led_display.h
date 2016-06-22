@@ -30,7 +30,9 @@ typedef struct {
 } tentacle_animation_t;
 
 typedef struct {
-    uint16_t * face_banks[4]; // Pointer to an array of face frames.
+    uint32_t * left_frames; // Pointer to an array of face frames.
+    uint32_t * right_frames; // Pointer to an array of face frames.
+    uint16_t * frame_durations;
     uint8_t len;
 } face_animation_t;
 
