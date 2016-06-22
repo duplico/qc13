@@ -27,22 +27,6 @@
 #define TLC_THISISGS    0x00
 #define TLC_THISISFUN   0x01
 
-#define ADC_WINDOW 32
-
-volatile uint16_t lights[ADC_WINDOW] = {0};
-volatile uint16_t temps[ADC_WINDOW] = {0};
-
-volatile uint16_t light = 0;
-volatile uint16_t temp = 0;
-
-volatile uint16_t light_tot = 0;
-volatile uint16_t temp_tot = 0;
-
-volatile uint8_t light_index = 0;
-volatile uint8_t temp_index = 0;
-
-volatile uint16_t on_brightness = 0;
-
 // Current TLC sending state:
 uint8_t tlc_send_type = TLC_SEND_IDLE;
 uint8_t tlc_tx_index = 0;   // Index of currently sending buffer
@@ -203,7 +187,7 @@ void tlc_init() {
     Timer_A_initUpModeParam next_channel_timer_init = {};
     next_channel_timer_init.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
     next_channel_timer_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    next_channel_timer_init.timerPeriod = 100; // previously 50
+    next_channel_timer_init.timerPeriod = 50;
     next_channel_timer_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
     next_channel_timer_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
     next_channel_timer_init.timerClear = TIMER_A_SKIP_CLEAR;
