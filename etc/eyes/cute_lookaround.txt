@@ -1,0 +1,12 @@
+cuteleft, cuteleft, 400
+cuteright, cuteright, 400
+cute, cute, 400
+cuteleft, cuteleft, 400
+cuteright, cuteright, 400
+cute, cute, 400
+cuteleft, cuteleft, 400
+cuteright, cuteright, 400
+cute, cute, 400
+cuteleft, cuteleft, 400
+cuteright, cuteright, 400
+cute, cute, 400
