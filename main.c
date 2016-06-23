@@ -117,11 +117,13 @@ void init() {
 
 void post() {
 
+    led_post();
+
 }
 
 void delay_millis(unsigned long mils) {
     while (mils) {
-        __delay_cycles(4000);
+        __delay_cycles(6000);
         mils--;
     }
 }
@@ -210,7 +212,11 @@ int main(void)
     tlc_stage_blank(0);
     tlc_set_fun();
 
+    face_set_ambient(0);
+
     delay_millis(10);
+
+    uint8_t anim_index = 0;
 
     while (1)
     {
@@ -223,12 +229,18 @@ int main(void)
         }
 
         if (s_b_start == BUTTON_PRESS) {
-            __no_operation();
+            anim_index = (anim_index+1) % 14;
+            face_start_anim(anim_index);
             s_b_start = 0;
         }
 
         if (s_b_select == BUTTON_PRESS) {
-            __no_operation();
+            if (anim_index) {
+                anim_index--;
+            } else {
+                anim_index = 14;
+            }
+            face_start_anim(anim_index);
             s_b_select = 0;
         }
 

@@ -30,16 +30,20 @@ typedef struct {
 } tentacle_animation_t;
 
 typedef struct {
-    uint32_t * left_frames; // Pointer to an array of face frames.
-    uint32_t * right_frames; // Pointer to an array of face frames.
+    uint64_t * frames; // Pointer to an array of face frames.
     uint16_t * frame_durations;
     uint8_t len;
 } face_animation_t;
 
-#define FACE_ANIMATION_NONE 0
+#define FACE_ANIM_NONE 0xFF
 
-void face_set();
-void face_start_anim();
+#define FACESTATE_AMBIENT 0
+#define FACESTATE_ANIMATION 1
+
+void led_post();
+
+void face_set_ambient(uint8_t amb_index);
+void face_start_anim(uint8_t anim_index);
 void leds_timestep();
 
 extern uint16_t face_banks[4];
