@@ -144,14 +144,15 @@ void poll_buttons() { // TODO: inline
 
     // Poll the buttons two time loops in a row to debounce and
     // if there's a change, raise a flag.
-    b_start_read = GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7);
+    b_select_read = GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7);
+    b_start_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN4);
+
     if (b_start_read == b_start_read_prev && b_start_read != b_start_state) {
         s_b_start = b_start_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
         b_start_state = b_start_read;
     }
     b_start_read_prev = b_start_read;
 
-    b_select_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN4);
     if (b_select_read == b_select_read_prev && b_select_read != b_select_state) {
         s_b_select = b_select_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
         b_select_state = b_select_read;
