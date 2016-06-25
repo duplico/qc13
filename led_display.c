@@ -11,7 +11,6 @@
 #include "led_display.h"
 #include "tlc5948a.h"
 
-// It's a PLUGIN.
 #include "etc/eyes/eye_anims.h"
 
 const rgbcolor_t rainbow_colors[] = {
@@ -83,7 +82,7 @@ void set_face(uint64_t frame) {
 }
 
 void face_set_ambient(uint8_t amb_index) {
-    face_ambient = cute_lookaround_frames[0];
+    face_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
     if (face_state == FACESTATE_AMBIENT) {
         set_face(face_ambient);
     }
@@ -103,6 +102,15 @@ void led_post() {
     tlc_stage_blank(0);
     tlc_set_fun();
     chase = 1;
+
+    for (uint8_t t=4; t<6; t++) {
+        for (uint8_t i=4; i<16; i++) {
+            tlc_bank_gs[t][i] = ambient_brightness;
+            delay_millis(45);
+            tlc_bank_gs[t][i] = 0;
+        }
+    }
+
     for (uint8_t i=0; i<64; i++) {
         chase = chase << 1;
         set_face(chase);
@@ -112,8 +120,18 @@ void led_post() {
     uint16_t old_ab = ambient_brightness;
     for (ambient_brightness=0x1000; ambient_brightness;ambient_brightness-=32) {
         set_face(0xffffffffffffffff);
+        for (uint8_t t=4; t<6; t++) {
+            for (uint8_t i=4; i<16; i++) {
+                tlc_bank_gs[t][i] = ambient_brightness;
+            }
+        }
     }
     ambient_brightness = old_ab;
+    for (uint8_t t=4; t<6; t++) {
+        for (uint8_t i=4; i<16; i++) {
+            tlc_bank_gs[t][i] = 0;
+        }
+    }
 
 }
 
