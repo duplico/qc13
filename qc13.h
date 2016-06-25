@@ -17,6 +17,8 @@ void usci_a_send(uint16_t base, uint8_t data);
 // Let's try to avoid using this too much please:
 void delay_millis(unsigned long);
 
+#define BADGE_TARGET 1
+
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
 

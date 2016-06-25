@@ -35,34 +35,34 @@
     #define CE_DEACTIVATE P1OUT &= ~BIT2
 #endif
 
+uint8_t rx_addr_p0[3] = {0xff, 0xff, 0xff};
+uint8_t rx_addr_p1[3] = {0xff, 0xff, 0x00};
+uint8_t tx_addr[3] = {0xff, 0xff, 0xff};
+
+#define BANK0_INITS 17
+
 //Bank0 register initialization value
-const uint8_t bank0_init_data[][2] = {
-    { 0x00, 0x0F }, //reflect RX_DR\TX_DS\MAX_RT,Enable CRC ,2byte,POWER UP,PRX
-    { 0x01, 0x3F }, //Enable auto acknowledgement data pipe5\4\3\2\1\0
-    { 0x02, 0x3F }, //Enable RX Addresses pipe5\4\3\2\1\0
-    { 0x03, 0x03 }, //RX/TX address field width 5byte
-    { 0x04, 0xff }, //auto retransmission dalay (4000us),auto retransmission count(15)
-    { 0x05, 0x3c }, //channel
-    { 0x06, 0x07 }, //air data rate-1M,out power 5dbm,setup LNA gain.
-    { 0x07, 0x07 }, //
-    { 0x08, 0x00 }, //
-    { 0x09, 0x00 }, { 12, 0xc3 }, //only LSB Receive address data pipe 2, MSB bytes is equal to RX_ADDR_P1[39:8]
-    // 0x0a - RX_ADDR_P0 - 5 bytes
-    // 0x0b - RX_ADDR_P1 - 5 bytes
-    { 0x0c, 0xc3 }, // RX_ADDR_P2
-    { 0x0d, 0xc4 }, //only LSB Receive address data pipe 3, MSB bytes is equal to RX_ADDR_P1[39:8]
-    { 0x0e, 0xc5 }, //only LSB Receive address data pipe 4, MSB bytes is equal to RX_ADDR_P1[39:8]
-    { 0x0f, 0xc6 }, //only LSB Receive address data pipe 5, MSB bytes is equal to RX_ADDR_P1[39:8]
+const uint8_t bank0_init_data[BANK0_INITS][2] = {
+    { 0x00, 0b00001011 }, //
+    { 0x01, 0b00000000 }, //No auto-ack
+    { 0x02, 0b00000011 }, //Enable RX pipe 0 and 1
+    { 0x03, 0b00000001 }, //RX/TX address field width 3byte
+    { 0x04, 0b00000000 }, //no auto-RT
+    { 0x05, 0x53 }, //channel: 2400 + LS 7 bits of this field = channel (2.483)
+    { 0x06, 0b00000101 }, //air data rate-1M,out power 5dbm,setup LNA gain.
+    { 0x07, 0b01110000 }, // Clear interrupt flags
+    // 0x0a - RX_ADDR_P0 - 3 bytes
+    // 0x0b - RX_ADDR_P1 - 3 bytes
     // 0x10 - TX_ADDR - 5 bytes
-    { 0x11, 0x20 }, //Number of bytes in RX payload in data pipe0(32 byte)
-    { 0x12, 0x20 }, //Number of bytes in RX payload in data pipe1(32 byte)
-    { 0x13, 0x20 }, //Number of bytes in RX payload in data pipe2(32 byte)
-    { 0x14, 0x20 }, //Number of bytes in RX payload in data pipe3(32 byte)
-    { 0x15, 0x20 }, //Number of bytes in RX payload in data pipe4(32 byte)
-    { 0x16, 0x20 }, //Number of bytes in RX payload in data pipe5(32 byte)
-    { 0x17, 0x00 }, //fifo status
-    { 0x1c, 0x3F }, //Enable dynamic payload length data pipe5\4\3\2\1\0
-    { 0x1d, 0x07 } //Enables Dynamic Payload Length,Enables Payload with ACK,Enables the W_TX_PAYLOAD_NOACK command
+    { 0x11, 32 }, //Number of bytes in RX payload in data pipe0(32 byte)
+    { 0x12, 32 }, //Number of bytes in RX payload in data pipe1(32 byte)
+    { 0x13, 0 }, //Number of bytes in RX payload in data pipe2 - disable
+    { 0x14, 0 }, //Number of bytes in RX payload in data pipe3 - disable
+    { 0x15, 0 }, //Number of bytes in RX payload in data pipe4 - disable
+    { 0x16, 0 }, //Number of bytes in RX payload in data pipe5 - disable
+    { 0x17, 0 },
+    { 0x1c, 0x00 }, // No dynamic packet length
+    { 0x1d, 0b00000000 } // 00000 | DPL | ACK | DYN_ACK
 };
 
 uint8_t payload[32] = {0xff, 0x00, 0xff, 0xaa, 0xaa, 0xaa, 0xaa, 0};
@@ -100,8 +100,8 @@ uint8_t send_rfm75_cmd(uint8_t cmd, uint8_t data) {
 void send_rfm75_cmd_buf(uint8_t cmd, uint8_t *data, uint8_t data_len) {
     CSN_LOW_START;
     usci_b0_send_sync(cmd);
-    for (uint8_t i=0; i<data_len; i++) {
-        usci_b0_send_sync(data[i]);
+    for (uint8_t i=1; i<=data_len; i++) {
+        usci_b0_send_sync(data[data_len-i]);
     }
     CSN_HIGH_END;
 }
@@ -146,50 +146,68 @@ uint8_t rfm75_post() {
 
 void rfm75_init()
 {
-
     // TODO: Power down, just in case.
 
     delay_millis(100); // Delay more than 50ms.
     rfm75_post();
 
-    // Activate:
-    uint8_t i = send_rfm75_cmd(READ_REG|0x1d, 0x00);
-    if(i==0) // If already active this would be nonzero. Maybe.
-        send_rfm75_cmd(ACTIVATE_CMD, 0x73);
+    P3DIR |= BIT2;
+    P3OUT &= ~BIT2;
 
     // Let's start with bank 0:
     rfm75_select_bank(0);
 
-    for(i=0;i<23;i++)
+    for(uint8_t i=0;i<BANK0_INITS;i++)
         rfm75_write_reg(bank0_init_data[i][0], bank0_init_data[i][1]);
 
     volatile uint8_t temp = 0;
     volatile uint8_t test = 0;
-    for(i=0;i<23;i++) {
+    for(uint8_t i=0;i<BANK0_INITS;i++) {
         temp = rfm75_read_byte(bank0_init_data[i][0]);
         test = temp == bank0_init_data[i][1];
         __no_operation();
     }
 
-    // Next fill address buffers (TODO):
+    // Next fill address buffers
     //  Reg 0x0a: 5 bytes RX0 addr (unicast)
     //  Reg 0x0b: 5 bytes RX1 addr (broadcast)
     //  Reg 0x10: 5 bytes TX0 addr (same as RX0)
+    rfm75_write_reg_buf(RX_ADDR_P0, rx_addr_p0, 3);
+    rfm75_write_reg_buf(RX_ADDR_P1, rx_addr_p1, 3);
+    rfm75_write_reg_buf(TX_ADDR, tx_addr, 3);
+
+    // Activate:
+    /*
+    test = send_rfm75_cmd(READ_REG|0x1d, 0x00);
+    if(test!=0) // If already active this would be nonzero. Maybe.
+        send_rfm75_cmd(ACTIVATE_CMD, 0x73);
+
+    test = send_rfm75_cmd(READ_REG|0x1d, 0x00);
+    if(test!=0) // If already active this would be nonzero. Maybe.
+        send_rfm75_cmd(ACTIVATE_CMD, 0x73);
+
+    test = send_rfm75_cmd(READ_REG|0x1d, 0x00);
+    if(test!=0) // If already active this would be nonzero. Maybe.
+        send_rfm75_cmd(ACTIVATE_CMD, 0x73);
+        */
+    // I don't think we need the features that ACTIVATE uses.
 
     // OK, that's bank 0 done. Next is bank 1.
 
     rfm75_select_bank(1);
 
     // We're going to send the first three words (like they're buffers).
-    // They get sent LEAST SIGNIFICANT BYTE FIRST: so we start with {0x40, 0c4B, 0x01, 0xE2}
+    // They get sent MOST SIGNIFICANT BYTE FIRST: so we start with 0xE2.
+    //  (we show them here LEAST SIGNIFICANT BYTE FIRST because we
+    //   reverse everything we send.)
     // Like this:
     uint8_t bank1_config_0x00[][4] = {
-        {0x40, 0x4b, 0x01, 0xe2}, // reserved (prescribed)
-        {0xc0, 0x4b, 0x00, 0x00}, // reserved (prescribed)
-        {0xd0, 0xfc, 0x8c, 0x02}, // reserved (prescribed)
-        {0x99, 0x00, 0x39, 0x41}, // reserved (prescribed)
-        {0xf9, 0x96, 0x82, 0x1b}, // 1 Mbps
-        {0x24, 0x06, 0x0f, 0xa6}, // 1 Mbps
+        {0xe2, 0x01, 0x4b, 0x40}, // reserved (prescribed)
+        {0x00, 0x00, 0x4b, 0xc0}, // reserved (prescribed)
+        {0x02, 0x8c, 0xfc, 0xd0}, // reserved (prescribed)
+        {0x41, 0x39, 0x00, 0x99}, // reserved (prescribed) // TODO: 41 or 21?
+        {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us. // TODO: 1b or 03?
+        {0xa6, 0x0f, 0x06, 0x24}, // 1 Mbps
     };
 
     for (uint8_t i=0; i<6; i++) {
@@ -202,44 +220,81 @@ void rfm75_init()
     };
 
     for (uint8_t i=0; i<2; i++) {
-        rfm75_write_reg_buf(i, bank1_config_0x0c[0x0c+i], 4);
+        rfm75_write_reg_buf(0x0c+i, bank1_config_0x0c[i], 4);
     }
 
-    uint8_t bank1_config_0x0e[11] = {0x41, 0x20, 0x08, 0x04, 0x81, 0x20, 0xcf, 0xf7, 0xfe, 0xff, 0xff}; // ramp curve, prescribed
-    rfm75_write_reg_buf(i, bank1_config_0x0e, 11);
+    uint8_t bank1_config_0x0e[11] = {0xff, 0xff, 0xfe, 0xf7, 0xcf, 0x20, 0x81, 0x04, 0x08, 0x20, 0x41};
+    // {0x41, 0x20, 0x08, 0x04, 0x81, 0x20, 0xcf, 0xf7, 0xfe, 0xff, 0xff}; // ramp curve, prescribed
+    rfm75_write_reg_buf(0x0e, bank1_config_0x0e, 11);
 
     // TODO: Then the sample code does some kind of toggle thing that isn't in the datasheet.
 
+    volatile uint8_t currbank = rfm75_get_status() & 0x80; // Get MSB, which is active bank.
+    __no_operation();
+
     rfm75_select_bank(0);
 
+    currbank = rfm75_get_status() & 0x80; // Get MSB, which is active bank.
+    __no_operation();
+
     // Enable the interrupt.
-    P3DIR &= ~BIT1;
+    GPIO_setAsInputPin(GPIO_PORT_P3, GPIO_PIN1);
     GPIO_selectInterruptEdge(GPIO_PORT_P3, GPIO_PIN1, GPIO_HIGH_TO_LOW_TRANSITION);
+    GPIO_clearInterrupt(GPIO_PORT_P3, GPIO_PORT_P1);
     GPIO_enableInterrupt(GPIO_PORT_P3, GPIO_PORT_P1);
 
     // And we're off to see the wizard!
 
+    CE_DEACTIVATE;
     delay_millis(5);
 
     __no_operation();
-    rfm75_write_reg(0x00, 0b00001011); // PWR_UP! TX MODE.
-    delay_millis(5); // 1.5 ms at least.
+    // Flush TX first:
 
-    temp = rfm75_read_byte(0x00);
-    test = temp == 0b00001010;
+    CSN_LOW_START;
+    usci_b0_send_sync(0b11100001);
+    CSN_HIGH_END;
+
+    // rx fifo
+    CSN_LOW_START;
+    usci_b0_send_sync(0b11100010);
+    CSN_HIGH_END;
+
+    rfm75_write_reg(0x00, 0b00011010); // PWR_UP! TX MODE.
+    delay_millis(15); // 1.5 ms at least.
+    rfm75_write_reg(0x07, BIT4|BIT5|BIT6); // clear interrupt flags
+    delay_millis(15); // 1.5 ms at least.
+
+    test = rfm75_read_byte(0x00);
+    __no_operation();
+    test = rfm75_read_byte(0x07);
+    __no_operation();
+    test = rfm75_read_byte(0x17);
     __no_operation();
 
     send_rfm75_cmd_buf(WR_TX_PLOAD, payload, 32);
+    test = rfm75_read_byte(0x07);
+    __no_operation();
+    test = rfm75_read_byte(0x17);
+    __no_operation();
     CE_ACTIVATE;
-    delay_millis(1);
+    delay_millis(100);
+    test = rfm75_read_byte(0x07);
+    __no_operation();
+    test = rfm75_read_byte(0x17);
+    __no_operation();
+
+    while (P3IN & BIT1);
+    __no_operation();
 }
 
 #pragma vector=PORT3_VECTOR
 __interrupt void RFM_ISR(void)
 {
-    switch(__even_in_range(P3IV, 0x0010)) {
-    case P3IV_P3IFG1:
-        __no_operation(); // RFM75 interrupt
-        break;
-    }
+    __no_operation();
+//    switch(__even_in_range(P3IV, 0x0010)) {
+//    case P3IV_P3IFG1:
+//        __no_operation(); // RFM75 interrupt
+//        break;
+//    }
 }
