@@ -22,7 +22,18 @@ const rgbcolor_t rainbow_colors[] = {
         {0x7500, 0x0700, 0x8700}, // Purple
 };
 
-rgbcolor_t leg_colors_curr[8] = {
+const rgbcolor_t rainbow_legs[] = {
+        {0xee00, 0x0100, 0x0100}, // Red
+        {0xff00, 0x6c00, 0x0000}, // Orange
+        {0xff00, 0xed00, 0x0000}, // Yellow
+        {0xff00, 0xff00, 0x0000}, // Yellower
+        {0, 0xff00, 0}, //Greener
+        {0x0000, 0x8000, 0x2600}, // Green
+        {0x0000, 0x4d00, 0xff00}, // Blue
+        {0x7500, 0x0700, 0x8700}, // Purple
+};
+
+const rgbcolor_t legs_off[8] = {
         {0, 0, 0},
         {0, 0, 0},
         {0, 0, 0},
@@ -33,16 +44,9 @@ rgbcolor_t leg_colors_curr[8] = {
         {0, 0, 0},
 };
 
-rgbcolor_t leg_colors_next[8] = {
-        {0, 0, 0},
-        {0, 0, 0},
-        {0, 0, 0},
-        {0, 0, 0},
-        {0, 0, 0},
-        {0, 0, 0},
-        {0, 0, 0},
-        {0, 0, 0},
-};
+rgbcolor_t* leg_colors_curr = rainbow_legs;
+
+rgbcolor_t* leg_colors_next = legs_off;
 
 rgbdelta_t leg_colors_step[8] = {
         {0, 0, 0},
@@ -78,6 +82,14 @@ void set_face(uint64_t frame) {
         } else {
             tlc_bank_gs[i/16][i%16] = 0x00;
         }
+    }
+}
+
+void set_tentacles(rgbcolor_t* leg_colors) {
+    for (uint8_t tent=0; tent<8; tent++) {
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = leg_colors[tent].red;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = leg_colors[tent].green;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = leg_colors[tent].blue;
     }
 }
 
@@ -144,9 +156,6 @@ void leds_timestep() {
     //
     // If either, make it happen, captain.
 
-    // Tentacles:
-    //  Apply our current delta animation timestep.
-
     if (face_state == FACESTATE_ANIMATION) {
         if (face_curr_dur < FACE_DUR_STEP) { // Time for next frame?
             face_curr_anim_frame++;
@@ -169,8 +178,14 @@ void leds_timestep() {
     if (face_state == FACESTATE_AMBIENT) {
         // TODO: Check to see if we need to change anything.
         set_face(face_ambient);
-        return;
     }
+
+
+    // Tentacles:
+    //  Apply our current delta animation timestep.
+    // TODO: Check to see if we need to change anything.
+    set_tentacles(leg_colors_curr);
+
 
 //    // For now:
 //    for (uint8_t bank=4; bank<6; bank++) {
