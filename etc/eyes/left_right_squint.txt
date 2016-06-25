@@ -1,0 +1,8 @@
+open, squint, 600
+squint, open, 600
+open, squint, 600
+squint, open, 600
+open, squint, 1200
+blink, blink, 200
+open, open, 200
+blink, blink, 200

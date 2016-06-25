@@ -30,6 +30,7 @@ eye_frames_uint32 = dict()
 def main():
     # First deal with states:
     for state_file in os.listdir("states"):
+        if not state_file[-3:] == "txt": continue
         with open(os.path.join("states", state_file)) as f:
             banks = {
                 1 : [0]*15,

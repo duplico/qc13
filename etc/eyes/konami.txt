@@ -1,0 +1,13 @@
+left, left, 400
+blink, blink, 200
+left, left, 400
+blink, blink, 200
+right, right, 400
+blink, blink, 200
+right, right, 400
+blink, blink, 200
+up, up, 400
+down, down, 400
+up, up, 400
+down, down, 400
+blink, blink, 600 
