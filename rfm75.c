@@ -236,12 +236,20 @@ void rfm75_init()
 
     currbank = rfm75_get_status() & 0x80; // Get MSB, which is active bank.
     __no_operation();
+    __bis_SR_register(GIE);
 
     // Enable the interrupt.
-    GPIO_setAsInputPin(GPIO_PORT_P3, GPIO_PIN1);
-    GPIO_selectInterruptEdge(GPIO_PORT_P3, GPIO_PIN1, GPIO_HIGH_TO_LOW_TRANSITION);
-    GPIO_clearInterrupt(GPIO_PORT_P3, GPIO_PORT_P1);
-    GPIO_enableInterrupt(GPIO_PORT_P3, GPIO_PORT_P1);
+    P3DIR &= ~BIT1;
+    P3REN &= ~BIT1;
+    P3SEL0 &= ~BIT1;
+    P3SEL1 &= ~BIT1;
+    P3IES |= BIT1;
+    P3IFG &= ~BIT1;
+    P3IE |= BIT1;
+
+//    GPIO_setAsInputPin(GPIO_PORT_P3, GPIO_PIN1);
+//    GPIO_selectInterruptEdge(GPIO_PORT_P3, GPIO_PIN1, GPIO_HIGH_TO_LOW_TRANSITION);
+//    GPIO_enableInterrupt(GPIO_PORT_P3, GPIO_PORT_P1);
 
     // And we're off to see the wizard!
 
@@ -291,10 +299,12 @@ void rfm75_init()
 #pragma vector=PORT3_VECTOR
 __interrupt void RFM_ISR(void)
 {
-    __no_operation();
-//    switch(__even_in_range(P3IV, 0x0010)) {
-//    case P3IV_P3IFG1:
-//        __no_operation(); // RFM75 interrupt
-//        break;
-//    }
+    volatile uint16_t i = P3IV;
+    switch(__even_in_range(i, 10)) {
+    case 0x04:
+        __no_operation(); // RFM75 interrupt
+        break;
+    default:
+        __no_operation();
+    }
 }
