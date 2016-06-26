@@ -47,6 +47,6 @@ void face_start_anim(uint8_t anim_index);
 void leds_timestep();
 
 extern uint16_t face_banks[4];
-extern rgbcolor_t* leg_colors_curr;
+extern rgbcolor_t leg_colors_curr[][8];
 
 #endif /* LED_DISPLAY_H_ */

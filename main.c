@@ -38,6 +38,7 @@ uint8_t neighbor_count = 0;
 
 // Flags to main loop raised by interrupts (so must be volatile):
 volatile uint8_t f_time_loop = 0;
+volatile uint8_t f_tentacle_anim_done = 0;
 
 // Signals to the main loop (not caused by interrupts):
 uint8_t s_b_start = 0;
