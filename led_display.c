@@ -12,6 +12,7 @@
 #include "tlc5948a.h"
 
 #include "etc/eyes/eye_anims.h"
+#include "etc/tentacles/tentacle_anims.h"
 
 const rgbcolor_t rainbow_colors[] = {
         {0xe400, 0x0300, 0x0300}, // Red
@@ -44,9 +45,18 @@ const rgbcolor_t legs_off[8] = {
         {0, 0, 0},
 };
 
-rgbcolor_t* leg_colors_curr = rainbow_legs;
+rgbcolor_t leg_colors_curr[][8] = {
+        {0xee00, 0x0100, 0x0100}, // Red
+        {0xff00, 0x6c00, 0x0000}, // Orange
+        {0xff00, 0xed00, 0x0000}, // Yellow
+        {0xff00, 0xff00, 0x0000}, // Yellower
+        {0, 0xff00, 0}, //Greener
+        {0x0000, 0x8000, 0x2600}, // Green
+        {0x0000, 0x4d00, 0xff00}, // Blue
+        {0x7500, 0x0700, 0x8700}, // Purple
+};
 
-rgbcolor_t* leg_colors_next = legs_off;
+rgbcolor_t* leg_colors_next = {0};
 
 rgbdelta_t leg_colors_step[8] = {
         {0, 0, 0},
@@ -85,6 +95,10 @@ void set_face(uint64_t frame) {
     }
 }
 
+void tentacle_load_colors() {
+    // TODO:
+}
+
 void set_tentacles(rgbcolor_t* leg_colors) {
     for (uint8_t tent=0; tent<8; tent++) {
         tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = leg_colors[tent].red;
@@ -107,6 +121,37 @@ void face_start_anim(uint8_t anim_index) {
     face_curr_dur = face_all_animations[face_current_animation]->frame_durations[0];
     face_state = FACESTATE_ANIMATION;
 }
+
+uint8_t tentacle_first_frame = 0;
+uint8_t tentacle_anim_index = 0;
+uint8_t tentacle_is_ambient = 1;
+uint8_t tentacle_anim_looping = 0;
+uint8_t tentacle_anim_length = 0;
+uint8_t tentacle_transition_steps = 0;
+uint8_t tentacle_transition_index = 0;
+rgbcolor_t * tentacle_curr_frames[8];
+//
+//void tentacle_start_anim(const tentacle_animation_t *anim, uint8_t loop, uint8_t ambient) {
+//    f_tentacle_anim_done = 0;
+//    tentacle_first_frame = 1;
+//    tentacle_anim_index = 0; // This is our index in the animation.
+//
+//    tentacle_is_ambient = ambient;
+//    // TODO: If not ambient, remember what IS ambient so we can go back.
+//
+//    tentacle_anim_length = anim->len;
+//    tentacle_curr_frames = anim->colors;
+//
+//    tentacle_transition_steps = fade_steps;
+//    tentacle_transition_index = 0;
+//    if (all_lights_same) {
+//        tlc_anim_mode = TLC_ANIM_MODE_SAME;
+//    } else {
+//        tlc_anim_mode = TLC_ANIM_MODE_SHIFT;
+//    }
+//    tentacle_anim_looping = loop;
+//    set_tentacles(tentacle_curr_frames[tentacle_anim_index]);
+//}
 
 void led_post() {
     uint64_t chase = 0;
