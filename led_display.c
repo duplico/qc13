@@ -123,9 +123,9 @@ void stage_color(rgbcolor_t *dest_color_frame, rgbcolor_t *src_color_frame) {
 void leg_load_colors() {
     // leg_colors_curr <- tentacle_current_anim[tentacle_anim_index]
 
+    // Stage in the current color:
+//    memcpy(&leg_colors_curr[0], &tentacle_curr_frames[tentacle_anim_index][0], sizeof(rgbcolor_t)*8);
     for (uint8_t i=0; i<8; i++) {
-        // Stage in the current color:
-//        stage_color(&leg_colors_curr[i], tentacle_curr_frames[i]);
         leg_colors_curr[i].red = tentacle_current_anim->colors[tentacle_anim_index][i].red;
         leg_colors_curr[i].green = tentacle_current_anim->colors[tentacle_anim_index][i].green;
         leg_colors_curr[i].blue = tentacle_current_anim->colors[tentacle_anim_index][i].blue;
@@ -139,6 +139,10 @@ void leg_load_colors() {
         } else {
             // We're either looping or not at the end, so it's safe to say:
 //            stage_color(&leg_colors_next[i], tentacle_current_anim->colors[(tentacle_anim_index+1) % tentacle_current_anim->len]);
+            uint8_t next_id = (tentacle_anim_index+1) % tentacle_current_anim->len;
+            leg_colors_next[i].red = tentacle_current_anim->colors[next_id][i].red;
+            leg_colors_next[i].green = tentacle_current_anim->colors[next_id][i].green;
+            leg_colors_next[i].blue = tentacle_current_anim->colors[next_id][i].blue;
         }
 
         leg_colors_step[i].red = ((int_fast32_t) leg_colors_next[i].red - leg_colors_curr[i].red) / tentacle_transition_steps;
@@ -152,13 +156,13 @@ inline void leg_fade_colors() {
     if (tentacle_transition_steps && tentacle_transition_index == tentacle_transition_steps-1) {
         // hit the destination:
         for (uint8_t i=0; i<8; i++) {
-            memcpy(&leg_colors_curr[i], &leg_colors_next[i], sizeof(rgbcolor_t));
+            memcpy(&leg_colors_curr[i], &leg_colors_next[i], sizeof(rgbcolor_t)); // TODO: contiguous
         }
     } else {
         for (uint8_t i=0; i<8; i++) {
-            leg_colors_curr[0].red += leg_colors_step[0].red;
-            leg_colors_curr[0].green += leg_colors_step[0].green;
-            leg_colors_curr[0].blue += leg_colors_step[0].blue;
+            leg_colors_curr[i].red += leg_colors_step[i].red;
+            leg_colors_curr[i].green += leg_colors_step[i].green;
+            leg_colors_curr[i].blue += leg_colors_step[i].blue;
         }
     }
 }
@@ -166,9 +170,9 @@ inline void leg_fade_colors() {
 // This actually sets the colors of the tentacles/legs:
 void set_tentacles(rgbcolor_t* leg_colors) {
     for (uint8_t tent=0; tent<8; tent++) {
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = leg_colors[tent].blue << 8;
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = leg_colors[tent].green << 8;
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = leg_colors[tent].red << 8;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = leg_colors[tent].blue;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = leg_colors[tent].green;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = leg_colors[tent].red;
     }
 }
 
@@ -187,11 +191,14 @@ void face_start_anim(uint8_t anim_index) {
     face_state = FACESTATE_ANIMATION;
 }
 
+uint8_t tentacle_animation_state = 0;
+
 void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient) {
     tentacle_current_anim = legs_all_anim_sets[anim_id][anim_type];
     f_tentacle_anim_done = 0;
     tentacle_first_frame = 1;
     tentacle_anim_index = 0; // This is our index in the animation.
+    tentacle_animation_state = 1; // animating
 
     tentacle_is_ambient = ambient;
     // TODO: If not ambient, remember what IS ambient so we can go back.
@@ -199,10 +206,30 @@ void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8
     tentacle_anim_length = tentacle_current_anim->len;
     tentacle_curr_frames = (rgbcolor_t (*)[8]) tentacle_current_anim->colors;
 
-    tentacle_transition_steps = tentacle_current_anim->durations[0]; // TODO: divided by something probably.
+    tentacle_transition_steps = tentacle_current_anim->durations[0] / FACE_DUR_STEP; // TODO: divided by something probably.
     tentacle_transition_index = 0;
 
     tentacle_anim_looping = loop;
+    leg_load_colors();
+    set_tentacles(tentacle_curr_frames[tentacle_anim_index]);
+}
+
+void tentacle_next_anim_frame() {
+    f_tentacle_anim_done = 0;
+    tentacle_first_frame = 0;
+    tentacle_anim_index++; // This is our index in the animation.
+
+    if (tentacle_anim_index >= tentacle_anim_length) {
+        // TODO: check loop
+        // tentacle_animation_state = 0; // stopped
+        // flag done
+        // TODO: If not ambient, remember what IS ambient so we can go back.
+        tentacle_anim_index = 0; // loop
+    }
+
+    tentacle_transition_steps = tentacle_current_anim->durations[tentacle_anim_index] / FACE_DUR_STEP;
+    tentacle_transition_index = 0;
+
     leg_load_colors();
     set_tentacles(tentacle_curr_frames[tentacle_anim_index]);
 }
@@ -282,6 +309,16 @@ void leds_timestep() {
     // Tentacles:
     //  Apply our current delta animation timestep.
     // TODO: Check to see if we need to change anything.
+
+    if (tentacle_animation_state) {
+        tentacle_transition_index++;
+        if (tentacle_transition_index >= tentacle_transition_steps) {
+            // next frame plx.
+            tentacle_next_anim_frame();
+        } else {
+            leg_fade_colors();
+        }
+    }
     set_tentacles(leg_colors_curr);
 
 }

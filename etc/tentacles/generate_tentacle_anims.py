@@ -5,7 +5,10 @@ import webcolors
 color_corrections = {
     "default" : (255,255,255),
     "off" : (0,0,0),
+    "crimson" : (220, 20, 60)
 }
+
+global_color_correct = (1,.5,1)
 
 eye_frames = dict()
 eye_frames_uint32 = dict()
@@ -55,6 +58,8 @@ def main():
                     color_name,
                     webcolors.name_to_rgb(color_name) if color_name not in color_corrections else None
                 )
+                
+                local_colors[int(color_num)] = tuple(map(lambda a: int(16.0*a[0]*a[1]), zip(local_colors[int(color_num)], global_color_correct)))
                 line_no += 1
             
             # Consume the animation type:
@@ -119,6 +124,7 @@ def main():
                     metadata1 += [str(f[8])]
                     metadata2 += [str(f[9])]
                     fr = map(lambda a: local_colors[a], f[:8])
+                    fr = fr[::-1]
                     c_lines.append("    {%s}," % ', '.join(map(lambda rgb: "{0x%x, 0x%x, 0x%x}" % rgb, fr)))
                 c_lines.append("};")
                 c_lines.append("uint16_t %s_%s_durations[] = {%s};" % (anim_name, lname, ', '.join(metadata1)))
@@ -141,9 +147,7 @@ def main():
     h_lines.append("extern const tentacle_animation_t **legs_all_anim_sets[];")
     
     h_lines.append("#endif // _H_")
-    
-    print '\n'.join(c_lines)
-    
+        
     with open("leg_anims.c", 'w') as f:
         f.writelines(map(lambda a: a+"\n", c_lines))
     
