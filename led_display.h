@@ -25,7 +25,9 @@ typedef struct {
 } rgbdelta_t;
 
 typedef struct {
-    const rgbcolor_t (*colors)[8]; // pointer to arrays of colors
+    const rgbcolor_t (*colors)[8];
+    const uint16_t *durations;
+    const uint16_t *metadata2;
     uint8_t len;
 } tentacle_animation_t;
 
@@ -44,9 +46,10 @@ void led_post();
 
 void face_set_ambient(uint8_t amb_index);
 void face_start_anim(uint8_t anim_index);
+void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient);
 void leds_timestep();
 
 extern uint16_t face_banks[4];
-extern rgbcolor_t leg_colors_curr[][8];
+extern rgbcolor_t leg_colors_curr[8];
 
 #endif /* LED_DISPLAY_H_ */
