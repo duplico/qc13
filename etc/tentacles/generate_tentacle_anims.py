@@ -10,8 +10,22 @@ color_corrections = {
 eye_frames = dict()
 eye_frames_uint32 = dict()
 
+c_lines = []
+h_lines = [
+    "#ifndef LEGANIMS_H_",
+    "#define LEGANIMS_H_",
+    "",
+    "#define LEG_CAMO_INDEX 0",
+    "#define LEG_INK_INDEX 0",
+    "#define LEG_DOUBLEINK_INDEX 1",
+    "",
+]
+
 def main():    
-    print '#include "../../led_display.h"'
+    c_lines.append('#include "../../led_display.h"')
+    c_lines.append('#include "leg_anims.h"')
+    
+    all_animations = []
     
     for anim in os.listdir("."):
         if not anim[-3:] == "txt": continue
@@ -23,9 +37,10 @@ def main():
         super_ink_lengths = []
         
         anim_name = anim[:-4]
+        all_animations.append(anim_name)
         
-        print
-        print "///////////////// %s:" % anim_name.upper()
+        c_lines.append("")
+        c_lines.append("///////////////// %s:" % anim_name.upper())
         # Append to "ALL" or whatever
         with open(anim) as f:
             local_colors = dict()
@@ -87,22 +102,53 @@ def main():
             # Great. Now we've ingested the entire file.
             # Time to start generating frames.
             
+            local_animation_names = []
+            
             for l,lname in ((camo_frames, 'camo'), (ink_frames, 'ink'), (doubleink_frames, 'doubleink')):
-                print "// frames for %s" % lname
-                print "const rgbcolor_t %s_%s_frames[][8] = {" % (anim_name, lname)
+                c_lines.append("// frames for %s" % lname)
+                c_lines.append("const rgbcolor_t %s_%s_frames[][8] = {" % (anim_name, lname))
+                h_lines.append("// frames for %s" % lname)
+                h_lines.append("extern const rgbcolor_t %s_%s_frames[][8];" % (anim_name, lname))
+                
+                local_animation_names += ["%s_%s" % (anim_name, lname)]
                 
                 frames = []
-                metadata = []
+                metadata1 = []
+                metadata2 = []
                 for f in l:
-                    metadata += f[8:]
+                    metadata1 += [str(f[8])]
+                    metadata2 += [str(f[9])]
                     fr = map(lambda a: local_colors[a], f[:8])
-                    print "    {%s}," % ', '.join(map(lambda rgb: "{0x%x, 0x%x, 0x%x}" % rgb, fr))
-                print "};"
+                    c_lines.append("    {%s}," % ', '.join(map(lambda rgb: "{0x%x, 0x%x, 0x%x}" % rgb, fr)))
+                c_lines.append("};")
+                c_lines.append("uint16_t %s_%s_durations[] = {%s};" % (anim_name, lname, ', '.join(metadata1)))
+                c_lines.append("uint16_t %s_%s_metadata2[] = {%s};" % (anim_name, lname, ', '.join(metadata2)))
                 
-                print "// the animation:"
-                print "const tentacle_animation_t %s_%s = {%s_%s_frames, %d};" % (anim_name, lname, anim_name, lname, len(l))
-                print
+                h_lines.append("extern uint16_t %s_%s_durations[];" % (anim_name, lname))
+                h_lines.append("extern uint16_t %s_%s_metadata2[];" % (anim_name, lname))
                 
+                c_lines.append("// the animation:")
+                c_lines.append("const tentacle_animation_t %s_%s = {%s_%s_frames, %s_%s_durations, %s_%s_metadata2, %d};" % (anim_name, lname, anim_name, lname, anim_name, lname, anim_name, lname, len(l)))
+                
+                h_lines.append("extern const tentacle_animation_t %s_%s;" % (anim_name, lname))
+            c_lines.append("")
+            c_lines.append("const tentacle_animation_t *%s_anim_set[3] = {%s};" % (anim_name, ', '.join(map(lambda a: "&%s" % a, local_animation_names))))
+    c_lines.append("")
+    h_lines.append("#define LEG_ANIM_COUNT %d" % len(all_animations))
+    for i in range(len(all_animations)):
+        h_lines.append("#define LEG_ANIM_%s %d" % (all_animations[i].upper(), i))
+    c_lines.append("const tentacle_animation_t **legs_all_anim_sets[] = {%s};" % ', '.join(map(lambda a: "%s_anim_set" % a, all_animations)))
+    h_lines.append("extern const tentacle_animation_t **legs_all_anim_sets[];")
+    
+    h_lines.append("#endif // _H_")
+    
+    print '\n'.join(c_lines)
+    
+    with open("leg_anims.c", 'w') as f:
+        f.writelines(map(lambda a: a+"\n", c_lines))
+    
+    with open("leg_anims.h", 'w') as f:
+        f.writelines(map(lambda a: a+"\n", h_lines))
             
     
 if __name__ == "__main__":

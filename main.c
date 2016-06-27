@@ -12,6 +12,7 @@
 #include "rfm75.h"
 #include "led_display.h"
 #include "tlc5948a.h"
+#include "etc/tentacles/leg_anims.h"
 
 /*
  *
@@ -219,6 +220,8 @@ int main(void)
     delay_millis(10);
 
     uint8_t anim_index = 0;
+
+    tentacle_start_anim(LEG_ANIM_DEF, LEG_CAMO_INDEX, 1, 1);
 
     while (1)
     {
