@@ -1,6 +1,10 @@
-1 crimson
-2 orangered
-3 darkorange
+#1 crimson
+#2 orangered
+#3 darkorange
+#4 lightyellow
+1 red
+2 firebrick
+3 darkred
 4 lightyellow
 fast_twinkle
 
