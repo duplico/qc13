@@ -20,7 +20,6 @@ const qc13conf default_conf = {
         0,
         0,
         0,
-        {0},
         0,
         0x01,
         1,
