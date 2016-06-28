@@ -1,6 +1,6 @@
 1 red
-2 orangered
-3 darkred
+2 darkorange
+3 orangered
 4 lightyellow
 fast_twinkle
 
