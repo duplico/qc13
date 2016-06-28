@@ -7,6 +7,7 @@
 
 #include "qc13.h"
 #include "leg_anims.h"
+#include "rfm75.h"
 
 uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
@@ -38,7 +39,7 @@ void time_loop() {
 }
 
 void start_button_clicked() {
-    tentacle_start_anim(my_conf.camo_id, LEG_DOUBLEINK_INDEX, 0, 0);
+    rfm75_tx();
 }
 
 void select_button_clicked() {
@@ -51,10 +52,10 @@ void select_button_clicked() {
 }
 
 void radio_received(uint8_t *payload) {
-
     // After this routine exits, payload is subject to change.
+    tentacle_start_anim(my_conf.camo_id, LEG_DOUBLEINK_INDEX, 0, 0);
 }
 
 void radio_transmit_done() {
-
+    tentacle_start_anim(my_conf.camo_id, LEG_DOUBLEINK_INDEX, 0, 0);
 }

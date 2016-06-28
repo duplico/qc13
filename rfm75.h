@@ -72,5 +72,6 @@
 void rfm75_init();
 uint8_t rfm75_post();
 void rfm75_deferred_interrupt();
+void rfm75_tx();
 
 #endif /* RFM75_H_ */

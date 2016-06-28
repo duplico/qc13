@@ -184,7 +184,7 @@ void rfm75_enter_prx() {
     // TODO: disable TX IRQ entirely here?
     // Power up & PRX: CONFIG=0b01101011
     rfm75_select_bank(0);
-    rfm75_write_reg(CONFIG, 0b01101011);
+    rfm75_write_reg(CONFIG, 0b00011011);
     // Clear interrupts: STATUS=BIT4|BIT5|BIT6
     rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
 
@@ -207,13 +207,13 @@ void rfm75_tx() {
     // TODO: disable RX IRQ entirely here?
     // Power up & PRX: CONFIG=0b01101010
     rfm75_select_bank(0);
-    rfm75_write_reg(CONFIG, 0b01101010);
+    rfm75_write_reg(CONFIG, 0b00011010);
     // Clear interrupts: STATUS=BIT4|BIT5|BIT6
     rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
 
     rfm75_state = RFM75_TX_FIFO;
     // Write the payload: TODO: nonblocking? (it is pretty short...)
-    send_rfm75_cmd_buf(WR_TX_PLOAD, payload_in, RFM75_PAYLOAD_SIZE);
+    send_rfm75_cmd_buf(WR_TX_PLOAD, payload_out, RFM75_PAYLOAD_SIZE);
     rfm75_state = RFM75_TX_SEND;
     CE_ACTIVATE;
     // Now we wait for an IRQ to let us know it's sent.
@@ -305,7 +305,22 @@ void rfm75_init()
 
     // And we're off to see the wizard!
 
-    rfm75_enter_prx();
+//    rfm75_enter_prx();
+
+
+    CSN_LOW_START;
+    usci_b0_send_sync(0b11100001);
+    CSN_HIGH_END;
+    CSN_LOW_START;
+    usci_b0_send_sync(0b11100010);
+    CSN_HIGH_END;
+
+    rfm75_write_reg(0x00, 0b00011010);
+    send_rfm75_cmd_buf(WR_TX_PLOAD, payload, sizeof(qcpayload));
+    CE_ACTIVATE;
+    while (!f_rfm75_interrupt);
+    f_rfm75_interrupt = 0;
+    __no_operation();
 }
 
 void rfm75_deferred_interrupt() {
