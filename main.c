@@ -93,8 +93,22 @@ void init_adc() {
     ADC12_B_startConversion(ADC12_B_BASE, ADC12_B_START_AT_ADC12MEM0, ADC12_B_REPEATED_SEQOFCHANNELS);
 }
 
+void term_gpio() {
+    P1DIR = 0xFF;
+    P1OUT = 0x00;
+    P2DIR = 0xFF;
+    P2OUT = 0x00;
+    P3DIR = 0xFF;
+    P3OUT = 0x00;
+    P4DIR = 0xFF;
+    P4OUT = 0x00;
+    PJDIR = 0xFF;
+    PJOUT = 0x00;
+}
+
 void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
+    term_gpio();
     Grace_init(); // Activate Grace-generated configuration
 
     // Buttons:
@@ -109,8 +123,6 @@ void init() {
     P2DIR &= ~BIT7;
     P2REN |= BIT7;
     P2OUT |= BIT7;
-
-    Timer_B_enableCaptureCompareInterrupt(TIMER_B0_BASE, TIMER_B_CAPTURECOMPARE_REGISTER_0);
 
     tlc_init();   // Initialize our LED system
     rfm75_init(); // Initialize our radio
@@ -245,15 +257,6 @@ int main(void)
             __bis_SR_register(SLEEP_BITS + GIE);
     }
 
-}
-
-// Dedicated ISR for CCR0. Vector is cleared on service.
-#pragma vector=TIMER0_A0_VECTOR
-__interrupt void TIMER0_A0_ISR_HOOK(void)
-{
-    f_time_loop = 1;
-    tlc_set_gs();
-    __bic_SR_register_on_exit(LPM0_bits);
 }
 
 // ISR for pairing:
