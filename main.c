@@ -32,6 +32,7 @@
 
 // Flags to main loop raised by interrupts (so must be volatile):
 volatile uint8_t f_time_loop = 0;
+volatile uint8_t f_rfm75_interrupt = 0;
 
 // Signals to the main loop (not caused by interrupts):
 uint8_t s_b_start = 0;
@@ -130,7 +131,9 @@ void init() {
 }
 
 void post() {
+    // TODO: Check return values.
     led_post();
+    rfm75_post();
 }
 
 void delay_millis(unsigned long mils) {
@@ -210,6 +213,7 @@ int main(void)
     while (1)
     {
         if (f_time_loop) {
+            // TODO: Pat the dog.
             poll_buttons();
             poll_adc();
             leds_timestep();
@@ -217,6 +221,11 @@ int main(void)
             time_loop();
 
             f_time_loop = 0;
+        }
+
+        if (f_rfm75_interrupt) {
+            rfm75_deferred_interrupt();
+            f_rfm75_interrupt = 0;
         }
 
         if (s_b_start == BUTTON_PRESS) {
@@ -253,7 +262,7 @@ int main(void)
         }
 
         // If no more interrupt flags are set, go to sleep.
-        if (!f_time_loop)
+        if (!f_time_loop && !f_rfm75_interrupt)
             __bis_SR_register(SLEEP_BITS + GIE);
     }
 

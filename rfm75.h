@@ -8,6 +8,10 @@
 #ifndef RFM75_H_
 #define RFM75_H_
 
+#include <stdint.h>
+
+#define RFM75_PAYLOAD_SIZE sizeof(qcpayload)
+
 //************************FSK COMMAND and REGISTER****************************************//
 // SPI(RFM75) commands
 #define READ_REG                0x00  // Define read command to register
@@ -66,5 +70,7 @@
 #define FIFO_STATUS_RX_EMPTY    0x01
 
 void rfm75_init();
+uint8_t rfm75_post();
+void rfm75_deferred_interrupt();
 
 #endif /* RFM75_H_ */

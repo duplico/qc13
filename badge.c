@@ -49,3 +49,12 @@ void select_button_clicked() {
         tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
     }
 }
+
+void radio_received(uint8_t *payload) {
+
+    // After this routine exits, payload is subject to change.
+}
+
+void radio_transmit_done() {
+
+}
