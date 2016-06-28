@@ -54,8 +54,6 @@ uint8_t temp_index = 0;
 ///////////////////////////
 
 void init_adc() {
-    // TODO: Better documentation
-
     /* Struct to pass to ADC12_B_init */
     ADC12_B_initParam initParam = {0};
 
@@ -131,7 +129,6 @@ void init() {
 }
 
 void post() {
-    // TODO: Check return values.
     led_post();
     rfm75_post();
 }
@@ -143,7 +140,7 @@ void delay_millis(unsigned long mils) {
     }
 }
 
-void poll_buttons() { // TODO: inline
+void poll_buttons() {
     static uint8_t b_start_read_prev = 1;
     static uint8_t b_start_read = 1;
     static uint8_t b_start_state = 1;
@@ -213,7 +210,6 @@ int main(void)
     while (1)
     {
         if (f_time_loop) {
-            // TODO: Pat the dog.
             poll_buttons();
             poll_adc();
             leds_timestep();
@@ -248,7 +244,6 @@ int main(void)
         }
 
         if (s_b_ohai == BUTTON_PRESS) { // badges connected.
-            // TODO: Enter a state machine.
             __no_operation();
             EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
             delay_millis(1000);
@@ -257,7 +252,6 @@ int main(void)
         }
 
         if (s_b_ohai == BUTTON_PRESS) { // badges disconnected.
-            // TODO: state machine.
             s_b_ohai = 0;
         }
 

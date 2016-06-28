@@ -169,7 +169,6 @@ uint8_t rfm75_post() {
     if (active2 != (active ^ 0b00000111)) {
         return 0;
     }
-    // TODO: More? (This checks whether we can talk to the chip.
     return 1;
 }
 
@@ -177,11 +176,10 @@ void rfm75_enter_prx() {
     // Make sure we're in an inactive state
     if (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE) {
         while (1)
-            __no_operation(); // spin forever because we suck. TODO
+            __no_operation(); // spin forever because we suck.
     }
     rfm75_state = RFM75_RX_INIT;
     CE_DEACTIVATE;
-    // TODO: disable TX IRQ entirely here?
     // Power up & PRX: CONFIG=0b01101011
     rfm75_select_bank(0);
     rfm75_write_reg(CONFIG, 0b00011011);
@@ -198,14 +196,13 @@ void rfm75_tx() {
     // Make sure we're in an inactive state
     if (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE) {
         while (1)
-            __no_operation(); // spin forever because we suck. TODO
+            __no_operation(); // spin forever because we suck.
     }
     // Fill'er up:
     memcpy(payload_out, &out_payload, RFM75_PAYLOAD_SIZE);
 
     rfm75_state = RFM75_TX_INIT;
     CE_DEACTIVATE;
-    // TODO: disable RX IRQ entirely here?
     // Power up & PRX: CONFIG=0b01101010
     rfm75_select_bank(0);
     rfm75_write_reg(CONFIG, 0b00011010);
@@ -213,7 +210,7 @@ void rfm75_tx() {
     rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
 
     rfm75_state = RFM75_TX_FIFO;
-    // Write the payload: TODO: nonblocking? (it is pretty short...)
+    // Write the payload:
     send_rfm75_cmd_buf(WR_TX_PLOAD, payload_out, RFM75_PAYLOAD_SIZE);
     rfm75_state = RFM75_TX_SEND;
     CE_ACTIVATE;
@@ -222,8 +219,6 @@ void rfm75_tx() {
 
 void rfm75_init()
 {
-    // TODO: Power down, just in case.
-
     delay_millis(100); // Delay more than 50ms.
     rfm75_post();
 
@@ -265,8 +260,8 @@ void rfm75_init()
         {0xe2, 0x01, 0x4b, 0x40}, // reserved (prescribed)
         {0x00, 0x00, 0x4b, 0xc0}, // reserved (prescribed)
         {0x02, 0x8c, 0xfc, 0xd0}, // reserved (prescribed)
-        {0x41, 0x39, 0x00, 0x99}, // reserved (prescribed) // TODO: 41 or 21?
-        {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us. // TODO: 1b or 03?
+        {0x41, 0x39, 0x00, 0x99}, // reserved (prescribed)
+        {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us.
         {0xa6, 0x0f, 0x06, 0x24}, // 1 Mbps
     };
 
@@ -287,15 +282,12 @@ void rfm75_init()
     // {0x41, 0x20, 0x08, 0x04, 0x81, 0x20, 0xcf, 0xf7, 0xfe, 0xff, 0xff}; // ramp curve, prescribed
     rfm75_write_reg_buf(0x0e, bank1_config_0x0e, 11);
 
-    // TODO: Then the sample code does some kind of toggle thing that isn't in the datasheet.
-
     // Now we go back to bank 0, because that's the one we normally
     //  care about.
 
     rfm75_select_bank(0);
 
     // Set up our pins:
-    //  TODO: Check to make sure we're not doing this twice.
     P3DIR &= ~BIT1;
     P3REN &= ~BIT1;
     P3SEL0 &= ~BIT1;
@@ -322,7 +314,7 @@ void rfm75_deferred_interrupt() {
     uint8_t iv = rfm75_get_status();
     if (iv & BIT6) { // RX interrupt
         if (rfm75_state != RFM75_RX_LISTEN) {
-            while (1) __no_operation(); // TODO: don't spin forever like an ass
+            while (1) __no_operation();
         }
 
         // We've received something.
@@ -343,7 +335,7 @@ void rfm75_deferred_interrupt() {
 
     if (iv & BIT5) { // TX interrupt
         if (rfm75_state != RFM75_TX_SEND) {
-            while (1) __no_operation(); // TODO: don't spin forever like an ass
+            while (1) __no_operation();
         }
 
         // We sent a thing.
@@ -365,7 +357,7 @@ __interrupt void RFM_ISR(void)
 {
     if (P3IV != 0x04) {
         //assert 0
-        while (1) __no_operation(); // TODO: don't spin forever like an ass
+        while (1) __no_operation();
     }
     f_rfm75_interrupt = 1;
     CE_DEACTIVATE; // stop listening or sending.

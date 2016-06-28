@@ -99,7 +99,7 @@ uint8_t face_state = FACESTATE_AMBIENT;
 
 uint8_t tentacle_anim_frame = 0;
 uint8_t tentacle_anim_id = 0;
-uint8_t tentacle_anim_type = 0; // TODO: probably don't need this... oh well.
+uint8_t tentacle_anim_type = 0;
 uint8_t tentacle_saved_anim_id = 0;
 uint8_t tentacle_saved_anim_type = 0;
 uint8_t tentacle_is_ambient = 1;
@@ -131,8 +131,6 @@ void leg_load_colors() {
     // leg_colors_curr <- tentacle_current_anim[tentacle_anim_index]
 
     // Stage in the current color:
-    // TODO:
-//    memcpy(&leg_colors_curr[0], &tentacle_curr_frames[tentacle_anim_index][0], sizeof(rgbcolor_t)*8);
     for (uint8_t i=0; i<8; i++) {
         leg_colors_curr[i].red = tentacle_current_anim->colors[tentacle_anim_frame][i].red;
         leg_colors_curr[i].green = tentacle_current_anim->colors[tentacle_anim_frame][i].green;
@@ -164,7 +162,7 @@ inline void leg_fade_colors() {
     if (tentacle_transition_steps && tentacle_transition_index == tentacle_transition_steps-1) {
         // hit the destination:
         for (uint8_t i=0; i<8; i++) {
-            memcpy(&leg_colors_curr[i], &leg_colors_next[i], sizeof(rgbcolor_t)); // TODO: contiguous
+            memcpy(&leg_colors_curr[i], &leg_colors_next[i], sizeof(rgbcolor_t));
         }
     } else {
         for (uint8_t i=0; i<8; i++) {
@@ -191,8 +189,6 @@ void set_tentacles(rgbcolor_t* leg_colors) {
         r = leg_colors[tent].red;
         g = leg_colors[tent].green;
         b = leg_colors[tent].blue;
-
-        // TODO: brightness correction.
 
         // Twinklies:
         switch(tentacle_current_anim->anim_type) {
@@ -291,7 +287,6 @@ void tentacle_next_anim_frame() {
 }
 
 void led_post() {
-    // TODO: Do the real post thing.
     uint64_t chase = 0;
     set_face(chase);
     tlc_stage_blank(0);
@@ -336,7 +331,6 @@ void leds_timestep() {
         } else {
             // tick towards next frame.
             face_curr_dur -= FACE_DUR_STEP;
-            // TODO: Check to see if we need to change anything.
         }
     }
 

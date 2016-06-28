@@ -62,7 +62,7 @@ typedef struct {
     uint16_t bases_seen;
     uint16_t camo_unlocks;
     uint8_t camo_id;
-    uint16_t crc16; // TODO: Needed?
+    uint16_t crc16;
 } qc13conf;
 
 /////////////////////////////////////////////////////////////////////
