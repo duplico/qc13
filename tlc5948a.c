@@ -173,7 +173,7 @@ void tlc_init() {
     Timer_A_initUpModeParam gsclk_init = {};
     gsclk_init.clockSource = TIMER_A_CLOCKSOURCE_SMCLK;
     gsclk_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    gsclk_init.timerPeriod = 2;
+    gsclk_init.timerPeriod = 1;
     gsclk_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
     gsclk_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
     gsclk_init.timerClear = TIMER_A_SKIP_CLEAR;
@@ -315,4 +315,13 @@ __interrupt void EUSCI_A0_ISR(void)
         break; // End of TXIFG /////////////////////////////////////////////////////
     default: break;
     } // End of ISR flag switch ////////////////////////////////////////////////////
+}
+
+// Dedicated ISR for CCR0. Vector is cleared on service.
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void TIMER0_A0_ISR_HOOK(void)
+{
+    f_time_loop = 1;
+    tlc_set_gs();
+    __bic_SR_register_on_exit(LPM0_bits);
 }
