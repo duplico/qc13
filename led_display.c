@@ -254,12 +254,12 @@ void tentacle_setup_transitions_and_go() {
 }
 
 void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient) {
-    tentacle_is_ambient = ambient;
     // If not ambient, remember what IS ambient so we can go back.
-    if (!tentacle_is_ambient) {
+    if (!ambient && tentacle_is_ambient) {
         tentacle_saved_anim_id = tentacle_anim_id;
         tentacle_saved_anim_type = tentacle_anim_type;
     }
+    tentacle_is_ambient = ambient;
     tentacle_anim_id = anim_id;
     tentacle_anim_type = anim_type;
     tentacle_current_anim = legs_all_anim_sets[anim_id][anim_type];
