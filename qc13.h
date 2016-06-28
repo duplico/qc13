@@ -69,6 +69,7 @@ typedef struct {
 // Global declarations //////////////////////////////////////////////
 
 extern volatile uint8_t f_time_loop;
+extern volatile uint8_t f_rfm75_interrupt;
 
 extern uint16_t light;
 extern uint16_t temp;

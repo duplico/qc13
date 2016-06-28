@@ -10,6 +10,7 @@
 #include "rfm75.h"
 #include <stdint.h>
 #include "qc13.h"
+#include "badge.h"
 
 // Radio (RFM75):
 // CE   P3.2 (or 1.2 for launchpad)
@@ -39,6 +40,22 @@ uint8_t rx_addr_p0[3] = {0xff, 0xff, 0xff};
 uint8_t rx_addr_p1[3] = {0xff, 0xff, 0x00};
 uint8_t tx_addr[3] = {0xff, 0xff, 0xff};
 
+// State values:
+#define RFM75_BOOT 0
+#define RFM75_RX_INIT 1
+#define RFM75_RX_LISTEN 2
+#define RFM75_RX_READY 3
+#define RFM75_TX_INIT 4
+#define RFM75_TX_READY 5
+#define RFM75_TX_FIFO 6
+#define RFM75_TX_SEND 7
+#define RFM75_TX_DONE 8
+
+uint8_t rfm75_state = RFM75_BOOT;
+
+///////////////////////////////
+// Bank initialization values:
+
 #define BANK0_INITS 17
 
 //Bank0 register initialization value
@@ -54,8 +71,8 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
     // 0x0a - RX_ADDR_P0 - 3 bytes
     // 0x0b - RX_ADDR_P1 - 3 bytes
     // 0x10 - TX_ADDR - 5 bytes
-    { 0x11, sizeof(qcpayload) }, //Number of bytes in RX payload in data pipe0(32 byte)
-    { 0x12, sizeof(qcpayload) }, //Number of bytes in RX payload in data pipe1(32 byte)
+    { 0x11, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe0(32 byte)
+    { 0x12, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe1(32 byte)
     { 0x13, 0 }, //Number of bytes in RX payload in data pipe2 - disable
     { 0x14, 0 }, //Number of bytes in RX payload in data pipe3 - disable
     { 0x15, 0 }, //Number of bytes in RX payload in data pipe4 - disable
@@ -65,7 +82,10 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
     { 0x1d, 0b00000000 } // 00000 | DPL | ACK | DYN_ACK
 };
 
-uint8_t payload[sizeof(qcpayload)] = {0xff, 0x00, 0xff, 0};
+uint8_t payload[RFM75_PAYLOAD_SIZE] = {0xff, 0x00, 0xff, 0};
+
+uint8_t payload_in[RFM75_PAYLOAD_SIZE] = {0};
+uint8_t payload_out[RFM75_PAYLOAD_SIZE] = {0};
 
 uint8_t usci_b0_recv_sync(uint8_t data) {
     EUSCI_A_SPI_transmitData(EUSCI_B0_BASE, data);
@@ -106,6 +126,15 @@ void send_rfm75_cmd_buf(uint8_t cmd, uint8_t *data, uint8_t data_len) {
     CSN_HIGH_END;
 }
 
+void read_rfm75_cmd_buf(uint8_t cmd, uint8_t *data, uint8_t data_len) {
+    CSN_LOW_START;
+    usci_b0_send_sync(cmd);
+    for (uint8_t i=1; i<=data_len; i++) {
+        data[data_len-i] = usci_b0_recv_sync(0xab);
+    }
+    CSN_HIGH_END;
+}
+
 uint8_t rfm75_read_byte(uint8_t cmd) {
     cmd &= 0b00011111;
     CSN_LOW_START;
@@ -140,8 +169,54 @@ uint8_t rfm75_post() {
     if (active2 != (active ^ 0b00000111)) {
         return 0;
     }
-    // TODO: More
+    // TODO: More? (This checks whether we can talk to the chip.
     return 1;
+}
+
+void rfm75_enter_prx() {
+    // Make sure we're in an inactive state
+    if (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE) {
+        while (1)
+            __no_operation(); // spin forever because we suck. TODO
+    }
+    rfm75_state = RFM75_RX_INIT;
+    CE_DEACTIVATE;
+    // TODO: disable TX IRQ entirely here?
+    // Power up & PRX: CONFIG=0b01101011
+    rfm75_select_bank(0);
+    rfm75_write_reg(CONFIG, 0b01101011);
+    // Clear interrupts: STATUS=BIT4|BIT5|BIT6
+    rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
+
+    // Enter RX mode.
+    CE_ACTIVATE;
+
+    rfm75_state = RFM75_RX_LISTEN;
+}
+
+void rfm75_tx() {
+    // Make sure we're in an inactive state
+    if (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE) {
+        while (1)
+            __no_operation(); // spin forever because we suck. TODO
+    }
+    // TODO: handle filling payloads.
+
+    rfm75_state = RFM75_TX_INIT;
+    CE_DEACTIVATE;
+    // TODO: disable RX IRQ entirely here?
+    // Power up & PRX: CONFIG=0b01101010
+    rfm75_select_bank(0);
+    rfm75_write_reg(CONFIG, 0b01101010);
+    // Clear interrupts: STATUS=BIT4|BIT5|BIT6
+    rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
+
+    rfm75_state = RFM75_TX_FIFO;
+    // Write the payload: TODO: nonblocking? (it is pretty short...)
+    send_rfm75_cmd_buf(WR_TX_PLOAD, payload_in, RFM75_PAYLOAD_SIZE);
+    rfm75_state = RFM75_TX_SEND;
+    CE_ACTIVATE;
+    // Now we wait for an IRQ to let us know it's sent.
 }
 
 void rfm75_init()
@@ -176,28 +251,12 @@ void rfm75_init()
     rfm75_write_reg_buf(RX_ADDR_P1, rx_addr_p1, 3);
     rfm75_write_reg_buf(TX_ADDR, tx_addr, 3);
 
-    // Activate:
-    /*
-    test = send_rfm75_cmd(READ_REG|0x1d, 0x00);
-    if(test!=0) // If already active this would be nonzero. Maybe.
-        send_rfm75_cmd(ACTIVATE_CMD, 0x73);
-
-    test = send_rfm75_cmd(READ_REG|0x1d, 0x00);
-    if(test!=0) // If already active this would be nonzero. Maybe.
-        send_rfm75_cmd(ACTIVATE_CMD, 0x73);
-
-    test = send_rfm75_cmd(READ_REG|0x1d, 0x00);
-    if(test!=0) // If already active this would be nonzero. Maybe.
-        send_rfm75_cmd(ACTIVATE_CMD, 0x73);
-        */
-    // I don't think we need the features that ACTIVATE uses.
-
     // OK, that's bank 0 done. Next is bank 1.
 
     rfm75_select_bank(1);
 
-    // We're going to send the first three words (like they're buffers).
-    // They get sent MOST SIGNIFICANT BYTE FIRST: so we start with 0xE2.
+
+    // Some of these go MOST SIGNIFICANT BYTE FIRST: (so we start with 0xE2.)
     //  (we show them here LEAST SIGNIFICANT BYTE FIRST because we
     //   reverse everything we send.)
     // Like this:
@@ -229,16 +288,13 @@ void rfm75_init()
 
     // TODO: Then the sample code does some kind of toggle thing that isn't in the datasheet.
 
-    volatile uint8_t currbank = rfm75_get_status() & 0x80; // Get MSB, which is active bank.
-    __no_operation();
+    // Now we go back to bank 0, because that's the one we normally
+    //  care about.
 
     rfm75_select_bank(0);
 
-    currbank = rfm75_get_status() & 0x80; // Get MSB, which is active bank.
-    __no_operation();
-    __bis_SR_register(GIE);
-
-    // Enable the interrupt.
+    // Set up our pins:
+    //  TODO: Check to make sure we're not doing this twice.
     P3DIR &= ~BIT1;
     P3REN &= ~BIT1;
     P3SEL0 &= ~BIT1;
@@ -247,64 +303,61 @@ void rfm75_init()
     P3IFG &= ~BIT1;
     P3IE |= BIT1;
 
-//    GPIO_setAsInputPin(GPIO_PORT_P3, GPIO_PIN1);
-//    GPIO_selectInterruptEdge(GPIO_PORT_P3, GPIO_PIN1, GPIO_HIGH_TO_LOW_TRANSITION);
-//    GPIO_enableInterrupt(GPIO_PORT_P3, GPIO_PORT_P1);
-
     // And we're off to see the wizard!
 
-    CE_DEACTIVATE;
-    delay_millis(5);
+    rfm75_enter_prx();
+}
 
-    __no_operation();
-    // Flush TX first:
+void rfm75_deferred_interrupt() {
+    // RFM75 interrupt:
+    uint8_t iv = rfm75_get_status();
+    if (iv & BIT6) { // RX interrupt
+        if (rfm75_state != RFM75_RX_LISTEN) {
+            while (1) __no_operation(); // TODO: don't spin forever like an ass
+        }
 
-    CSN_LOW_START;
-    usci_b0_send_sync(0b11100001);
-    CSN_HIGH_END;
+        // We've received something.
+        rfm75_state = RFM75_RX_READY;
+        // Which pipe?
+        // Read the FIFO. No need to flush it; deleted when read.
+        read_rfm75_cmd_buf(RD_RX_PLOAD, payload_in, RFM75_PAYLOAD_SIZE);
+        // Clear the interrupt.
+        rfm75_write_reg(STATUS, BIT6);
+        // Raise the message received event
+        radio_received(payload_in);
+        // Payload is now allowed to go stale.
+        // Assert CE: listen more.
+        CE_ACTIVATE;
+        rfm75_state = RFM75_RX_LISTEN;
+    }
 
-    // rx fifo
-    CSN_LOW_START;
-    usci_b0_send_sync(0b11100010);
-    CSN_HIGH_END;
+    if (iv & BIT5) { // TX interrupt
+        if (rfm75_state != RFM75_TX_SEND) {
+            while (1) __no_operation(); // TODO: don't spin forever like an ass
+        }
 
-    rfm75_write_reg(0x00, 0b00011010); // PWR_UP! TX MODE.
-    delay_millis(15); // 1.5 ms at least.
-    rfm75_write_reg(0x07, BIT4|BIT5|BIT6); // clear interrupt flags
-    delay_millis(15); // 1.5 ms at least.
+        // We sent a thing.
 
-    test = rfm75_read_byte(0x00);
-    __no_operation();
-    test = rfm75_read_byte(0x07);
-    __no_operation();
-    test = rfm75_read_byte(0x17);
-    __no_operation();
-
-    send_rfm75_cmd_buf(WR_TX_PLOAD, payload, sizeof(qcpayload));
-    test = rfm75_read_byte(0x07);
-    __no_operation();
-    test = rfm75_read_byte(0x17);
-    __no_operation();
-    CE_ACTIVATE;
-    delay_millis(100);
-    test = rfm75_read_byte(0x07);
-    __no_operation();
-    test = rfm75_read_byte(0x17);
-    __no_operation();
-
-    while (P3IN & BIT1);
-    __no_operation();
+        // Go back to standby:
+        CE_DEACTIVATE;
+        // Clear interrupt
+        rfm75_write_reg(STATUS, BIT5);
+        // Raise the I-just-sent-a-thing event
+        radio_transmit_done();
+        rfm75_state = RFM75_TX_DONE;
+        // Go back to listening.
+        rfm75_enter_prx();
+    }
 }
 
 #pragma vector=PORT3_VECTOR
 __interrupt void RFM_ISR(void)
 {
-    volatile uint16_t i = P3IV;
-    switch(__even_in_range(i, 10)) {
-    case 0x04:
-        __no_operation(); // RFM75 interrupt
-        break;
-    default:
-        __no_operation();
+    if (P3IV != 0x04) {
+        //assert 0
+        while (1) __no_operation(); // TODO: don't spin forever like an ass
     }
+    f_rfm75_interrupt = 1;
+    CE_DEACTIVATE; // stop listening or sending.
+    __bic_SR_register_on_exit(SLEEP_BITS);
 }

@@ -291,25 +291,12 @@ void tentacle_next_anim_frame() {
 }
 
 void led_post() {
+    // TODO: Do the real post thing.
     uint64_t chase = 0;
     set_face(chase);
     tlc_stage_blank(0);
     tlc_set_fun();
     chase = 1;
-
-//    for (uint8_t t=4; t<6; t++) {
-//        for (uint8_t i=4; i<16; i++) {
-//            tlc_bank_gs[t][i] = ambient_brightness;
-//            delay_millis(45);
-//            tlc_bank_gs[t][i] = 0;
-//        }
-//    }
-//
-//    for (uint8_t i=0; i<64; i++) {
-//        chase = chase << 1;
-//        set_face(chase);
-//        delay_millis(7);
-//    }
 
     uint16_t old_ab = face_ambient_brightness;
     for (face_ambient_brightness=0x1000; face_ambient_brightness;face_ambient_brightness-=32) {
@@ -332,14 +319,6 @@ void led_post() {
 void leds_timestep() {
     static uint8_t face_dirty = 1;
     static uint8_t legs_dirty = 1;
-    // Face:
-    //  Check whether we need to change the brightness because of:
-    //  * twinkle
-    //  * ambient light level change
-    //  Check whether we need to change the face.
-    //
-    // If either, make it happen, captain.
-
 
     if (face_state == FACESTATE_ANIMATION) {
         if (face_curr_dur < FACE_DUR_STEP) { // Time for next frame?
@@ -368,7 +347,6 @@ void leds_timestep() {
 
     // Tentacles:
     //  Apply our current delta animation timestep.
-    // TODO: Check to see if we need to change anything.
     switch(tentacle_current_anim->anim_type) {
     case ANIM_TYPE_FAST_TWINKLE:
         anim_adj_index++;
