@@ -147,6 +147,7 @@ def main():
         h_lines.append("#define LEG_ANIM_%s %d" % (all_animations[i].upper(), i))
     for i in range(len(all_types)):
         h_lines.append("#define ANIM_TYPE_%s %d" % (all_types[i].upper(), i))
+    h_lines.append("#define LEG_ANIM_COUNT %d" % len(all_types))
     c_lines.append("const tentacle_animation_t **legs_all_anim_sets[] = {%s};" % ', '.join(map(lambda a: "%s_anim_set" % a, all_animations)))
     h_lines.append("extern const tentacle_animation_t **legs_all_anim_sets[];")
     

@@ -40,5 +40,6 @@ extern const tentacle_animation_t fire_doubleink;
 #define LEG_ANIM_FIRE 1
 #define ANIM_TYPE_SOLID 0
 #define ANIM_TYPE_FAST_TWINKLE 1
+#define LEG_ANIM_COUNT 2
 extern const tentacle_animation_t **legs_all_anim_sets[];
 #endif // _H_
