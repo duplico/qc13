@@ -205,6 +205,8 @@ void poll_adc() {
     temp = temp_tot / ADC_WINDOW;
 }
 
+uint8_t camo_id = LEG_ANIM_DEF;
+
 int main(void)
 {
     volatile uint8_t in = 0;
@@ -221,7 +223,7 @@ int main(void)
 
     uint8_t anim_index = 0;
 
-    tentacle_start_anim(LEG_ANIM_DEF, LEG_CAMO_INDEX, 1, 1);
+    tentacle_start_anim(camo_id, LEG_CAMO_INDEX, 1, 1);
 
     while (1)
     {
@@ -236,6 +238,8 @@ int main(void)
         if (s_b_start == BUTTON_PRESS) {
             anim_index = (anim_index+1) % 14;
             face_start_anim(anim_index);
+            camo_id = (camo_id+1) % LEG_ANIM_COUNT;
+            tentacle_start_anim(camo_id, LEG_CAMO_INDEX, 1, 1);
             s_b_start = 0;
         }
 
@@ -246,6 +250,10 @@ int main(void)
                 anim_index = 14;
             }
             face_start_anim(anim_index);
+
+            camo_id = (camo_id + LEG_ANIM_COUNT-1) % LEG_ANIM_COUNT;
+            tentacle_start_anim(camo_id, LEG_CAMO_INDEX, 1, 1);
+
             s_b_select = 0;
         }
 
