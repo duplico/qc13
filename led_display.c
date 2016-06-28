@@ -13,8 +13,8 @@
 #include "led_display.h"
 #include "tlc5948a.h"
 
-#include "etc/eyes/eye_anims.h"
-#include "etc/tentacles/leg_anims.h"
+#include "eye_anims.h"
+#include "leg_anims.h"
 
 const rgbcolor_t rainbow_colors[] = {
         {0xe400, 0x0300, 0x0300}, // Red
@@ -97,8 +97,11 @@ uint8_t face_state = FACESTATE_AMBIENT;
 #define FACE_DUR_STEP 3
 #define LEGS_DUR_STEP 2
 
-uint8_t tentacle_first_frame = 0;
-uint8_t tentacle_anim_index = 0;
+uint8_t tentacle_anim_frame = 0;
+uint8_t tentacle_anim_id = 0;
+uint8_t tentacle_anim_type = 0; // TODO: probably don't need this... oh well.
+uint8_t tentacle_saved_anim_id = 0;
+uint8_t tentacle_saved_anim_type = 0;
 uint8_t tentacle_is_ambient = 1;
 uint8_t tentacle_anim_looping = 0;
 uint8_t tentacle_anim_length = 0;
@@ -106,7 +109,6 @@ uint16_t tentacle_hold_steps = 0;
 uint16_t tentacle_hold_index = 0;
 uint16_t tentacle_transition_steps = 0;
 uint16_t tentacle_transition_index = 0;
-rgbcolor_t (*tentacle_curr_frames)[8]; // pointer to arrays of colors
 const tentacle_animation_t *tentacle_current_anim;
 
 void set_face(uint64_t frame) {
@@ -132,20 +134,20 @@ void leg_load_colors() {
     // TODO:
 //    memcpy(&leg_colors_curr[0], &tentacle_curr_frames[tentacle_anim_index][0], sizeof(rgbcolor_t)*8);
     for (uint8_t i=0; i<8; i++) {
-        leg_colors_curr[i].red = tentacle_current_anim->colors[tentacle_anim_index][i].red;
-        leg_colors_curr[i].green = tentacle_current_anim->colors[tentacle_anim_index][i].green;
-        leg_colors_curr[i].blue = tentacle_current_anim->colors[tentacle_anim_index][i].blue;
+        leg_colors_curr[i].red = tentacle_current_anim->colors[tentacle_anim_frame][i].red;
+        leg_colors_curr[i].green = tentacle_current_anim->colors[tentacle_anim_frame][i].green;
+        leg_colors_curr[i].blue = tentacle_current_anim->colors[tentacle_anim_frame][i].blue;
 
         // Stage in next color.
         // If we're looping, it's modded. If not looping, back to black.
-        if (tentacle_anim_index == tentacle_current_anim->len-1 && !tentacle_anim_looping) { // last frame:
+        if (tentacle_anim_frame == tentacle_current_anim->len-1 && !(tentacle_anim_looping || tentacle_is_ambient)) { // last frame:
             // We're at the last frame, and we are NOT looping. So our NEXT
             // color will be OFF.
             stage_color(&leg_colors_next[i], &legs_off[i]);
         } else {
             // We're either looping or not at the end, so it's safe to say:
 //            stage_color(&leg_colors_next[i], tentacle_current_anim->colors[(tentacle_anim_index+1) % tentacle_current_anim->len]);
-            uint8_t next_id = (tentacle_anim_index+1) % tentacle_current_anim->len;
+            uint8_t next_id = (tentacle_anim_frame+1) % tentacle_current_anim->len;
             leg_colors_next[i].red = tentacle_current_anim->colors[next_id][i].red;
             leg_colors_next[i].green = tentacle_current_anim->colors[next_id][i].green;
             leg_colors_next[i].blue = tentacle_current_anim->colors[next_id][i].blue;
@@ -205,7 +207,7 @@ void set_tentacles(rgbcolor_t* leg_colors) {
             break;
         }
 
-        if (tent > 3) {
+        if (tent > 3 && (leg_colors[tent-4].red|leg_colors[tent-4].green|leg_colors[tent-4].blue)) {
             r = r >> 2;
             g = g >> 2;
             b = b >> 2;
@@ -239,50 +241,53 @@ void face_start_anim(uint8_t anim_index) {
 
 uint8_t tentacle_animation_state = 0;
 
+
+void tentacle_setup_transitions_and_go() {
+    tentacle_hold_steps = tentacle_current_anim->durations[tentacle_anim_frame] / LEGS_DUR_STEP;
+    tentacle_hold_index = 0;
+    tentacle_transition_steps = tentacle_current_anim->fade_durs[tentacle_anim_frame] / LEGS_DUR_STEP;
+    tentacle_transition_index = 0;
+
+    leg_load_colors();
+    set_tentacles(tentacle_current_anim->colors[tentacle_anim_frame]);
+
+}
+
 void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient) {
+    tentacle_is_ambient = ambient;
+    // If not ambient, remember what IS ambient so we can go back.
+    if (!tentacle_is_ambient) {
+        tentacle_saved_anim_id = tentacle_anim_id;
+        tentacle_saved_anim_type = tentacle_anim_type;
+    }
+    tentacle_anim_id = anim_id;
+    tentacle_anim_type = anim_type;
     tentacle_current_anim = legs_all_anim_sets[anim_id][anim_type];
-    f_tentacle_anim_done = 0;
-    tentacle_first_frame = 1;
-    tentacle_anim_index = 0; // This is our index in the animation.
+    tentacle_anim_frame = 0; // This is our frame index in the animation.
     tentacle_animation_state = 1; // animating
     anim_adj_index = 0;
-
-    tentacle_is_ambient = ambient;
-    // TODO: If not ambient, remember what IS ambient so we can go back.
-
-    tentacle_anim_length = tentacle_current_anim->len;
-    tentacle_curr_frames = (rgbcolor_t (*)[8]) tentacle_current_anim->colors;
-
-    tentacle_transition_steps = tentacle_current_anim->fade_durs[0] / LEGS_DUR_STEP;
-    tentacle_transition_index = 0;
-    tentacle_hold_steps = tentacle_current_anim->durations[0] / LEGS_DUR_STEP;
-    tentacle_hold_index = 0;
-
     tentacle_anim_looping = loop;
-    leg_load_colors();
-    set_tentacles(tentacle_curr_frames[tentacle_anim_index]);
+    tentacle_anim_length = tentacle_current_anim->len;
+
+    tentacle_setup_transitions_and_go();
 }
 
 void tentacle_next_anim_frame() {
-    f_tentacle_anim_done = 0;
-    tentacle_first_frame = 0;
-    tentacle_anim_index++; // This is our index in the animation.
+    tentacle_anim_frame++; // This is our index in the animation.
 
-    if (tentacle_anim_index >= tentacle_anim_length) {
-        // TODO: check loop
-        // tentacle_animation_state = 0; // stopped
-        // flag done
-        // TODO: If not ambient, remember what IS ambient so we can go back.
-        tentacle_anim_index = 0; // loop
+    if (tentacle_anim_frame >= tentacle_anim_length) { // rolled over.
+        if (tentacle_anim_looping || tentacle_is_ambient) {
+            if (tentacle_anim_looping)
+                tentacle_anim_looping--;
+            tentacle_anim_frame = 0;
+        } else if (!tentacle_is_ambient) { // not looping, not ambient
+            // so we go back to the old ambient animation:
+            tentacle_start_anim(tentacle_saved_anim_id, tentacle_saved_anim_type, 0, 1);
+            return; // skip the transitions_and_go because that's called in start_anim.
+        }
     }
 
-    tentacle_hold_steps = tentacle_current_anim->durations[tentacle_anim_index] / LEGS_DUR_STEP;
-    tentacle_hold_index = 0;
-    tentacle_transition_steps = tentacle_current_anim->fade_durs[tentacle_anim_index] / LEGS_DUR_STEP;
-    tentacle_transition_index = 0;
-
-    leg_load_colors();
-    set_tentacles(tentacle_curr_frames[tentacle_anim_index]);
+    tentacle_setup_transitions_and_go();
 }
 
 void led_post() {

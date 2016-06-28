@@ -1,9 +1,11 @@
 #ifndef LEGANIMS_H_
 #define LEGANIMS_H_
 
+#include "../../led_display.h"
+
 #define LEG_CAMO_INDEX 0
-#define LEG_INK_INDEX 0
-#define LEG_DOUBLEINK_INDEX 1
+#define LEG_INK_INDEX 1
+#define LEG_DOUBLEINK_INDEX 2
 
 // frames for camo
 extern const rgbcolor_t def_camo_frames[][8];
