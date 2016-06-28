@@ -7,6 +7,8 @@
  * 3-clause BSD license; see license.md.
  */
 
+#include <stdlib.h>
+
 #include "qc13.h"
 #include "led_display.h"
 #include "tlc5948a.h"
@@ -99,6 +101,8 @@ uint8_t tentacle_anim_index = 0;
 uint8_t tentacle_is_ambient = 1;
 uint8_t tentacle_anim_looping = 0;
 uint8_t tentacle_anim_length = 0;
+uint16_t tentacle_hold_steps = 0;
+uint16_t tentacle_hold_index = 0;
 uint16_t tentacle_transition_steps = 0;
 uint16_t tentacle_transition_index = 0;
 rgbcolor_t (*tentacle_curr_frames)[8]; // pointer to arrays of colors
@@ -124,6 +128,7 @@ void leg_load_colors() {
     // leg_colors_curr <- tentacle_current_anim[tentacle_anim_index]
 
     // Stage in the current color:
+    // TODO:
 //    memcpy(&leg_colors_curr[0], &tentacle_curr_frames[tentacle_anim_index][0], sizeof(rgbcolor_t)*8);
     for (uint8_t i=0; i<8; i++) {
         leg_colors_curr[i].red = tentacle_current_anim->colors[tentacle_anim_index][i].red;
@@ -167,12 +172,51 @@ inline void leg_fade_colors() {
     }
 }
 
-// This actually sets the colors of the tentacles/legs:
+uint8_t twinkle_bits = 0xea;
+uint16_t anim_adj_index = 0;
+
+// This actually sets the colors of the tentacles/legs.
+// Here is where we are going to do some fancy stuff:
+//  1. brightness correction (ambient)
+//  2. twinkling
 void set_tentacles(rgbcolor_t* leg_colors) {
+    static uint_fast32_t r = 0;
+    static uint_fast32_t g = 0;
+    static uint_fast32_t b = 0;
+
     for (uint8_t tent=0; tent<8; tent++) {
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = leg_colors[tent].blue;
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = leg_colors[tent].green;
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = leg_colors[tent].red;
+        r = leg_colors[tent].red;
+        g = leg_colors[tent].green;
+        b = leg_colors[tent].blue;
+
+        // TODO: brightness correction.
+
+        // Twinklies:
+        switch(tentacle_current_anim->anim_type) {
+        case ANIM_TYPE_FAST_TWINKLE:
+            if (twinkle_bits & (1 << tent)) {
+                r = r << 1;
+                g = g << 1;
+                b = b << 1;
+            }
+            break;
+        default:
+            break;
+        }
+
+        if (tent > 3) {
+            r = r >> 2;
+            g = g >> 2;
+            b = b >> 2;
+        }
+
+        if (r>UINT16_MAX) r=UINT16_MAX;
+        if (g>UINT16_MAX) b=UINT16_MAX;
+        if (g>UINT16_MAX) b=UINT16_MAX;
+
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = b;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = g;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = r;
     }
 }
 
@@ -199,6 +243,7 @@ void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8
     tentacle_first_frame = 1;
     tentacle_anim_index = 0; // This is our index in the animation.
     tentacle_animation_state = 1; // animating
+    anim_adj_index = 0;
 
     tentacle_is_ambient = ambient;
     // TODO: If not ambient, remember what IS ambient so we can go back.
@@ -206,8 +251,10 @@ void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8
     tentacle_anim_length = tentacle_current_anim->len;
     tentacle_curr_frames = (rgbcolor_t (*)[8]) tentacle_current_anim->colors;
 
-    tentacle_transition_steps = tentacle_current_anim->durations[0] / FACE_DUR_STEP; // TODO: divided by something probably.
+    tentacle_transition_steps = tentacle_current_anim->fade_durs[0] / FACE_DUR_STEP; // TODO: divided by something probably.
     tentacle_transition_index = 0;
+    tentacle_hold_steps = tentacle_current_anim->durations[0] / FACE_DUR_STEP; // TODO: divided by something probably.
+    tentacle_hold_index = 0;
 
     tentacle_anim_looping = loop;
     leg_load_colors();
@@ -227,7 +274,9 @@ void tentacle_next_anim_frame() {
         tentacle_anim_index = 0; // loop
     }
 
-    tentacle_transition_steps = tentacle_current_anim->durations[tentacle_anim_index] / FACE_DUR_STEP;
+    tentacle_hold_steps = tentacle_current_anim->durations[tentacle_anim_index] / FACE_DUR_STEP;
+    tentacle_hold_index = 0;
+    tentacle_transition_steps = tentacle_current_anim->fade_durs[tentacle_anim_index] / FACE_DUR_STEP;
     tentacle_transition_index = 0;
 
     leg_load_colors();
@@ -241,19 +290,19 @@ void led_post() {
     tlc_set_fun();
     chase = 1;
 
-    for (uint8_t t=4; t<6; t++) {
-        for (uint8_t i=4; i<16; i++) {
-            tlc_bank_gs[t][i] = ambient_brightness;
-            delay_millis(45);
-            tlc_bank_gs[t][i] = 0;
-        }
-    }
-
-    for (uint8_t i=0; i<64; i++) {
-        chase = chase << 1;
-        set_face(chase);
-        delay_millis(7);
-    }
+//    for (uint8_t t=4; t<6; t++) {
+//        for (uint8_t i=4; i<16; i++) {
+//            tlc_bank_gs[t][i] = ambient_brightness;
+//            delay_millis(45);
+//            tlc_bank_gs[t][i] = 0;
+//        }
+//    }
+//
+//    for (uint8_t i=0; i<64; i++) {
+//        chase = chase << 1;
+//        set_face(chase);
+//        delay_millis(7);
+//    }
 
     uint16_t old_ab = ambient_brightness;
     for (ambient_brightness=0x1000; ambient_brightness;ambient_brightness-=32) {
@@ -309,16 +358,36 @@ void leds_timestep() {
     // Tentacles:
     //  Apply our current delta animation timestep.
     // TODO: Check to see if we need to change anything.
+    switch(tentacle_current_anim->anim_type) {
+    case ANIM_TYPE_FAST_TWINKLE:
+        anim_adj_index++;
+        if (anim_adj_index == 25) {
+            twinkle_bits = rand() % 256;
+            anim_adj_index = 0;
+            // TODO: dirty bit
+        }
+        break;
+    default:
+        // SOLID
+        break;
+    }
 
     if (tentacle_animation_state) {
-        tentacle_transition_index++;
-        if (tentacle_transition_index >= tentacle_transition_steps) {
-            // next frame plx.
-            tentacle_next_anim_frame();
+        if (tentacle_hold_index < tentacle_hold_steps) {
+            // Hold the same color.
+            tentacle_hold_index++;
         } else {
-            leg_fade_colors();
+            // We're transitioning:
+            tentacle_transition_index++;
+            if (tentacle_transition_index >= tentacle_transition_steps) {
+                // next frame plx.
+                tentacle_next_anim_frame();
+            } else {
+                leg_fade_colors();
+            }
         }
     }
+    // TODO: if dirty
     set_tentacles(leg_colors_curr);
 
 }

@@ -29,6 +29,7 @@ def main():
     c_lines.append('#include "leg_anims.h"')
     
     all_animations = []
+    all_types = []
     
     for anim in os.listdir("."):
         if not anim[-3:] == "txt": continue
@@ -65,6 +66,7 @@ def main():
             # Consume the animation type:
             # TODO:
             local_type = lines[line_no]
+            if local_type not in all_types: all_types.append(local_type)
             line_no += 1
             
             camo_line = ""
@@ -128,13 +130,13 @@ def main():
                     c_lines.append("    {%s}," % ', '.join(map(lambda rgb: "{0x%x, 0x%x, 0x%x}" % rgb, fr)))
                 c_lines.append("};")
                 c_lines.append("uint16_t %s_%s_durations[] = {%s};" % (anim_name, lname, ', '.join(metadata1)))
-                c_lines.append("uint16_t %s_%s_metadata2[] = {%s};" % (anim_name, lname, ', '.join(metadata2)))
+                c_lines.append("uint16_t %s_%s_fade_durs[] = {%s};" % (anim_name, lname, ', '.join(metadata2)))
                 
                 h_lines.append("extern uint16_t %s_%s_durations[];" % (anim_name, lname))
-                h_lines.append("extern uint16_t %s_%s_metadata2[];" % (anim_name, lname))
+                h_lines.append("extern uint16_t %s_%s_fade_durs[];" % (anim_name, lname))
                 
                 c_lines.append("// the animation:")
-                c_lines.append("const tentacle_animation_t %s_%s = {%s_%s_frames, %s_%s_durations, %s_%s_metadata2, %d};" % (anim_name, lname, anim_name, lname, anim_name, lname, anim_name, lname, len(l)))
+                c_lines.append("const tentacle_animation_t %s_%s = {%s_%s_frames, %s_%s_durations, %s_%s_fade_durs, %d, ANIM_TYPE_%s};" % (anim_name, lname, anim_name, lname, anim_name, lname, anim_name, lname, len(l), local_type.upper()))
                 
                 h_lines.append("extern const tentacle_animation_t %s_%s;" % (anim_name, lname))
             c_lines.append("")
@@ -143,6 +145,8 @@ def main():
     h_lines.append("#define LEG_ANIM_COUNT %d" % len(all_animations))
     for i in range(len(all_animations)):
         h_lines.append("#define LEG_ANIM_%s %d" % (all_animations[i].upper(), i))
+    for i in range(len(all_types)):
+        h_lines.append("#define ANIM_TYPE_%s %d" % (all_types[i].upper(), i))
     c_lines.append("const tentacle_animation_t **legs_all_anim_sets[] = {%s};" % ', '.join(map(lambda a: "%s_anim_set" % a, all_animations)))
     h_lines.append("extern const tentacle_animation_t **legs_all_anim_sets[];")
     
