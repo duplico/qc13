@@ -12,7 +12,7 @@ void initial_animations();
 void time_loop();
 void start_button_clicked();
 void select_button_clicked();
-void radio_received(uint8_t *payload);
+void radio_received(qcpayload *payload);
 void radio_transmit_done();
 
 #endif /* BADGE_H_ */

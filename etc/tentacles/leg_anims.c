@@ -50,7 +50,7 @@ const tentacle_animation_t fire_camo = {fire_camo_frames, fire_camo_durations, f
 const rgbcolor_t fire_ink_frames[][8] = {
     {{0xff0, 0x460, 0x0}, {0xff0, 0x460, 0x0}, {0xff0, 0x460, 0x0}, {0xff0, 0x460, 0x0}, {0xff0, 0x228, 0x0}, {0xff0, 0x228, 0x0}, {0xff0, 0x228, 0x0}, {0xff0, 0x228, 0x0}},
 };
-uint16_t fire_ink_durations[] = {6000};
+uint16_t fire_ink_durations[] = {500};
 uint16_t fire_ink_fade_durs[] = {0};
 // the animation:
 const tentacle_animation_t fire_ink = {fire_ink_frames, fire_ink_durations, fire_ink_fade_durs, 1, ANIM_TYPE_FAST_TWINKLE};
