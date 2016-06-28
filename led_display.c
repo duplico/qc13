@@ -95,6 +95,7 @@ uint64_t curr_frame = 0;
 uint8_t face_state = FACESTATE_AMBIENT;
 
 #define FACE_DUR_STEP 3
+#define LEGS_DUR_STEP 2
 
 uint8_t tentacle_first_frame = 0;
 uint8_t tentacle_anim_index = 0;
@@ -223,7 +224,8 @@ void set_tentacles(rgbcolor_t* leg_colors) {
 void face_set_ambient(uint8_t amb_index) {
     face_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
     if (face_state == FACESTATE_AMBIENT) {
-        set_face(face_ambient);
+        face_curr = face_ambient;
+        set_face(face_curr);
     }
 }
 
@@ -251,9 +253,9 @@ void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8
     tentacle_anim_length = tentacle_current_anim->len;
     tentacle_curr_frames = (rgbcolor_t (*)[8]) tentacle_current_anim->colors;
 
-    tentacle_transition_steps = tentacle_current_anim->fade_durs[0] / FACE_DUR_STEP; // TODO: divided by something probably.
+    tentacle_transition_steps = tentacle_current_anim->fade_durs[0] / LEGS_DUR_STEP;
     tentacle_transition_index = 0;
-    tentacle_hold_steps = tentacle_current_anim->durations[0] / FACE_DUR_STEP; // TODO: divided by something probably.
+    tentacle_hold_steps = tentacle_current_anim->durations[0] / LEGS_DUR_STEP;
     tentacle_hold_index = 0;
 
     tentacle_anim_looping = loop;
@@ -274,9 +276,9 @@ void tentacle_next_anim_frame() {
         tentacle_anim_index = 0; // loop
     }
 
-    tentacle_hold_steps = tentacle_current_anim->durations[tentacle_anim_index] / FACE_DUR_STEP;
+    tentacle_hold_steps = tentacle_current_anim->durations[tentacle_anim_index] / LEGS_DUR_STEP;
     tentacle_hold_index = 0;
-    tentacle_transition_steps = tentacle_current_anim->fade_durs[tentacle_anim_index] / FACE_DUR_STEP;
+    tentacle_transition_steps = tentacle_current_anim->fade_durs[tentacle_anim_index] / LEGS_DUR_STEP;
     tentacle_transition_index = 0;
 
     leg_load_colors();
@@ -323,6 +325,8 @@ void led_post() {
 }
 
 void leds_timestep() {
+    static uint8_t face_dirty = 1;
+    static uint8_t legs_dirty = 1;
     // Face:
     //  Check whether we need to change the brightness because of:
     //  * twinkle
@@ -338,11 +342,12 @@ void leds_timestep() {
             if (face_curr_anim_frame == face_all_animations[face_current_animation]->len) { // done?
                 face_state = FACESTATE_AMBIENT;
                 face_curr = face_ambient;
+                face_dirty = 1;
                 // done
             } else {
                 face_curr = face_all_animations[face_current_animation]->frames[face_curr_anim_frame];
                 face_curr_dur = face_all_animations[face_current_animation]->frame_durations[face_curr_anim_frame];
-                set_face(face_curr);
+                face_dirty = 1;
             }
         } else {
             // tick towards next frame.
@@ -351,9 +356,9 @@ void leds_timestep() {
         }
     }
 
-    if (face_state == FACESTATE_AMBIENT) {
-        // TODO: Check to see if we need to change anything.
-        set_face(face_ambient);
+    if (face_dirty) {
+        set_face(face_curr);
+        face_dirty = 0;
     }
 
     // Tentacles:
@@ -362,10 +367,10 @@ void leds_timestep() {
     switch(tentacle_current_anim->anim_type) {
     case ANIM_TYPE_FAST_TWINKLE:
         anim_adj_index++;
-        if (anim_adj_index == 25) {
+        if (anim_adj_index == 100) {
             twinkle_bits = rand() % 256;
             anim_adj_index = 0;
-            // TODO: dirty bit
+            legs_dirty = 1;
         }
         break;
     default:
@@ -383,12 +388,16 @@ void leds_timestep() {
             if (tentacle_transition_index >= tentacle_transition_steps) {
                 // next frame plx.
                 tentacle_next_anim_frame();
+                legs_dirty = 1;
             } else {
                 leg_fade_colors();
+                legs_dirty = 1;
             }
         }
     }
-    // TODO: if dirty
-    set_tentacles(leg_colors_curr);
+    if (legs_dirty) {
+        set_tentacles(leg_colors_curr);
+        legs_dirty = 0;
+    }
 
 }
