@@ -39,6 +39,8 @@ void time_loop() {
 }
 
 void start_button_clicked() {
+    out_payload.ink_id = my_conf.camo_id;
+    out_payload.ink_type = LEG_INK_INDEX; // TODO
     rfm75_tx();
 }
 
@@ -51,9 +53,9 @@ void select_button_clicked() {
     }
 }
 
-void radio_received(uint8_t *payload) {
+void radio_received(qcpayload *payload) {
     // After this routine exits, payload is subject to change.
-    tentacle_start_anim(my_conf.camo_id, LEG_DOUBLEINK_INDEX, 0, 0);
+    tentacle_start_anim(payload->ink_id, payload->ink_type, 3, 0);
 }
 
 void radio_transmit_done() {

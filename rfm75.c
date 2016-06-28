@@ -200,7 +200,8 @@ void rfm75_tx() {
         while (1)
             __no_operation(); // spin forever because we suck. TODO
     }
-    // TODO: handle filling payloads.
+    // Fill'er up:
+    memcpy(payload_out, &out_payload, RFM75_PAYLOAD_SIZE);
 
     rfm75_state = RFM75_TX_INIT;
     CE_DEACTIVATE;
@@ -305,21 +306,14 @@ void rfm75_init()
 
     // And we're off to see the wizard!
 
-//    rfm75_enter_prx();
-
-
     CSN_LOW_START;
-    usci_b0_send_sync(0b11100001);
+    usci_b0_send_sync(FLUSH_RX);
     CSN_HIGH_END;
     CSN_LOW_START;
-    usci_b0_send_sync(0b11100010);
+    usci_b0_send_sync(FLUSH_TX);
     CSN_HIGH_END;
 
-    rfm75_write_reg(0x00, 0b00011010);
-    send_rfm75_cmd_buf(WR_TX_PLOAD, payload, sizeof(qcpayload));
-    CE_ACTIVATE;
-    while (!f_rfm75_interrupt);
-    f_rfm75_interrupt = 0;
+    rfm75_enter_prx();
     __no_operation();
 }
 
@@ -338,8 +332,9 @@ void rfm75_deferred_interrupt() {
         read_rfm75_cmd_buf(RD_RX_PLOAD, payload_in, RFM75_PAYLOAD_SIZE);
         // Clear the interrupt.
         rfm75_write_reg(STATUS, BIT6);
+        memcpy(&in_payload, &payload_in, RFM75_PAYLOAD_SIZE);
         // Raise the message received event
-        radio_received(payload_in);
+        radio_received(&in_payload);
         // Payload is now allowed to go stale.
         // Assert CE: listen more.
         CE_ACTIVATE;
