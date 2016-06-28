@@ -221,7 +221,7 @@ int main(void)
 
     uint8_t anim_index = 0;
 
-    tentacle_start_anim(LEG_ANIM_FIRE, LEG_CAMO_INDEX, 1, 1);
+    tentacle_start_anim(LEG_ANIM_DEF, LEG_CAMO_INDEX, 1, 1);
 
     while (1)
     {

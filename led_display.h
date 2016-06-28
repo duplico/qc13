@@ -27,8 +27,9 @@ typedef struct {
 typedef struct {
     const rgbcolor_t (*colors)[8];
     const uint16_t *durations;
-    const uint16_t *metadata2;
+    const uint16_t *fade_durs;
     uint8_t len;
+    uint8_t anim_type;
 } tentacle_animation_t;
 
 typedef struct {
