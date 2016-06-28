@@ -13,6 +13,7 @@
 #include "led_display.h"
 #include "tlc5948a.h"
 #include "etc/tentacles/leg_anims.h"
+#include "badge.h"
 
 /*
  *
@@ -29,17 +30,8 @@
  *
  */
 
-qc13conf my_conf = {0};
-const qc13conf default_conf = {0};
-qcpayload in_payload, out_payload;
-
-uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
-uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
-uint8_t neighbor_count = 0;
-
 // Flags to main loop raised by interrupts (so must be volatile):
 volatile uint8_t f_time_loop = 0;
-volatile uint8_t f_tentacle_anim_done = 0;
 
 // Signals to the main loop (not caused by interrupts):
 uint8_t s_b_start = 0;
@@ -118,20 +110,17 @@ void init() {
 }
 
 void post() {
-
     led_post();
-
 }
 
 void delay_millis(unsigned long mils) {
     while (mils) {
-        __delay_cycles(6000);
+        __delay_cycles(8000);
         mils--;
     }
 }
 
 void poll_buttons() { // TODO: inline
-
     static uint8_t b_start_read_prev = 1;
     static uint8_t b_start_read = 1;
     static uint8_t b_start_state = 1;
@@ -209,21 +198,14 @@ uint8_t camo_id = LEG_ANIM_DEF;
 
 int main(void)
 {
-    volatile uint8_t in = 0;
-
     init();
     post();
 
-    tlc_stage_blank(0);
-    tlc_set_fun();
+//    tlc_stage_blank(0);
+//    tlc_set_fun();
+//    delay_millis(10);
 
-    face_set_ambient(0);
-
-    delay_millis(10);
-
-    uint8_t anim_index = 0;
-
-    tentacle_start_anim(camo_id, LEG_CAMO_INDEX, 1, 1);
+    initial_animations();
 
     while (1)
     {
@@ -232,36 +214,42 @@ int main(void)
             poll_buttons();
             poll_adc();
             leds_timestep();
+
+            time_loop();
+
             f_time_loop = 0;
         }
 
         if (s_b_start == BUTTON_PRESS) {
-            anim_index = (anim_index+1) % 14;
-            face_start_anim(anim_index);
-            camo_id = (camo_id+1) % LEG_ANIM_COUNT;
-            tentacle_start_anim(camo_id, LEG_CAMO_INDEX, 1, 1);
             s_b_start = 0;
         }
 
+        if (s_b_start == BUTTON_RELEASE) {
+            s_b_start = 0;
+
+            start_button_clicked();
+        }
+
         if (s_b_select == BUTTON_PRESS) {
-            if (anim_index) {
-                anim_index--;
-            } else {
-                anim_index = 14;
-            }
-            face_start_anim(anim_index);
-
-            camo_id = (camo_id + LEG_ANIM_COUNT-1) % LEG_ANIM_COUNT;
-            tentacle_start_anim(camo_id, LEG_CAMO_INDEX, 1, 1);
-
             s_b_select = 0;
         }
 
-        if (s_b_ohai == BUTTON_PRESS) {
+        if (s_b_select == BUTTON_RELEASE) {
+            select_button_clicked();
+            s_b_select = 0;
+        }
+
+        if (s_b_ohai == BUTTON_PRESS) { // badges connected.
+            // TODO: Enter a state machine.
             __no_operation();
             EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
             delay_millis(1000);
             EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 0xAA);
+            s_b_ohai = 0;
+        }
+
+        if (s_b_ohai == BUTTON_PRESS) { // badges disconnected.
+            // TODO: state machine.
             s_b_ohai = 0;
         }
 

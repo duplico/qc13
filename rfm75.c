@@ -54,8 +54,8 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
     // 0x0a - RX_ADDR_P0 - 3 bytes
     // 0x0b - RX_ADDR_P1 - 3 bytes
     // 0x10 - TX_ADDR - 5 bytes
-    { 0x11, 32 }, //Number of bytes in RX payload in data pipe0(32 byte)
-    { 0x12, 32 }, //Number of bytes in RX payload in data pipe1(32 byte)
+    { 0x11, sizeof(qcpayload) }, //Number of bytes in RX payload in data pipe0(32 byte)
+    { 0x12, sizeof(qcpayload) }, //Number of bytes in RX payload in data pipe1(32 byte)
     { 0x13, 0 }, //Number of bytes in RX payload in data pipe2 - disable
     { 0x14, 0 }, //Number of bytes in RX payload in data pipe3 - disable
     { 0x15, 0 }, //Number of bytes in RX payload in data pipe4 - disable
@@ -65,7 +65,7 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
     { 0x1d, 0b00000000 } // 00000 | DPL | ACK | DYN_ACK
 };
 
-uint8_t payload[32] = {0xff, 0x00, 0xff, 0xaa, 0xaa, 0xaa, 0xaa, 0};
+uint8_t payload[sizeof(qcpayload)] = {0xff, 0x00, 0xff, 0};
 
 uint8_t usci_b0_recv_sync(uint8_t data) {
     EUSCI_A_SPI_transmitData(EUSCI_B0_BASE, data);
@@ -280,7 +280,7 @@ void rfm75_init()
     test = rfm75_read_byte(0x17);
     __no_operation();
 
-    send_rfm75_cmd_buf(WR_TX_PLOAD, payload, 32);
+    send_rfm75_cmd_buf(WR_TX_PLOAD, payload, sizeof(qcpayload));
     test = rfm75_read_byte(0x07);
     __no_operation();
     test = rfm75_read_byte(0x17);

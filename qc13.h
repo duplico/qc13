@@ -18,6 +18,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
+#define BADGE_ID 101
 
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
@@ -46,10 +47,9 @@ void delay_millis(unsigned long);
 // Important structs:
 
 typedef struct {
-    uint8_t to_addr, from_addr, base_id, clock_authority;
-    uint8_t prop_from;
-    uint8_t prop_id;
-    uint16_t prop_time_loops_before_start;
+    uint8_t from_addr, base_id;
+    uint8_t ink_type;
+    uint8_t ink_id;
     uint8_t beacon;
 } qcpayload;
 
@@ -59,18 +59,17 @@ typedef struct {
     uint8_t uber_seen_count;
     uint8_t mate_count;
     uint8_t uber_mate_count;
+    uint16_t badges_seen[16];
     uint16_t bases_seen;
     uint16_t camo_unlocks;
-    uint_fast32_t uptime;
-    uint8_t suite_minutes;
-    uint16_t crc16;
+    uint8_t camo_id;
+    uint16_t crc16; // TODO: Needed?
 } qc13conf;
 
 /////////////////////////////////////////////////////////////////////
 // Global declarations //////////////////////////////////////////////
 
 extern volatile uint8_t f_time_loop;
-extern volatile uint8_t f_tentacle_anim_done;
 
 
 extern volatile uint16_t light;
