@@ -151,10 +151,6 @@ void tlc_start() {
     tlc_set_fun();
 }
 
-void tlc_stop() {
-    __no_operation(); // TODO: Do I need to write this? Probably not.
-}
-
 void tlc_init() {
     // Initialize the GPIO pins for each bank:
     P3DIR |= (LED_BANK5_PIN | LED_BANK6_PIN);

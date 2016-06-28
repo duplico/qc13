@@ -40,7 +40,7 @@ void time_loop() {
 
 void start_button_clicked() {
     out_payload.ink_id = my_conf.camo_id;
-    out_payload.ink_type = LEG_INK_INDEX; // TODO
+    out_payload.ink_type = LEG_INK_INDEX;
     rfm75_tx();
 }
 
