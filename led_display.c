@@ -87,7 +87,7 @@ uint64_t face_ambient = 0xffffffffffffffff;
 uint8_t face_current_animation = FACE_ANIM_NONE;
 uint8_t face_curr_anim_frame = 0;
 uint16_t face_curr_dur = 0;
-uint16_t ambient_brightness = 0x1f00;
+uint16_t face_ambient_brightness = 0x1f00;
 
 uint16_t face_frame_dur = 0;
 uint64_t curr_frame = 0;
@@ -111,7 +111,7 @@ const tentacle_animation_t *tentacle_current_anim;
 void set_face(uint64_t frame) {
     for (uint8_t i=0; i<64; i++) {
         if (frame & ((uint64_t) 1 << i)) {
-            tlc_bank_gs[i/16][i%16] = ambient_brightness;
+            tlc_bank_gs[i/16][i%16] = face_ambient_brightness;
         } else {
             tlc_bank_gs[i/16][i%16] = 0x00;
         }
@@ -304,16 +304,16 @@ void led_post() {
 //        delay_millis(7);
 //    }
 
-    uint16_t old_ab = ambient_brightness;
-    for (ambient_brightness=0x1000; ambient_brightness;ambient_brightness-=32) {
+    uint16_t old_ab = face_ambient_brightness;
+    for (face_ambient_brightness=0x1000; face_ambient_brightness;face_ambient_brightness-=32) {
         set_face(0xffffffffffffffff);
         for (uint8_t t=4; t<6; t++) {
             for (uint8_t i=4; i<16; i++) {
-                tlc_bank_gs[t][i] = ambient_brightness;
+                tlc_bank_gs[t][i] = face_ambient_brightness;
             }
         }
     }
-    ambient_brightness = old_ab;
+    face_ambient_brightness = old_ab;
     for (uint8_t t=4; t<6; t++) {
         for (uint8_t i=4; i<16; i++) {
             tlc_bank_gs[t][i] = 0;
@@ -330,6 +330,7 @@ void leds_timestep() {
     //  Check whether we need to change the face.
     //
     // If either, make it happen, captain.
+
 
     if (face_state == FACESTATE_ANIMATION) {
         if (face_curr_dur < FACE_DUR_STEP) { // Time for next frame?

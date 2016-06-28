@@ -52,5 +52,6 @@ void leds_timestep();
 
 extern uint16_t face_banks[4];
 extern rgbcolor_t leg_colors_curr[8];
+extern uint16_t face_ambient_brightness;
 
 #endif /* LED_DISPLAY_H_ */
