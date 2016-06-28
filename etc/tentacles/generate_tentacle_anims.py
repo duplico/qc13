@@ -60,7 +60,9 @@ def main():
                     webcolors.name_to_rgb(color_name) if color_name not in color_corrections else None
                 )
                 
-                local_colors[int(color_num)] = tuple(map(lambda a: int(16.0*a[0]*a[1]), zip(local_colors[int(color_num)], global_color_correct)))
+                local_colors[int(color_num)] = tuple(map(lambda a: 16.0*a, local_colors[int(color_num)]))
+                if color_name not in color_corrections:
+                    local_colors[int(color_num)] = tuple(map(lambda a: int(a[0]*a[1]), zip(local_colors[int(color_num)], global_color_correct)))
                 line_no += 1
             
             # Consume the animation type:
