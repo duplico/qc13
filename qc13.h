@@ -59,7 +59,6 @@ typedef struct {
     uint8_t uber_seen_count;
     uint8_t mate_count;
     uint8_t uber_mate_count;
-    uint16_t badges_seen[16];
     uint16_t bases_seen;
     uint16_t camo_unlocks;
     uint8_t camo_id;
@@ -71,9 +70,8 @@ typedef struct {
 
 extern volatile uint8_t f_time_loop;
 
-
-extern volatile uint16_t light;
-extern volatile uint16_t temp;
+extern uint16_t light;
+extern uint16_t temp;
 extern qc13conf my_conf;
 extern const qc13conf default_conf;
 extern qcpayload in_payload, out_payload;

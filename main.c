@@ -38,8 +38,16 @@ uint8_t s_b_start = 0;
 uint8_t s_b_select = 0;
 uint8_t s_b_ohai = 0;
 
-// Declarations:
-void poll_buttons();
+// ADC related:
+#define ADC_WINDOW 32
+uint16_t lights[ADC_WINDOW] = {0};
+uint16_t temps[ADC_WINDOW] = {0};
+uint16_t light = 0;
+uint16_t temp = 0;
+uint16_t light_tot = 0;
+uint16_t temp_tot = 0;
+uint8_t light_index = 0;
+uint8_t temp_index = 0;
 
 // Initialization functions
 ///////////////////////////
@@ -159,20 +167,6 @@ void poll_buttons() { // TODO: inline
 
 } // poll_buttons
 
-#define ADC_WINDOW 32
-
-volatile uint16_t lights[ADC_WINDOW] = {0};
-volatile uint16_t temps[ADC_WINDOW] = {0};
-
-volatile uint16_t light = 0;
-volatile uint16_t temp = 0;
-
-volatile uint16_t light_tot = 0;
-volatile uint16_t temp_tot = 0;
-
-volatile uint8_t light_index = 0;
-volatile uint8_t temp_index = 0;
-
 void poll_adc() {
     light_tot -= lights[light_index];
     temp_tot -= temps[temp_index];
@@ -194,22 +188,15 @@ void poll_adc() {
     temp = temp_tot / ADC_WINDOW;
 }
 
-uint8_t camo_id = LEG_ANIM_DEF;
-
 int main(void)
 {
     init();
     post();
 
-//    tlc_stage_blank(0);
-//    tlc_set_fun();
-//    delay_millis(10);
-
     initial_animations();
 
     while (1)
     {
-
         if (f_time_loop) {
             poll_buttons();
             poll_adc();
@@ -253,7 +240,9 @@ int main(void)
             s_b_ohai = 0;
         }
 
-        __bis_SR_register(SLEEP_BITS + GIE);
+        // If no more interrupt flags are set, go to sleep.
+        if (!f_time_loop)
+            __bis_SR_register(SLEEP_BITS + GIE);
     }
 
 }
@@ -267,15 +256,7 @@ __interrupt void TIMER0_A0_ISR_HOOK(void)
     __bic_SR_register_on_exit(LPM0_bits);
 }
 
-// Dedicated ISR for CCR0. Vector is cleared on service.
-#pragma vector=TIMER0_B0_VECTOR
-__interrupt void TIMER0_B0_ISR_HOOK(void) {
-    // This is the TIME LOOP MACHINE
-    // TODO: Or is it?
-//    f_time_loop = 1;
-    __bic_SR_register_on_exit(LPM0_bits);
-}
-
+// ISR for pairing:
 volatile uint8_t oh_hai_in = 0;
 
 #pragma vector=USCI_A1_VECTOR
