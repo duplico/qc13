@@ -33,10 +33,12 @@ const qc13conf default_conf = {
 qcpayload in_payload, out_payload;
 
 uint8_t being_inked = 0;
+uint8_t mated = 0;
+
 uint8_t seconds_to_next_thing = 0;
 
 void initial_animations() {
-    face_set_ambient(0);
+    face_set_ambient_direct(0b1000010000100000111111111111111010000100001000001111111111111110);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
@@ -96,4 +98,15 @@ void radio_received(qcpayload *payload) {
 void radio_transmit_done() {
     face_start_anim(4);
     tentacle_start_anim(my_conf.camo_id, LEG_DOUBLEINK_INDEX, 0, 0);
+}
+
+uint64_t mate_old_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
+
+void mate_start(uint8_t badge_id) {
+    mate_old_ambient = face_ambient;
+    face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
+}
+
+void mate_end(uint8_t badge_id) {
+    face_set_ambient(0);
 }

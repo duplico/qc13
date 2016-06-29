@@ -210,6 +210,14 @@ void set_tentacles(rgbcolor_t* leg_colors) {
     }
 }
 
+void face_set_ambient_direct(uint64_t amb) {
+    face_ambient = amb;
+    if (face_state == FACESTATE_AMBIENT) {
+        face_curr = face_ambient;
+        set_face(face_curr);
+    }
+}
+
 void face_set_ambient(uint8_t amb_index) {
     face_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
     if (face_state == FACESTATE_AMBIENT) {
