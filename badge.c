@@ -6,7 +6,9 @@
  */
 
 #include "qc13.h"
+#include <stdlib.h>
 #include "leg_anims.h"
+#include "led_display.h"
 #include "eye_anims.h"
 #include "rfm75.h"
 
@@ -31,6 +33,7 @@ const qc13conf default_conf = {
 qcpayload in_payload, out_payload;
 
 uint8_t being_inked = 0;
+uint8_t seconds_to_next_thing = 0;
 
 void initial_animations() {
     face_set_ambient(0);
@@ -38,12 +41,18 @@ void initial_animations() {
 }
 
 void second() {
-    face_start_anim(FACE_ANIM_BLINKING);
+    if (!seconds_to_next_thing) {
+        if (face_state == FACESTATE_AMBIENT)
+        face_start_anim(FACE_ANIM_BLINKING);
+        seconds_to_next_thing = rand() % 6;
+    } else {
+        seconds_to_next_thing--;
+    }
 }
 
 
 void time_loop() {
-    static uint8_t second_loops = LOOPS_PER_SECOND;
+    static uint16_t second_loops = LOOPS_PER_SECOND;
     if (second_loops) {
         second_loops--;
     } else {
@@ -53,6 +62,7 @@ void time_loop() {
 }
 
 void start_button_clicked() {
+    if (being_inked) return; // nope!
     out_payload.ink_id = my_conf.camo_id;
     out_payload.ink_type = LEG_INK_INDEX;
     rfm75_tx();
@@ -68,7 +78,7 @@ void select_button_clicked() {
 }
 
 void leg_anim_done(uint8_t tentacle_anim_id) {
-
+    being_inked = 0;
 }
 
 void ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {

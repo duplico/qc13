@@ -224,6 +224,7 @@ void face_start_anim(uint8_t anim_index) {
     face_curr = face_all_animations[face_current_animation]->frames[0];
     face_curr_dur = face_all_animations[face_current_animation]->frame_durations[0];
     face_state = FACESTATE_ANIMATION;
+    set_face(face_curr);
 }
 
 uint8_t tentacle_animation_state = 0;
