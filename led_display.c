@@ -12,6 +12,7 @@
 #include "qc13.h"
 #include "led_display.h"
 #include "tlc5948a.h"
+#include "badge.h"
 
 #include "eye_anims.h"
 #include "leg_anims.h"
@@ -268,6 +269,7 @@ void tentacle_next_anim_frame() {
             tentacle_anim_frame = 0;
             tentacle_anim_looping--;
         } else { // not ambient, no loops remaining
+            leg_anim_done(tentacle_anim_id);
             tentacle_start_anim(tentacle_saved_anim_id, tentacle_saved_anim_type, 0, 1);
             return; // skip the transitions_and_go because that's called in start_anim.
         }
