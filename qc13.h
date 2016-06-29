@@ -25,6 +25,7 @@ void delay_millis(unsigned long);
 
 #define BADGES_IN_SYSTEM 250
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
+#define RF_RESEND_COUNT 3
 
 /////////////////////////////////////////////////////////////////////
 // Hardware related defines /////////////////////////////////////////
@@ -33,6 +34,8 @@ void delay_millis(unsigned long);
 
 /////////////////////////////////////////////////////////////////////
 // State constants //////////////////////////////////////////////////
+
+#define BADGE_ID_BASE 254
 
 // Button events:
 #define BUTTON_PRESS 1
@@ -51,6 +54,7 @@ typedef struct {
     uint8_t ink_type;
     uint8_t ink_id;
     uint8_t beacon;
+    uint16_t crc16;
 } qcpayload;
 
 typedef struct {

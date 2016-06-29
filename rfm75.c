@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "qc13.h"
 #include "badge.h"
+#include "leg_anims.h"
 
 // Radio (RFM75):
 // CE   P3.2 (or 1.2 for launchpad)
@@ -60,7 +61,7 @@ uint8_t rfm75_state = RFM75_BOOT;
 
 //Bank0 register initialization value
 const uint8_t bank0_init_data[BANK0_INITS][2] = {
-    { 0x00, 0b00001011 }, //
+    { CONFIG, 0b00001111 }, //
     { 0x01, 0b00000000 }, //No auto-ack
     { 0x02, 0b00000011 }, //Enable RX pipe 0 and 1
     { 0x03, 0b00000001 }, //RX/TX address field width 3byte
@@ -174,15 +175,13 @@ uint8_t rfm75_post() {
 
 void rfm75_enter_prx() {
     // Make sure we're in an inactive state
-    if (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE) {
-        while (1)
-            __no_operation(); // spin forever because we suck.
-    }
+    while (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE);
+
     rfm75_state = RFM75_RX_INIT;
     CE_DEACTIVATE;
     // Power up & PRX: CONFIG=0b01101011
     rfm75_select_bank(0);
-    rfm75_write_reg(CONFIG, 0b00011011);
+    rfm75_write_reg(CONFIG, 0b00011111);
     // Clear interrupts: STATUS=BIT4|BIT5|BIT6
     rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
 
@@ -192,12 +191,21 @@ void rfm75_enter_prx() {
     rfm75_state = RFM75_RX_LISTEN;
 }
 
+uint8_t rfm75_retran_seq_num = 0;
+
 void rfm75_tx() {
     // Make sure we're in an inactive state
-    if (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE) {
-        while (1)
-            __no_operation(); // spin forever because we suck.
+    while (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE);
+
+    rfm75_retran_seq_num = 0;
+
+    // CRC it.
+    CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
+    for (uint8_t i = 0; i < sizeof(qcpayload) - 2; i++) {
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) &out_payload)[i]);
     }
+    out_payload.crc16 = CRC_getResult(CRC_BASE);
+
     // Fill'er up:
     memcpy(payload_out, &out_payload, RFM75_PAYLOAD_SIZE);
 
@@ -205,7 +213,7 @@ void rfm75_tx() {
     CE_DEACTIVATE;
     // Power up & PRX: CONFIG=0b01101010
     rfm75_select_bank(0);
-    rfm75_write_reg(CONFIG, 0b00011010);
+    rfm75_write_reg(CONFIG, 0b00011110);
     // Clear interrupts: STATUS=BIT4|BIT5|BIT6
     rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
 
@@ -309,6 +317,34 @@ void rfm75_init()
     __no_operation();
 }
 
+uint8_t radio_payload_validate(qcpayload *payload) {
+    if (!(payload->from_addr < BADGES_IN_SYSTEM || payload->from_addr == BADGE_ID_BASE)) {
+        return 0;
+    }
+
+    if (!(payload->ink_id < LEG_ANIM_COUNT) && (payload->ink_id != LEG_ANIM_NONE)) {
+        return 0;
+    }
+
+    if (!(payload->ink_type < LEG_ANIM_TYPE_COUNT) && (payload->ink_type != LEG_ANIM_TYPE_NONE)) {
+        return 0;
+    }
+
+    // CRC it.
+    CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
+    for (uint8_t i = 0; i < sizeof(qcpayload) - 2; i++) {
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) payload)[i]);
+    }
+
+    if (payload->crc16 != CRC_getResult(CRC_BASE)) {
+        // CRC checks out
+        // Raise the message received event
+        return 0;
+    }
+
+    return 1;
+}
+
 void rfm75_deferred_interrupt() {
     // RFM75 interrupt:
     uint8_t iv = rfm75_get_status();
@@ -325,8 +361,10 @@ void rfm75_deferred_interrupt() {
         // Clear the interrupt.
         rfm75_write_reg(STATUS, BIT6);
         memcpy(&in_payload, &payload_in, RFM75_PAYLOAD_SIZE);
-        // Raise the message received event
-        radio_received(&in_payload);
+
+        if (radio_payload_validate(&in_payload))
+            radio_received(&in_payload);
+
         // Payload is now allowed to go stale.
         // Assert CE: listen more.
         CE_ACTIVATE;
@@ -344,11 +382,18 @@ void rfm75_deferred_interrupt() {
         CE_DEACTIVATE;
         // Clear interrupt
         rfm75_write_reg(STATUS, BIT5);
-        // Raise the I-just-sent-a-thing event
-        radio_transmit_done();
         rfm75_state = RFM75_TX_DONE;
-        // Go back to listening.
-        rfm75_enter_prx();
+
+        if (rfm75_retran_seq_num == RF_RESEND_COUNT) {
+            // Raise the I-just-sent-a-thing event
+            radio_transmit_done();
+            // Go back to listening.
+            rfm75_enter_prx();
+        } else {
+            uint8_t seqnum = rfm75_retran_seq_num + 1;
+            rfm75_tx();
+            rfm75_retran_seq_num = seqnum;
+        }
     }
 }
 

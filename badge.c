@@ -54,10 +54,13 @@ void select_button_clicked() {
 }
 
 void radio_received(qcpayload *payload) {
+    face_start_anim(3);
+
     // After this routine exits, payload is subject to change.
     tentacle_start_anim(payload->ink_id, payload->ink_type, 3, 0);
 }
 
 void radio_transmit_done() {
+    face_start_anim(4);
     tentacle_start_anim(my_conf.camo_id, LEG_DOUBLEINK_INDEX, 0, 0);
 }

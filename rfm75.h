@@ -69,6 +69,8 @@
 #define FIFO_STATUS_RX_FULL     0x02
 #define FIFO_STATUS_RX_EMPTY    0x01
 
+#define RFM75_CRC_SEED 0x31C0
+
 void rfm75_init();
 uint8_t rfm75_post();
 void rfm75_deferred_interrupt();
