@@ -92,6 +92,27 @@ void init_adc() {
     ADC12_B_startConversion(ADC12_B_BASE, ADC12_B_START_AT_ADC12MEM0, ADC12_B_REPEATED_SEQOFCHANNELS);
 }
 
+void poll_adc() {
+    light_tot -= lights[light_index];
+    temp_tot -= temps[temp_index];
+    lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
+    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1) >> 1;
+
+    if (lights[light_index] < 3) lights[light_index] = 3;
+
+    light_tot += lights[light_index];
+    temp_tot += temps[temp_index];
+
+    light_index++;
+    temp_index++;
+
+    if (light_index == ADC_WINDOW) light_index = 0;
+    if (temp_index == ADC_WINDOW) temp_index = 0;
+
+    light = light_tot / ADC_WINDOW;
+    temp = temp_tot / ADC_WINDOW;
+}
+
 void term_gpio() {
     P1DIR = 0xFF;
     P1OUT = 0x00;
@@ -178,27 +199,6 @@ void poll_buttons() {
     b_ohai_read_prev = b_ohai_read;
 
 } // poll_buttons
-
-void poll_adc() {
-    light_tot -= lights[light_index];
-    temp_tot -= temps[temp_index];
-    lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
-    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1) >> 1;
-
-    if (lights[light_index] < 3) lights[light_index] = 3;
-
-    light_tot += lights[light_index];
-    temp_tot += temps[temp_index];
-
-    light_index++;
-    temp_index++;
-
-    if (light_index == ADC_WINDOW) light_index = 0;
-    if (temp_index == ADC_WINDOW) temp_index = 0;
-
-    light = light_tot / ADC_WINDOW;
-    temp = temp_tot / ADC_WINDOW;
-}
 
 int main(void)
 {
