@@ -329,6 +329,14 @@ uint8_t radio_payload_validate(qcpayload *payload) {
         return 0;
     }
 
+    if (payload->ink_type == LEG_ANIM_TYPE_NONE && payload->ink_id != LEG_ANIM_NONE) {
+        return 0;
+    }
+
+    if (payload->ink_id == LEG_ANIM_NONE && payload->ink_type != LEG_ANIM_TYPE_NONE) {
+        return 0;
+    }
+
     // CRC it.
     CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
     for (uint8_t i = 0; i < sizeof(qcpayload) - 2; i++) {
