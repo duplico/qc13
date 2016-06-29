@@ -23,6 +23,8 @@ h_lines = [
     "#define LEG_CAMO_INDEX 0",
     "#define LEG_INK_INDEX 1",
     "#define LEG_DOUBLEINK_INDEX 2",
+    "#define LEG_ANIM_TYPE_NONE 201",
+    "#define LEG_ANIM_NONE 211",
     "",
 ]
 
