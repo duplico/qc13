@@ -153,9 +153,7 @@ inline void leg_fade_colors() {
     // If this is the very last transition step,
     if (tentacle_transition_steps && tentacle_transition_index == tentacle_transition_steps-1) {
         // hit the destination:
-        for (uint8_t i=0; i<8; i++) {
-            memcpy(&leg_colors_curr[i], &leg_colors_next[i], sizeof(rgbcolor_t));
-        }
+        memcpy(leg_colors_curr, leg_colors_next, sizeof(rgbcolor_t) * 8);
     } else {
         for (uint8_t i=0; i<8; i++) {
             leg_colors_curr[i].red += leg_colors_step[i].red;
