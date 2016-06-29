@@ -179,11 +179,12 @@ void tlc_init() {
     // Next we configure the clock that tells us when it's time to select the
     //  next LED channel bank.
     // We'll run this off of ACLK, which is driven by our internal 39K clock.
+    //  THIS IS OUR TIME LOOP!!!! :-D
 
     Timer_A_initUpModeParam next_channel_timer_init = {};
     next_channel_timer_init.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
     next_channel_timer_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    next_channel_timer_init.timerPeriod = 50;
+    next_channel_timer_init.timerPeriod = TIME_LOOP_PERIOD;
     next_channel_timer_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
     next_channel_timer_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
     next_channel_timer_init.timerClear = TIMER_A_SKIP_CLEAR;

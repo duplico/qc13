@@ -26,7 +26,9 @@ void delay_millis(unsigned long);
 #define BADGES_IN_SYSTEM 250
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
 #define RF_RESEND_COUNT 3
-#define LOOPS_PER_SECOND 60
+
+#define TIME_LOOP_PERIOD 50
+#define LOOPS_PER_SECOND 640
 
 /////////////////////////////////////////////////////////////////////
 // Hardware related defines /////////////////////////////////////////
