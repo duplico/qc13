@@ -7,6 +7,7 @@
 
 #include "qc13.h"
 #include "leg_anims.h"
+#include "eye_anims.h"
 #include "rfm75.h"
 
 uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
@@ -29,13 +30,26 @@ const qc13conf default_conf = {
 
 qcpayload in_payload, out_payload;
 
+uint8_t being_inked = 0;
+
 void initial_animations() {
     face_set_ambient(0);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
-void time_loop() {
+void second() {
+    face_start_anim(FACE_ANIM_BLINKING);
+}
 
+
+void time_loop() {
+    static uint8_t second_loops = LOOPS_PER_SECOND;
+    if (second_loops) {
+        second_loops--;
+    } else {
+        second_loops = LOOPS_PER_SECOND;
+        second();
+    }
 }
 
 void start_button_clicked() {
@@ -53,11 +67,20 @@ void select_button_clicked() {
     }
 }
 
-void radio_received(qcpayload *payload) {
-    face_start_anim(3);
+void leg_anim_done(uint8_t tentacle_anim_id) {
 
-    // After this routine exits, payload is subject to change.
-    tentacle_start_anim(payload->ink_id, payload->ink_type, 3, 0);
+}
+
+void ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
+    being_inked = 1;
+    face_start_anim(3);
+    tentacle_start_anim(ink_id, ink_type, 3, 0);
+}
+
+void radio_received(qcpayload *payload) {
+    if (!being_inked && payload->ink_id != LEG_ANIM_NONE) { // it's an ink!
+        ink_received(payload->ink_id, payload->ink_type, payload->from_addr);
+    }
 }
 
 void radio_transmit_done() {
