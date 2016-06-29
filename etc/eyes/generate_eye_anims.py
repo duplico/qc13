@@ -49,7 +49,12 @@ def main():
                 2 : [0]*15,
             }
             name = str(state_file.split(".")[0])
-            leds = f.readline().split(",")
+            parsed = False
+            while not parsed:
+                line = f.readline()
+                if not line.startswith('#'):
+                    parsed = True
+            leds = line.split(",")
             leds = map(lambda a: int(a.strip()) if a else 0, leds)
             if leds == [0]: leds = []
             
