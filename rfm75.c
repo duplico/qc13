@@ -181,7 +181,7 @@ void rfm75_enter_prx() {
     CE_DEACTIVATE;
     // Power up & PRX: CONFIG=0b01101011
     rfm75_select_bank(0);
-    rfm75_write_reg(CONFIG, 0b00011111);
+    rfm75_write_reg(CONFIG, 0b00111111);
     // Clear interrupts: STATUS=BIT4|BIT5|BIT6
     rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
 
@@ -211,9 +211,8 @@ void rfm75_tx() {
 
     rfm75_state = RFM75_TX_INIT;
     CE_DEACTIVATE;
-    // Power up & PRX: CONFIG=0b01101010
     rfm75_select_bank(0);
-    rfm75_write_reg(CONFIG, 0b00011110);
+    rfm75_write_reg(CONFIG, 0b01011110);
     // Clear interrupts: STATUS=BIT4|BIT5|BIT6
     rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
 
