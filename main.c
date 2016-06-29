@@ -244,14 +244,16 @@ int main(void)
         }
 
         if (s_b_ohai == BUTTON_PRESS) { // badges connected.
-            __no_operation();
-            EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
-            delay_millis(1000);
-            EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 0xAA);
+            mate_start(0);
+//            __no_operation();
+//            EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
+//            delay_millis(1000);
+//            EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 0xAA);
             s_b_ohai = 0;
         }
 
-        if (s_b_ohai == BUTTON_PRESS) { // badges disconnected.
+        if (s_b_ohai == BUTTON_RELEASE) { // badges disconnected.
+            mate_end(0);
             s_b_ohai = 0;
         }
 

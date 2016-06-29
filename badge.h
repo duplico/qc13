@@ -16,5 +16,7 @@ void radio_received(qcpayload *payload);
 void radio_transmit_done();
 void leg_anim_done(uint8_t tentacle_anim_id);
 void second();
+void mate_start(uint8_t badge_id);
+void mate_end(uint8_t badge_id);
 
 #endif /* BADGE_H_ */
