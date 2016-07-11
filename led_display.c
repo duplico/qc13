@@ -88,14 +88,14 @@ uint64_t face_ambient = 0xffffffffffffffff;
 uint8_t face_current_animation = FACE_ANIM_NONE;
 uint8_t face_curr_anim_frame = 0;
 uint16_t face_curr_dur = 0;
-uint16_t face_ambient_brightness = 0x1f00;
+uint16_t face_ambient_brightness = 0x01f0; // was 0x1f00
 
 uint16_t face_frame_dur = 0;
 uint64_t curr_frame = 0;
 
 uint8_t face_state = FACESTATE_AMBIENT;
 
-#define FACE_DUR_STEP 3
+#define FACE_DUR_STEP 2
 #define LEGS_DUR_STEP 2
 
 uint8_t tentacle_anim_frame = 0;
@@ -111,6 +111,8 @@ uint16_t tentacle_hold_index = 0;
 uint16_t tentacle_transition_steps = 0;
 uint16_t tentacle_transition_index = 0;
 const tentacle_animation_t *tentacle_current_anim;
+
+uint8_t wiggle_mask = 0xff;
 
 void set_face(uint64_t frame) {
     for (uint8_t i=0; i<64; i++) {
@@ -181,23 +183,37 @@ void set_tentacles(rgbcolor_t* leg_colors) {
         g = leg_colors[tent].green;
         b = leg_colors[tent].blue;
 
-        // Twinklies:
+        // If it's <3 (meaning lower) and masked out by wiggling,
+        if (tent < 4 && !(wiggle_mask & (1 << tent))) {
+            // turn it off.
+            r=0;
+            g=0;
+            b=0;
+        }
+
+        // Handle the particulars of the animation's
+        //  sub-type. (twinkling, etc.)
         switch(tentacle_current_anim->anim_type) {
         case ANIM_TYPE_FAST_TWINKLE:
             if (twinkle_bits & (1 << tent)) {
-                r = r << 1;
-                g = g << 1;
-                b = b << 1;
+                r = r >> 2;
+                g = g >> 2;
+                b = b >> 2;
             }
             break;
         default:
             break;
         }
 
-        if (tent > 3 && (leg_colors[tent-4].red|leg_colors[tent-4].green|leg_colors[tent-4].blue)) {
-            r = r >> 2;
-            g = g >> 2;
-            b = b >> 2;
+        static int8_t temp_tent = 0;
+        temp_tent = tent-4;
+
+        // If we're upper, and our corresponding lower light is on:
+        if ((tent > 3) && (tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+1] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+2])) {
+            // Dim it.
+            r = r >> 3;
+            g = g >> 3;
+            b = b >> 3;
         }
 
         if (r>UINT16_MAX) r=UINT16_MAX;
@@ -323,6 +339,7 @@ void leds_timestep() {
                 face_state = FACESTATE_AMBIENT;
                 face_curr = face_ambient;
                 face_dirty = 1;
+                s_face_anim_done = 1;
                 // done
             } else {
                 face_curr = face_all_animations[face_current_animation]->frames[face_curr_anim_frame];
