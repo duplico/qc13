@@ -1,0 +1,10 @@
+out, in, 400
+in, out, 400
+out, in, 400
+in, out, 400
+out, in, 400
+in, out, 400
+out, in, 400
+in, out, 400
+open, open, 900
+blink, blink, 400

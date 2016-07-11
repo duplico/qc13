@@ -1,7 +1,11 @@
 blink, blink, 400
-cuteleft, cuteleft, 1600
+cuteout, cutein, 2200
 blink, blink, 400
-cuteleft, cuteleft, 600
+cuteout, cutein, 3200
 blink, blink, 400
-cuteleft, cuteleft, 2000
+cuteout, cutein, 900
+blink, blink, 400
+open, open, 2200
+cute, cute, 1100
+open, open, 800
 blink, blink, 400

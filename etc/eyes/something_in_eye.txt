@@ -1,7 +1,8 @@
-squint, open, 1500
+squint, open, 2200
 open, open, 800
-squint, open, 2000
-blink, open, 800
-off, open, 1100
-off, right, 1100
-off, blink, 400
+squint, open, 1000
+squint, blink, 600
+squint, open, 1400
+squint, blink, 600
+squint, open, 1400
+blink, blink, 600

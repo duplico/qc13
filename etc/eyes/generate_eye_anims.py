@@ -50,7 +50,9 @@ def main():
             }
             name = str(state_file.split(".")[0])
             parsed = False
+            i = 0
             while not parsed:
+                i+=1
                 line = f.readline()
                 if not line.startswith('#'):
                     parsed = True
@@ -62,7 +64,6 @@ def main():
                 for channel in eye_trans[led][1:]:
                     banks[eye_trans[led][0]][channel] = 1
             eye_frames[name] = banks
-    
     
     for frame, values in eye_frames.items():
         frame_uint32 = ""
@@ -88,10 +89,16 @@ def main():
         c_lines.append("// Frames for %s" % anim[:-4])
         all_animations.append(anim[:-4])
         with open(anim) as f:
+            i=0
             for line in f:
-                if not line: continue
+                i+=1
+                if not line.strip(): continue
                 line_elements = map(lambda a: a.strip(), line.split(","))
-                anims.append("0b%s%s" % (eye_frames_uint32[line_elements[0]], eye_frames_uint32[line_elements[1]]))
+                try:
+                    anims.append("0b%s%s" % (eye_frames_uint32[line_elements[0]], eye_frames_uint32[line_elements[1]]))
+                except Exception as e:
+                    print "Broken on %s:%d" % (anim,i)
+                    exit(1)
                 #left_anims.append(eye_frames_uint32[line_elements[0]])
                 #right_anims.append(eye_frames_uint32[line_elements[1]])
                 lengths.append(line_elements[2])

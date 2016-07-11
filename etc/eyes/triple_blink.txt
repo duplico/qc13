@@ -1,8 +1,10 @@
-blink, blink, 200
-open, open, 200
-blink, blink, 200
-open, open, 200
-blink, blink, 200
-open, open, 1100
-right, right, 700
-left, left, 700
+blink, blink, 300
+open, open, 300
+blink, blink, 300
+open, open, 300
+blink, blink, 300
+open, open, 2300
+in, out, 700
+open, open,700
+out, in, 700
+blink, blink, 400
