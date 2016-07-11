@@ -38,6 +38,7 @@ volatile uint8_t f_rfm75_interrupt = 0;
 uint8_t s_b_start = 0;
 uint8_t s_b_select = 0;
 uint8_t s_b_ohai = 0;
+uint8_t s_face_anim_done = 0;
 
 // ADC related:
 #define ADC_WINDOW 32
@@ -147,6 +148,12 @@ void init() {
     tlc_init();   // Initialize our LED system
     rfm75_init(); // Initialize our radio
     init_adc();   // Start up the ADC for light and temp sensors.
+
+
+    __no_operation();
+    EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
+    EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 0xAA);
+
 }
 
 void post() {
@@ -255,6 +262,11 @@ int main(void)
         if (s_b_ohai == BUTTON_RELEASE) { // badges disconnected.
             mate_end(0);
             s_b_ohai = 0;
+        }
+
+        if (s_face_anim_done) {
+            s_face_anim_done = 0;
+            face_animation_done();
         }
 
         // If no more interrupt flags are set, go to sleep.

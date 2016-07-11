@@ -56,5 +56,6 @@ extern rgbcolor_t leg_colors_curr[8];
 extern uint16_t face_ambient_brightness;
 extern uint8_t face_state;
 extern uint64_t face_ambient;
+extern uint8_t wiggle_mask;
 
 #endif /* LED_DISPLAY_H_ */

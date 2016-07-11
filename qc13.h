@@ -78,6 +78,8 @@ typedef struct {
 extern volatile uint8_t f_time_loop;
 extern volatile uint8_t f_rfm75_interrupt;
 
+extern uint8_t s_face_anim_done;
+
 extern uint16_t light;
 extern uint16_t temp;
 extern qc13conf my_conf;
