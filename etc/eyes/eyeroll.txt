@@ -1,4 +1,8 @@
-blink, blink, 800
-left, left, 600
-up, up, 1200
-cute, cute, 400
+blink, blink, 400
+open, open, 1900
+up, up, 700
+in, out, 700
+down, down, 700
+open, open, 2100
+blink, blink, 400
+cuteleft, cuteright, 1700

@@ -1,6 +1,9 @@
-open, spazz, 200
-open, off, 800
+open, spazz, 800
+open, off, 2200
 blink, off, 400
-open, off, 600
-right, off, 1200
-blink, off, 400
+open, off, 1800
+open, squint, 600
+open, squint, 1200
+blink, squint, 400
+open, squint, 1100
+blink, blink, 400

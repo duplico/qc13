@@ -1,3 +1,3 @@
 blink, blink, 400
-spazz, spazz, 2100
+catsin, catsout, 2500
 blink, blink, 400
