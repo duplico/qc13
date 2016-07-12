@@ -2,6 +2,8 @@ import sys, os, string
 
 import webcolors
 
+COLOR_SCALE_FACTOR = 2.0
+
 color_corrections = {
     "default" : (255,255,255),
     "off" : (0,0,0),
@@ -64,7 +66,7 @@ def main():
                     webcolors.name_to_rgb(color_name) if color_name not in color_corrections else None
                 )
                 
-                local_colors[int(color_num)] = tuple(map(lambda a: 16.0*a, local_colors[int(color_num)]))
+                local_colors[int(color_num)] = tuple(map(lambda a: COLOR_SCALE_FACTOR*a, local_colors[int(color_num)]))
                 if color_name not in color_corrections:
                     local_colors[int(color_num)] = tuple(map(lambda a: int(a[0]*a[1]), zip(local_colors[int(color_num)], global_color_correct)))
                 line_no += 1
