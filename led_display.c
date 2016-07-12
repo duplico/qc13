@@ -214,7 +214,7 @@ void set_tentacles(rgbcolor_t* leg_colors) {
             r = r >> 3;
             g = g >> 3;
             b = b >> 3;
-        }
+        } // TODO: Really, we should add an else to steal the lower light's appearance.
 
         if (r>UINT16_MAX) r=UINT16_MAX;
         if (g>UINT16_MAX) b=UINT16_MAX;
