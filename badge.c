@@ -39,8 +39,12 @@ uint8_t seconds_to_next_thing = 0;
 
 void initial_animations() {
     face_set_ambient_direct(0b1000010000100000111111111111111010000100001000001111111111111110);
-//    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
-    tentacle_start_anim(1, LEG_CAMO_INDEX, 1, 1);
+
+    uint8_t wiggle_mask_temp = 0xff;
+    wiggle_mask_temp &= ~(1 << (rand() % 4));
+    if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
+    wiggle_mask = wiggle_mask_temp;
+    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
 void second() {
