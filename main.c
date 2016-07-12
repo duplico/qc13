@@ -286,6 +286,7 @@ __interrupt void EUSCI_A1_ISR(void)
     //Vector 2 - RXIFG
     case 2:
         oh_hai_in = EUSCI_B_SPI_receiveData(EUSCI_A1_BASE);
+        tentacle_start_anim(0, LEG_CAMO_INDEX, 0, 0);
         __no_operation();
         break; // End of RXIFG ///////////////////////////////////////////////////////
 
