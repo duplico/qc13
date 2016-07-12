@@ -17,6 +17,7 @@ void radio_transmit_done(); // Finished transmitting a radio message
 void leg_anim_done(uint8_t tentacle_anim_id); // Leg animation finished
 void face_animation_done(); // Eye animation finished
 void second(); // Called once per second (ish)
+void two_seconds(); // Called once per 2ish seconds
 void mate_start(uint8_t badge_id); // Called when badges mated (o_hai)
 void mate_end(uint8_t badge_id); // Called when badges unmated
 

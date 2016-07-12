@@ -55,20 +55,26 @@ void second() {
         }
         seconds_to_next_thing = rand() % 6;
     } else {
-        // Don't wink and wriggle at the same time,
-        //  because for some reason that looks odd.
-        if (!(rand() % 2)) { // let's say, one in every 3ish seconds, we wriggle:
-            uint8_t wiggle_mask_temp = 0xff;
-            wiggle_mask_temp &= ~(1 << (rand() % 4));
-            if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
-            wiggle_mask = wiggle_mask_temp;
-        }
         seconds_to_next_thing--;
     }
 
     // Once per second, send a 'Q':
     EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 'Q');
 
+}
+
+void two_seconds() {
+    // Don't wink and wriggle at the same time,
+    //  because I think that looks odd.
+    if (!seconds_to_next_thing)
+        return;
+
+    if (!(rand() % 2)) {
+        uint8_t wiggle_mask_temp = 0xff;
+        wiggle_mask_temp &= ~(1 << (rand() % 4));
+        if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
+        wiggle_mask = wiggle_mask_temp;
+    }
 }
 
 void face_animation_done() {
@@ -78,9 +84,13 @@ void face_animation_done() {
 
 void time_loop() {
     static uint16_t second_loops = LOOPS_PER_SECOND;
+    static uint8_t loops = 0;
     if (second_loops) {
         second_loops--;
     } else {
+        loops += 1;
+        if (loops & 0x01)
+            two_seconds();
         second_loops = LOOPS_PER_SECOND;
         second();
     }
@@ -89,23 +99,26 @@ void time_loop() {
 uint8_t face_anim_no = 0;
 
 void start_button_clicked() {
-//    if (being_inked) return; // nope!
-//    out_payload.ink_id = my_conf.camo_id;
-//    out_payload.ink_type = LEG_INK_INDEX;
-//    rfm75_tx();
-    face_anim_no = (face_anim_no+1) % FACE_ANIM_COUNT;
-    face_start_anim(face_anim_no);
+    if (being_inked) return; // nope!
+    out_payload.ink_id = my_conf.camo_id;
+    out_payload.ink_type = LEG_INK_INDEX;
+    rfm75_tx();
+
+    // The testing code to cycle through faces:
+//    face_anim_no = (face_anim_no+1) % FACE_ANIM_COUNT;
+//    face_start_anim(face_anim_no);
 }
 
 void select_button_clicked() {
-//    if ((my_conf.camo_id+1) % LEG_ANIM_COUNT == my_conf.camo_id) {
-//        // not allowed to change camo
-//    } else {
-//        my_conf.camo_id = (my_conf.camo_id+1) % LEG_ANIM_COUNT;
-//        tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
-//    }
-    face_start_anim(face_anim_no);
-//    face_anim_no = (face_anim_no+FACE_ANIM_COUNT-1) % FACE_ANIM_COUNT;
+    if ((my_conf.camo_id+1) % LEG_ANIM_COUNT == my_conf.camo_id) {
+        // not allowed to change camo
+    } else {
+        my_conf.camo_id = (my_conf.camo_id+1) % LEG_ANIM_COUNT;
+        tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
+    }
+
+    // The testing code to cycle through faces:
+//    face_start_anim(face_anim_no);
 }
 
 void leg_anim_done(uint8_t tentacle_anim_id) {
