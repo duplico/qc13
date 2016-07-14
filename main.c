@@ -14,6 +14,7 @@
 #include "tlc5948a.h"
 #include "etc/tentacles/leg_anims.h"
 #include "badge.h"
+#include "mating.h"
 
 /*
  *
@@ -33,6 +34,7 @@
 // Flags to main loop raised by interrupts (so must be volatile):
 volatile uint8_t f_time_loop = 0;
 volatile uint8_t f_rfm75_interrupt = 0;
+volatile uint8_t f_mate_interrupt = 0;
 
 // Signals to the main loop (not caused by interrupts):
 uint8_t s_b_start = 0;
@@ -147,12 +149,8 @@ void init() {
 
     tlc_init();   // Initialize our LED system
     rfm75_init(); // Initialize our radio
+    init_mating();// Initialize mating port
     init_adc();   // Start up the ADC for light and temp sensors.
-
-
-    __no_operation();
-    EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
-    EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 0xAA);
 
 }
 
@@ -226,6 +224,14 @@ int main(void)
             f_time_loop = 0;
         }
 
+        if (f_mate_interrupt) {
+            if (mate_state == 1) {
+                mate_state = 2;
+                mate_start(0);
+            }
+            f_mate_interrupt = 0;
+        }
+
         if (f_rfm75_interrupt) {
             rfm75_deferred_interrupt();
             f_rfm75_interrupt = 0;
@@ -251,7 +257,8 @@ int main(void)
         }
 
         if (s_b_ohai == BUTTON_PRESS) { // badges connected.
-            mate_start(0);
+            mate_state = 1;
+//            mate_start(0);
 //            __no_operation();
 //            EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
 //            delay_millis(1000);
@@ -274,24 +281,4 @@ int main(void)
             __bis_SR_register(SLEEP_BITS + GIE);
     }
 
-}
-
-// ISR for pairing:
-volatile uint8_t oh_hai_in = 0;
-
-#pragma vector=USCI_A1_VECTOR
-__interrupt void EUSCI_A1_ISR(void)
-{
-    switch (__even_in_range(UCA1IV, 4)) {
-    //Vector 2 - RXIFG
-    case 2:
-        oh_hai_in = EUSCI_B_SPI_receiveData(EUSCI_A1_BASE);
-        __no_operation();
-        break; // End of RXIFG ///////////////////////////////////////////////////////
-
-    case 4: // Vector 4 - TXIFG : I just sent a byte.
-        break; // End of TXIFG /////////////////////////////////////////////////////
-
-    default: break;
-    } // End of ISR flag switch ////////////////////////////////////////////////////
 }

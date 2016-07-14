@@ -11,6 +11,7 @@
 #include "led_display.h"
 #include "eye_anims.h"
 #include "rfm75.h"
+#include "mating.h"
 
 uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
@@ -57,8 +58,9 @@ void second() {
         seconds_to_next_thing--;
     }
 
-    // Once per second, send a 'Q':
-    EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 'Q');
+    if (mate_state == 1) {
+        mate_send();
+    }
 
 }
 
@@ -138,10 +140,11 @@ void radio_transmit_done() {
 uint64_t mate_old_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
 
 void mate_start(uint8_t badge_id) {
-    mate_old_ambient = face_ambient;
-    face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
+//    mate_old_ambient = face_ambient;
+//    face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
+    tentacle_start_anim(0, 1, 3, 0);
 }
 
 void mate_end(uint8_t badge_id) {
-    face_set_ambient(0);
+    tentacle_start_anim(0, 1, 3, 0);
 }
