@@ -86,6 +86,8 @@ typedef struct {
     uint16_t crc16;
 } matepayload;
 
+#define MATE_VERSION 1
+
 #define M_ACHIEVEMENT BIT0 // 0=mate; 1=achievement
 #define M_HAT_AWARD BIT1
 #define M_HAT_AWARD_ACK BIT2
@@ -125,6 +127,7 @@ typedef struct {
 
 extern volatile uint8_t f_time_loop;
 extern volatile uint8_t f_rfm75_interrupt;
+extern volatile uint8_t f_mate_interrupt;
 
 extern uint8_t s_face_anim_done;
 
