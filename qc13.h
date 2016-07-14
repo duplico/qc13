@@ -53,12 +53,60 @@ void delay_millis(unsigned long);
 // Important structs:
 
 typedef struct {
-    uint8_t from_addr, base_id;
-    uint8_t ink_type;
+    uint8_t proto_version;
+    uint8_t from_addr, base_addr;
+    uint8_t ttl;
     uint8_t ink_id;
-    uint8_t beacon;
+    uint8_t flags;
     uint16_t crc16;
-} qcpayload;
+} rfbcpayload;
+
+#define RFBC_BEACON BIT0
+#define RFBC_EVENT BIT1
+#define RFBC_INK BIT2
+#define RFBC_DINK BIT3
+#define RFBC_HAT_ON BIT4
+#define RFBC_HATHOLDER BIT5
+#define RFBC_PUSH_HAT_ELIGIBLE BIT6
+#define RFBC_HANDLER_ON_DUTY BIT7
+
+typedef struct {
+    uint8_t proto_version;
+    uint8_t to_addr; // redundant
+    uint8_t hat_id;
+    uint16_t crc16;
+} rfucpayload;
+
+typedef struct {
+    uint8_t proto_version;
+    uint8_t from_addr;
+    uint8_t hat_award_id;
+    uint8_t camo_id;
+    uint16_t flags;
+    uint16_t crc16;
+} matepayload;
+
+#define M_ACHIEVEMENT BIT0 // 0=mate; 1=achievement
+#define M_HAT_AWARD BIT1
+#define M_HAT_AWARD_ACK BIT2
+#define M_HAT_AWARD_NACK BIT3
+#define M_INK BIT4
+#define M_HAT_HOLDER BIT5
+#define M_RST BIT6
+#define M_PUSH_HAT_ELIGIBLE BIT7
+#define M_HANDLER_ON_DUTY BIT8
+#define M_PIPE BIT9 // 0=badge; 1=pipe
+#define M_BESTOW_HAT BITA
+#define M_RQ_ACHIEVEMENTS BITB
+#define M_BESTOW_ACH_0 BITC
+#define M_BESTOW_ACH_1 BITD
+
+typedef struct {
+    uint8_t proto_version;
+    uint8_t from_addr;
+    uint64_t achievements;
+    uint16_t crc16;
+} hatpayload;
 
 typedef struct {
     uint8_t badge_id;
@@ -84,7 +132,7 @@ extern uint16_t light;
 extern uint16_t temp;
 extern qc13conf my_conf;
 extern const qc13conf default_conf;
-extern qcpayload in_payload, out_payload;
+extern rfbcpayload in_payload, out_payload;
 
 extern uint8_t badges_seen[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_badges[BADGES_IN_SYSTEM];

@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#define RFM75_PAYLOAD_SIZE sizeof(qcpayload)
+#define RFM75_PAYLOAD_SIZE sizeof(rfbcpayload)
 
 //************************FSK COMMAND and REGISTER****************************************//
 // SPI(RFM75) commands

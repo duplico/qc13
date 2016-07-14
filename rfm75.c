@@ -201,7 +201,7 @@ void rfm75_tx() {
 
     // CRC it.
     CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
-    for (uint8_t i = 0; i < sizeof(qcpayload) - 2; i++) {
+    for (uint8_t i = 0; i < sizeof(rfbcpayload) - 2; i++) {
         CRC_set8BitData(CRC_BASE, ((uint8_t *) &out_payload)[i]);
     }
     out_payload.crc16 = CRC_getResult(CRC_BASE);
@@ -316,7 +316,7 @@ void rfm75_init()
     __no_operation();
 }
 
-uint8_t radio_payload_validate(qcpayload *payload) {
+uint8_t radio_payload_validate(rfbcpayload *payload) {
     if (!(payload->from_addr < BADGES_IN_SYSTEM || payload->from_addr == BADGE_ID_BASE)) {
         return 0;
     }
@@ -325,21 +325,13 @@ uint8_t radio_payload_validate(qcpayload *payload) {
         return 0;
     }
 
-    if (!(payload->ink_type < LEG_ANIM_TYPE_COUNT) && (payload->ink_type != LEG_ANIM_TYPE_NONE)) {
-        return 0;
-    }
-
-    if (payload->ink_type == LEG_ANIM_TYPE_NONE && payload->ink_id != LEG_ANIM_NONE) {
-        return 0;
-    }
-
-    if (payload->ink_id == LEG_ANIM_NONE && payload->ink_type != LEG_ANIM_TYPE_NONE) {
+    if (payload->ink_id == LEG_ANIM_NONE && (payload->flags & RFBC_INK)) {
         return 0;
     }
 
     // CRC it.
     CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
-    for (uint8_t i = 0; i < sizeof(qcpayload) - 2; i++) {
+    for (uint8_t i = 0; i < sizeof(rfbcpayload) - 2; i++) {
         CRC_set8BitData(CRC_BASE, ((uint8_t *) payload)[i]);
     }
 

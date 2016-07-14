@@ -12,7 +12,7 @@ void initial_animations(); // Called when it's time to start the first ambients
 void time_loop(); // Called every time_loop_interval
 void start_button_clicked(); // The start button was pressed and released
 void select_button_clicked(); // The select button was pressed and released
-void radio_received(qcpayload *payload); // Received a radio message
+void radio_received(rfbcpayload *payload); // Received a radio message
 void radio_transmit_done(); // Finished transmitting a radio message
 void leg_anim_done(uint8_t tentacle_anim_id); // Leg animation finished
 void face_animation_done(); // Eye animation finished
