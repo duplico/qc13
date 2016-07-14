@@ -71,23 +71,30 @@ def main():
                     local_colors[int(color_num)] = tuple(map(lambda a: int(a[0]*a[1]), zip(local_colors[int(color_num)], global_color_correct)))
                 line_no += 1
             
-            # Consume the animation type:
-            # TODO:
-            local_type = lines[line_no]
-            if local_type not in all_types: all_types.append(local_type)
-            line_no += 1
-            
             camo_line = ""
             ink_line = ""
             doubleink_line = ""
+            wiggles = []
+            anim_types = []
             
             assert "CAMO" in lines[line_no].upper()
+            line_no += 1
+            
+            if "WIGGLE" in lines[line_no].upper():
+                wiggles.append(1)
+                line_no += 1
+            else:
+                wiggles.append(0)
+                
+            local_type = lines[line_no]
+            if local_type not in all_types: all_types.append(local_type)
+            anim_types.append(local_type)
             line_no += 1
             
             while lines[line_no][0] in string.digits:
                 # Consume the animation. Ignore white space
                 camo_line += lines[line_no]
-                line_no += 1            
+                line_no += 1
             
             if camo_line[-1] == ',':
                 camo_line = camo_line[:-1]
@@ -95,6 +102,17 @@ def main():
             camo_frames = [camo[i:i+10] for i in xrange(0, len(camo), 10)]
             
             assert "SINGLE" in lines[line_no].upper()
+            line_no += 1
+            
+            if "WIGGLE" in lines[line_no].upper():
+                wiggles.append(1)
+                line_no += 1
+            else:
+                wiggles.append(0)
+                
+            local_type = lines[line_no]
+            if local_type not in all_types: all_types.append(local_type)
+            anim_types.append(local_type)
             line_no += 1
             
             while lines[line_no][0] in string.digits:
@@ -106,6 +124,17 @@ def main():
             ink_frames = [ink[i:i+10] for i in xrange(0, len(ink), 10)]
             
             assert "DOUBLE" in lines[line_no].upper()
+            line_no += 1
+            
+            if "WIGGLE" in lines[line_no].upper():
+                wiggles.append(1)
+                line_no += 1
+            else:
+                wiggles.append(0)
+                
+            local_type = lines[line_no]
+            if local_type not in all_types: all_types.append(local_type)
+            anim_types.append(local_type)
             line_no += 1
             
             while line_no < len(lines):
@@ -121,7 +150,7 @@ def main():
             
             local_animation_names = []
             
-            for l,lname in ((camo_frames, 'camo'), (ink_frames, 'ink'), (doubleink_frames, 'doubleink')):
+            for l, lname, atype, wiggle in ((camo_frames, 'camo', anim_types[0], wiggles[0]), (ink_frames, 'ink', anim_types[1], wiggles[1]), (doubleink_frames, 'doubleink', anim_types[2], wiggles[2])):
                 c_lines.append("// frames for %s" % lname)
                 c_lines.append("const rgbcolor_t %s_%s_frames[][8] = {" % (anim_name, lname))
                 h_lines.append("// frames for %s" % lname)
@@ -146,7 +175,7 @@ def main():
                 h_lines.append("extern uint16_t %s_%s_fade_durs[];" % (anim_name, lname))
                 
                 c_lines.append("// the animation:")
-                c_lines.append("const tentacle_animation_t %s_%s = {%s_%s_frames, %s_%s_durations, %s_%s_fade_durs, %d, ANIM_TYPE_%s};" % (anim_name, lname, anim_name, lname, anim_name, lname, anim_name, lname, len(l), local_type.upper()))
+                c_lines.append("const tentacle_animation_t %s_%s = {%s_%s_frames, %s_%s_durations, %s_%s_fade_durs, %d, ANIM_TYPE_%s, %d, };" % (anim_name, lname, anim_name, lname, anim_name, lname, anim_name, lname, len(l), atype.upper(), wiggle))
                 
                 h_lines.append("extern const tentacle_animation_t %s_%s;" % (anim_name, lname))
             c_lines.append("")
