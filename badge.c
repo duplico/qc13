@@ -39,11 +39,6 @@ uint8_t seconds_to_next_thing = 0;
 
 void initial_animations() {
     face_set_ambient_direct(0b1000010000100000111111111111111010000100001000001111111111111110);
-
-    uint8_t wiggle_mask_temp = 0xff;
-    wiggle_mask_temp &= ~(1 << (rand() % 4));
-    if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
-    wiggle_mask = wiggle_mask_temp;
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
@@ -68,17 +63,12 @@ void second() {
 }
 
 void two_seconds() {
-    // Don't wink and wriggle at the same time,
-    //  because I think that looks odd.
-    if (!seconds_to_next_thing)
-        return;
-
-    if (!(rand() % 2)) {
-        uint8_t wiggle_mask_temp = 0xff;
+    uint8_t wiggle_mask_temp = 0xff;
+    if (tentacle_current_anim->wiggle) {
         wiggle_mask_temp &= ~(1 << (rand() % 4));
         if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
-        wiggle_mask = wiggle_mask_temp;
     }
+    wiggle_mask = wiggle_mask_temp;
 }
 
 void face_animation_done() {

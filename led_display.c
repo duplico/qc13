@@ -281,6 +281,15 @@ void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8
     tentacle_anim_looping = loop;
     tentacle_anim_length = tentacle_current_anim->len;
 
+    if (tentacle_current_anim->wiggle) {
+        uint8_t wiggle_mask_temp = 0xff;
+        wiggle_mask_temp &= ~(1 << (rand() % 4));
+        if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
+        wiggle_mask = wiggle_mask_temp;
+    } else {
+        wiggle_mask = 0xff;
+    }
+
     tentacle_setup_transitions_and_go();
 }
 

@@ -30,6 +30,7 @@ typedef struct {
     const uint16_t *fade_durs;
     uint8_t len;
     uint8_t anim_type;
+    uint8_t wiggle;
 } tentacle_animation_t;
 
 typedef struct {
@@ -57,5 +58,6 @@ extern uint16_t face_ambient_brightness;
 extern uint8_t face_state;
 extern uint64_t face_ambient;
 extern uint8_t wiggle_mask;
+extern const tentacle_animation_t *tentacle_current_anim;
 
 #endif /* LED_DISPLAY_H_ */

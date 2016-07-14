@@ -9,23 +9,25 @@ const rgbcolor_t def_camo_frames[][8] = {
 uint16_t def_camo_durations[] = {800};
 uint16_t def_camo_fade_durs[] = {0};
 // the animation:
-const tentacle_animation_t def_camo = {def_camo_frames, def_camo_durations, def_camo_fade_durs, 1, ANIM_TYPE_SOLID};
+const tentacle_animation_t def_camo = {def_camo_frames, def_camo_durations, def_camo_fade_durs, 1, ANIM_TYPE_SOLID, 1, };
 // frames for ink
 const rgbcolor_t def_ink_frames[][8] = {
     {{0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}},
+    {{0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}},
 };
-uint16_t def_ink_durations[] = {6000};
-uint16_t def_ink_fade_durs[] = {0};
+uint16_t def_ink_durations[] = {300, 300};
+uint16_t def_ink_fade_durs[] = {0, 0};
 // the animation:
-const tentacle_animation_t def_ink = {def_ink_frames, def_ink_durations, def_ink_fade_durs, 1, ANIM_TYPE_SOLID};
+const tentacle_animation_t def_ink = {def_ink_frames, def_ink_durations, def_ink_fade_durs, 2, ANIM_TYPE_FASTTWINKLE, 0, };
 // frames for doubleink
 const rgbcolor_t def_doubleink_frames[][8] = {
     {{0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}},
+    {{0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x1fe, 0x1fe, 0x1fe}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}},
 };
-uint16_t def_doubleink_durations[] = {6000};
-uint16_t def_doubleink_fade_durs[] = {0};
+uint16_t def_doubleink_durations[] = {300, 300};
+uint16_t def_doubleink_fade_durs[] = {0, 0};
 // the animation:
-const tentacle_animation_t def_doubleink = {def_doubleink_frames, def_doubleink_durations, def_doubleink_fade_durs, 1, ANIM_TYPE_SOLID};
+const tentacle_animation_t def_doubleink = {def_doubleink_frames, def_doubleink_durations, def_doubleink_fade_durs, 2, ANIM_TYPE_SOLID, 0, };
 
 const tentacle_animation_t *def_anim_set[3] = {&def_camo, &def_ink, &def_doubleink};
 
@@ -41,7 +43,7 @@ const rgbcolor_t fire_camo_frames[][8] = {
 uint16_t fire_camo_durations[] = {100, 100, 100, 100, 100};
 uint16_t fire_camo_fade_durs[] = {50, 50, 50, 50, 50};
 // the animation:
-const tentacle_animation_t fire_camo = {fire_camo_frames, fire_camo_durations, fire_camo_fade_durs, 5, ANIM_TYPE_FAST_TWINKLE};
+const tentacle_animation_t fire_camo = {fire_camo_frames, fire_camo_durations, fire_camo_fade_durs, 5, ANIM_TYPE_FAST_TWINKLE, 0, };
 // frames for ink
 const rgbcolor_t fire_ink_frames[][8] = {
     {{0x1fe, 0x8c, 0x0}, {0x1fe, 0x8c, 0x0}, {0x1fe, 0x8c, 0x0}, {0x1fe, 0x8c, 0x0}, {0x1fe, 0x45, 0x0}, {0x1fe, 0x45, 0x0}, {0x1fe, 0x45, 0x0}, {0x1fe, 0x45, 0x0}},
@@ -49,7 +51,7 @@ const rgbcolor_t fire_ink_frames[][8] = {
 uint16_t fire_ink_durations[] = {500};
 uint16_t fire_ink_fade_durs[] = {0};
 // the animation:
-const tentacle_animation_t fire_ink = {fire_ink_frames, fire_ink_durations, fire_ink_fade_durs, 1, ANIM_TYPE_FAST_TWINKLE};
+const tentacle_animation_t fire_ink = {fire_ink_frames, fire_ink_durations, fire_ink_fade_durs, 1, ANIM_TYPE_FAST_TWINKLE, 0, };
 // frames for doubleink
 const rgbcolor_t fire_doubleink_frames[][8] = {
     {{0x1fe, 0x0, 0x0}, {0x1fe, 0x45, 0x0}, {0x1fe, 0x8c, 0x0}, {0x1fe, 0xff, 0x1c0}, {0x1fe, 0x45, 0x0}, {0x1fe, 0x8c, 0x0}, {0x1fe, 0xff, 0x1c0}, {0x1fe, 0x0, 0x0}},
@@ -60,7 +62,7 @@ const rgbcolor_t fire_doubleink_frames[][8] = {
 uint16_t fire_doubleink_durations[] = {50, 50, 50, 50};
 uint16_t fire_doubleink_fade_durs[] = {50, 50, 50, 50};
 // the animation:
-const tentacle_animation_t fire_doubleink = {fire_doubleink_frames, fire_doubleink_durations, fire_doubleink_fade_durs, 4, ANIM_TYPE_FAST_TWINKLE};
+const tentacle_animation_t fire_doubleink = {fire_doubleink_frames, fire_doubleink_durations, fire_doubleink_fade_durs, 4, ANIM_TYPE_FAST_TWINKLE, 0, };
 
 const tentacle_animation_t *fire_anim_set[3] = {&fire_camo, &fire_ink, &fire_doubleink};
 
@@ -77,7 +79,7 @@ const rgbcolor_t rainbow_camo_frames[][8] = {
 uint16_t rainbow_camo_durations[] = {100, 100, 100, 100, 100, 100};
 uint16_t rainbow_camo_fade_durs[] = {150, 150, 150, 150, 150, 150};
 // the animation:
-const tentacle_animation_t rainbow_camo = {rainbow_camo_frames, rainbow_camo_durations, rainbow_camo_fade_durs, 6, ANIM_TYPE_SOLID};
+const tentacle_animation_t rainbow_camo = {rainbow_camo_frames, rainbow_camo_durations, rainbow_camo_fade_durs, 6, ANIM_TYPE_SOLID, 1, };
 // frames for ink
 const rgbcolor_t rainbow_ink_frames[][8] = {
     {{0x1fe, 0xa5, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xff, 0x0}},
@@ -85,7 +87,7 @@ const rgbcolor_t rainbow_ink_frames[][8] = {
 uint16_t rainbow_ink_durations[] = {6000};
 uint16_t rainbow_ink_fade_durs[] = {0};
 // the animation:
-const tentacle_animation_t rainbow_ink = {rainbow_ink_frames, rainbow_ink_durations, rainbow_ink_fade_durs, 1, ANIM_TYPE_SOLID};
+const tentacle_animation_t rainbow_ink = {rainbow_ink_frames, rainbow_ink_durations, rainbow_ink_fade_durs, 1, ANIM_TYPE_SOLID, 0, };
 // frames for doubleink
 const rgbcolor_t rainbow_doubleink_frames[][8] = {
     {{0x1fe, 0x0, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0x0, 0x0}},
@@ -96,44 +98,8 @@ const rgbcolor_t rainbow_doubleink_frames[][8] = {
 uint16_t rainbow_doubleink_durations[] = {50, 50, 50, 50};
 uint16_t rainbow_doubleink_fade_durs[] = {50, 50, 50, 50};
 // the animation:
-const tentacle_animation_t rainbow_doubleink = {rainbow_doubleink_frames, rainbow_doubleink_durations, rainbow_doubleink_fade_durs, 4, ANIM_TYPE_SOLID};
+const tentacle_animation_t rainbow_doubleink = {rainbow_doubleink_frames, rainbow_doubleink_durations, rainbow_doubleink_fade_durs, 4, ANIM_TYPE_SOLID, 0, };
 
 const tentacle_animation_t *rainbow_anim_set[3] = {&rainbow_camo, &rainbow_ink, &rainbow_doubleink};
 
-///////////////// RAINBOW2:
-// frames for camo
-const rgbcolor_t rainbow2_camo_frames[][8] = {
-    {{0x0, 0x80, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0x0, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0x0, 0x0}},
-    {{0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0x0, 0x0}, {0x100, 0x0, 0x100}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0x0, 0x0}, {0x100, 0x0, 0x100}},
-    {{0x1fe, 0xa5, 0x0}, {0x1fe, 0x0, 0x0}, {0x100, 0x0, 0x100}, {0x0, 0x0, 0x1fe}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0x0, 0x0}, {0x100, 0x0, 0x100}, {0x0, 0x0, 0x1fe}},
-    {{0x1fe, 0x0, 0x0}, {0x100, 0x0, 0x100}, {0x0, 0x0, 0x1fe}, {0x0, 0x80, 0x0}, {0x1fe, 0x0, 0x0}, {0x100, 0x0, 0x100}, {0x0, 0x0, 0x1fe}, {0x0, 0x80, 0x0}},
-    {{0x100, 0x0, 0x100}, {0x0, 0x0, 0x1fe}, {0x0, 0x80, 0x0}, {0x1fe, 0xff, 0x0}, {0x100, 0x0, 0x100}, {0x0, 0x0, 0x1fe}, {0x0, 0x80, 0x0}, {0x1fe, 0xff, 0x0}},
-    {{0x0, 0x0, 0x1fe}, {0x0, 0x80, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x0, 0x0, 0x1fe}, {0x0, 0x80, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}},
-};
-uint16_t rainbow2_camo_durations[] = {100, 100, 100, 100, 100, 100};
-uint16_t rainbow2_camo_fade_durs[] = {150, 150, 150, 150, 150, 150};
-// the animation:
-const tentacle_animation_t rainbow2_camo = {rainbow2_camo_frames, rainbow2_camo_durations, rainbow2_camo_fade_durs, 6, ANIM_TYPE_FAST_TWINKLE};
-// frames for ink
-const rgbcolor_t rainbow2_ink_frames[][8] = {
-    {{0x1fe, 0xa5, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xff, 0x0}},
-};
-uint16_t rainbow2_ink_durations[] = {6000};
-uint16_t rainbow2_ink_fade_durs[] = {0};
-// the animation:
-const tentacle_animation_t rainbow2_ink = {rainbow2_ink_frames, rainbow2_ink_durations, rainbow2_ink_fade_durs, 1, ANIM_TYPE_FAST_TWINKLE};
-// frames for doubleink
-const rgbcolor_t rainbow2_doubleink_frames[][8] = {
-    {{0x1fe, 0x0, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0x0, 0x0}},
-    {{0x0, 0x80, 0x0}, {0x1fe, 0x0, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x1fe, 0x0, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x0, 0x80, 0x0}},
-    {{0x1fe, 0xa5, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0x0, 0x0}, {0x1fe, 0xff, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0x0, 0x0}, {0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}},
-    {{0x1fe, 0xff, 0x0}, {0x1fe, 0xa5, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0x0, 0x0}, {0x1fe, 0xa5, 0x0}, {0x0, 0x80, 0x0}, {0x1fe, 0x0, 0x0}, {0x1fe, 0xff, 0x0}},
-};
-uint16_t rainbow2_doubleink_durations[] = {50, 50, 50, 50};
-uint16_t rainbow2_doubleink_fade_durs[] = {50, 50, 50, 50};
-// the animation:
-const tentacle_animation_t rainbow2_doubleink = {rainbow2_doubleink_frames, rainbow2_doubleink_durations, rainbow2_doubleink_fade_durs, 4, ANIM_TYPE_FAST_TWINKLE};
-
-const tentacle_animation_t *rainbow2_anim_set[3] = {&rainbow2_camo, &rainbow2_ink, &rainbow2_doubleink};
-
-const tentacle_animation_t **legs_all_anim_sets[] = {def_anim_set, fire_anim_set, rainbow_anim_set, rainbow2_anim_set};
+const tentacle_animation_t **legs_all_anim_sets[] = {def_anim_set, fire_anim_set, rainbow_anim_set};
