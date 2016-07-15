@@ -12,6 +12,7 @@
 #include "eye_anims.h"
 #include "rfm75.h"
 #include "mating.h"
+#include "metrics.h"
 
 uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
@@ -62,33 +63,7 @@ void second() {
         mate_send();
     }
 
-    // Handle brightness correction:
-
-    light = light_tot * 0.8 / ADC_WINDOW;
-
-    // We're going to get the order of magnitude (log2) of light:
-
-    // See https://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
-    unsigned int v; // 32-bit word to find the log base 2 of
-    int r = -2; // r will be lg(v)
-
-    v = light;
-
-    while (v >>= 1)
-    {
-      r++;
-    }
-
-    if (r<0)
-        r=0;
-
-    light_order = r;
-
-    if (current_ambient_correct < light_order)
-        current_ambient_correct++;
-    else if (current_ambient_correct > light_order)
-        current_ambient_correct--;
-
+    do_brightness_correction();
 }
 
 void two_seconds() {
@@ -188,8 +163,8 @@ void leg_anim_done(uint8_t tentacle_anim_id) {
 
 void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
     neighbor_badges[from_id] = RECEIVE_WINDOW;
-//    set_badge_seen(from_id, on_duty);
-//    tick_badge_seen(from_id, on_duty);
+    set_badge_seen(from_id, on_duty);
+    tick_badge_seen(from_id, on_duty);
 }
 
 void radio_basic_base_received(uint8_t base_id) {
