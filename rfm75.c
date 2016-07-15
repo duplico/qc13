@@ -83,7 +83,7 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
     { 0x1d, 0b00000000 } // 00000 | DPL | ACK | DYN_ACK
 };
 
-uint8_t payload[RFM75_PAYLOAD_SIZE] = {0xff, 0x00, 0xff, 0};
+uint8_t payload_serial_bytes[RFM75_PAYLOAD_SIZE] = {0xff, 0x00, 0xff, 0};
 
 uint8_t payload_in[RFM75_PAYLOAD_SIZE] = {0};
 uint8_t payload_out[RFM75_PAYLOAD_SIZE] = {0};
@@ -202,13 +202,6 @@ void rfm75_tx() {
 
     rfm75_retran_seq_num = 0;
 
-    // CRC it.
-    CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
-    for (uint8_t i = 0; i < sizeof(rfbcpayload) - 2; i++) {
-        CRC_set8BitData(CRC_BASE, ((uint8_t *) &out_payload)[i]);
-    }
-    out_payload.crc16 = CRC_getResult(CRC_BASE);
-
     // Fill'er up:
     memcpy(payload_out, &out_payload, RFM75_PAYLOAD_SIZE);
 
@@ -320,15 +313,32 @@ void rfm75_init()
 }
 
 uint8_t radio_payload_validate(rfbcpayload *payload) {
-    if (!(payload->from_addr < BADGES_IN_SYSTEM || payload->from_addr == BADGE_ID_BASE)) {
+    // bad src ID
+    if (!(payload->from_addr < BADGES_IN_SYSTEM || payload->from_addr == DEDICATED_BASE_ID)) {
         return 0;
     }
 
-    if (!(payload->ink_id < LEG_ANIM_COUNT) && (payload->ink_id != LEG_ANIM_NONE)) {
+    // ink id overflow when ink is requested
+    if ((payload->flags & RFBC_INK) && (payload->ink_id >= LEG_ANIM_COUNT) && (payload->ink_id != LEG_ANIM_NONE)) {
         return 0;
     }
 
+    // bad ink id and ink flag set
     if (payload->ink_id == LEG_ANIM_NONE && (payload->flags & RFBC_INK)) {
+        return 0;
+    }
+
+    // both badge and event set
+    if (payload->flags & RFBC_BEACON && payload->flags & RFBC_EVENT) {
+        return 0;
+    }
+
+    // double-ink set without ink set
+    if (payload->flags & (RFBC_INK | RFBC_DINK) == RFBC_DINK) {
+        return 0;
+    }
+
+    if (payload->flags & RFBC_EVENT && payload->base_addr > EVENTS_IN_SYSTEM) {
         return 0;
     }
 
@@ -339,11 +349,11 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
     }
 
     if (payload->crc16 != CRC_getResult(CRC_BASE)) {
-        // CRC checks out
-        // Raise the message received event
+        // Bad CRC
         return 0;
     }
 
+    // CRC checks out.
     return 1;
 }
 
@@ -364,8 +374,15 @@ void rfm75_deferred_interrupt() {
         rfm75_write_reg(STATUS, BIT6);
         memcpy(&in_payload, &payload_in, RFM75_PAYLOAD_SIZE);
 
+        // There's a few types of payloads that this is allowed to be:
+        //     ==Broadcast==
+        //   Handled in the handler...
+        //   We also may need to repeat this type of message.
+        //     ===Unicast===
+        //  # Badge award from base station.
+
         if (radio_payload_validate(&in_payload))
-            radio_received(&in_payload);
+            radio_broadcast_received(&in_payload);
 
         // Payload is now allowed to go stale.
         // Assert CE: listen more.
