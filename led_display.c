@@ -337,7 +337,6 @@ void led_post() {
             tlc_bank_gs[t][i] = 0;
         }
     }
-
 }
 
 void leds_timestep() {
