@@ -131,6 +131,11 @@ void term_gpio() {
     PJOUT = 0x00;
 }
 
+// TODO:
+void setup_my_conf() {
+    memcpy(&my_conf, &default_conf, sizeof(qc13conf));
+}
+
 void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
     term_gpio();
@@ -148,6 +153,8 @@ void init() {
     P2DIR &= ~BIT7;
     P2REN |= BIT7;
     P2OUT |= BIT7;
+
+    setup_my_conf();
 
     tlc_init();   // Initialize our LED system
     rfm75_init(); // Initialize our radio

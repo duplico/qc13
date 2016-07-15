@@ -124,13 +124,10 @@ typedef struct {
 
 typedef struct {
     uint8_t badge_id;
-    uint8_t seen_count;
-    uint8_t uber_seen_count;
-    uint8_t odh_seen_count;
-    uint8_t mate_count;
-    uint8_t uber_mate_count;
-    uint16_t bases_seen;
-    uint16_t camo_unlocks;
+    uint8_t seen_count, uber_seen_count, odh_seen_count;
+    uint8_t mate_count, uber_mate_count, odh_mate_count;
+    uint16_t event_checkins;
+    uint32_t camo_unlocks;
     uint8_t camo_id;
     uint16_t crc16;
 } qc13conf;
