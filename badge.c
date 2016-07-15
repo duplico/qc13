@@ -22,14 +22,12 @@ qc13conf my_conf = {0};
 
 const qc13conf default_conf = {
         BADGE_ID,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0x01,
-        1,
-        0
+        0, 0, 0, // seen counts
+        0, 0, 0, // mate counts
+        0, // event check-ins
+        0xffffffff, // camo_unlocks bitfield // TODO: should be 0x1
+        1, // camo_id
+        0 // blank CRC.
 };
 
 rfbcpayload in_payload, out_payload;
@@ -80,6 +78,7 @@ void face_animation_done() {
     seconds_to_next_thing = rand() % 6;
 }
 
+// TODO: move to main.
 void time_loop() {
     static uint16_t second_loops = LOOPS_PER_SECOND;
     static uint8_t loops = 0;
