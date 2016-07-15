@@ -119,15 +119,49 @@ void time_loop() {
     }
 }
 
-uint8_t face_anim_no = 0;
+// IMPORTANT: Call this last.
+//  DON'T change stuff after calling it.
+void complete_rfbc_payload(rfbcpayload *payload) {
+    payload->base_addr = NOT_A_BASE;
+    payload->from_addr = my_conf.badge_id;
+    // TODO: if handler and wearing a hat:
+//    payload->flags |= RFBC_HANDLER_ON_DUTY;
+    // TODO: if hatholder:
+//    payload->flags |= RFBC_HATHOLDER
+    // TODO: if hat on:
+//    payload->flags |= RFBC_HAT_ON
+    // TODO: if eligible for a push hat:
+//    payload.flags |= RFBC_PUSH_HAT_ELIGIBLE
+
+    // CRC it.
+    CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
+    for (uint8_t i = 0; i < sizeof(rfbcpayload) - 2; i++) {
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) payload)[i]);
+    }
+    payload->crc16 = CRC_getResult(CRC_BASE);
+}
+
+void send_ink() {
+    out_payload.ink_id = my_conf.camo_id;
+    out_payload.flags = RFBC_INK;
+    complete_rfbc_payload(&out_payload);
+    rfm75_tx();
+}
 
 void start_button_clicked() {
     if (being_inked) return; // nope!
-    out_payload.ink_id = my_conf.camo_id;
-    out_payload.flags |= RFBC_INK;
-    rfm75_tx();
+    if (mate_state == MS_IDLE) {
+        send_ink();
+    }
+    if (mate_state == MS_INK_WAIT) {
+        // TODO:
+        //  SUPER INK!!!!
+        //  Set timeout.
+    }
 
+    // TODO: Remove when done.
     // The testing code to cycle through faces:
+//    static uint8_t face_anim_no = 0;
 //    face_anim_no = (face_anim_no+1) % FACE_ANIM_COUNT;
 //    face_start_anim(face_anim_no);
 }
@@ -150,14 +184,34 @@ void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
 }
 
-void ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
+void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
+
+}
+
+void radio_basic_base_received(uint8_t base_id) {
+
+}
+
+void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
     being_inked = 1;
     tentacle_start_anim(ink_id, ink_type, 3, 0);
 }
 
-void radio_received(rfbcpayload *payload) {
-    if (!being_inked && payload->ink_id != LEG_ANIM_NONE) { // it's an ink!
-        ink_received(payload->ink_id, ((payload->flags & RFBC_DINK) ? 2 : 1), payload->from_addr);
+void radio_broadcast_received(rfbcpayload *payload) {
+    // There are three possibilities for a broadcast.
+    // They're NOT mutually exclusive.
+    //     ==Broadcast==
+    //  # Beacon: Just the normal gaydar beacon
+    if (payload->flags & RFBC_BEACON) {
+        radio_beacon_received(payload->from_addr, payload->flags & RFBC_HANDLER_ON_DUTY);
+    }
+    //  # Basic event: A basic check-in broadcast from the base station
+    if (payload->flags & RFBC_EVENT) {
+        radio_basic_base_received(payload->base_addr);
+    }
+    //  # Ink or super ink
+    if (payload->flags & RFBC_INK) {
+        radio_ink_received(payload->ink_id, ((payload->flags & RFBC_DINK) ? 2 : 1), payload->from_addr);
     }
 }
 

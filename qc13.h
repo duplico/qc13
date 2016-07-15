@@ -24,8 +24,9 @@ void delay_millis(unsigned long);
 // Badge & system configuration /////////////////////////////////////
 
 #define BADGES_IN_SYSTEM 250
-//#define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
-#define SLEEP_BITS 0
+#define EVENTS_IN_SYSTEM 1
+#define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
+
 #define RF_RESEND_COUNT 3
 
 #define FACE_DIM_BRIGHTNESS 0x01f0
@@ -43,7 +44,8 @@ void delay_millis(unsigned long);
 /////////////////////////////////////////////////////////////////////
 // State constants //////////////////////////////////////////////////
 
-#define BADGE_ID_BASE 254
+#define DEDICATED_BASE_ID 254
+#define NOT_A_BASE 253
 
 // Button events:
 #define BUTTON_PRESS 1
