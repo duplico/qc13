@@ -184,8 +184,12 @@ void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
 }
 
-void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
+#define RECEIVE_WINDOW 10
 
+void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
+    neighbor_badges[from_id] = RECEIVE_WINDOW;
+//    set_badge_seen(from_id, on_duty);
+//    tick_badge_seen(from_id, on_duty);
 }
 
 void radio_basic_base_received(uint8_t base_id) {
