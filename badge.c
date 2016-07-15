@@ -159,7 +159,15 @@ void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
 }
 
-#define RECEIVE_WINDOW 10
+void radio_beacon_interval() {
+    neighbor_count = 0;
+    for (uint8_t i=0; i<BADGES_IN_SYSTEM; i++) {
+        if (neighbor_badges[i]) {
+            neighbor_count++;
+            neighbor_badges[i]--;
+        }
+    }
+}
 
 void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
     neighbor_badges[from_id] = RECEIVE_WINDOW;

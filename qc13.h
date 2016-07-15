@@ -36,6 +36,9 @@ void delay_millis(unsigned long);
 #define TIME_LOOP_PERIOD 50
 #define LOOPS_PER_SECOND 640
 
+#define RECEIVE_WINDOW 10
+#define BEACON_INTERVAL_SECS 30
+
 #define ADC_WINDOW 32
 
 /////////////////////////////////////////////////////////////////////
