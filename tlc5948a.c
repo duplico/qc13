@@ -210,10 +210,6 @@ void tlc_init() {
     EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
     EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 
-    volatile uint8_t tlc_fault = tlc_test_loopback(0x7a);
-    if (tlc_fault)
-        __no_operation();
-
     tlc_set_gs();
     tlc_stage_blank(1);
     tlc_set_fun();
