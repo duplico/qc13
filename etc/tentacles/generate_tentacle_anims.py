@@ -6,11 +6,12 @@ COLOR_SCALE_FACTOR = 2.0
 
 color_corrections = {
     "default" : (255,255,255),
+    "white" : (255,128,255),
     "off" : (0,0,0),
     "crimson" : (220, 20, 60)
 }
 
-global_color_correct = (1,.5,1)
+global_color_correct = (1,1,1)
 
 eye_frames = dict()
 eye_frames_uint32 = dict()
@@ -39,6 +40,7 @@ def main():
     
     for anim in os.listdir("."):
         if not anim[-3:] == "txt": continue
+        print anim
         camos = []
         camo_lengths = []
         inks = []
@@ -55,7 +57,7 @@ def main():
         with open(anim) as f:
             local_colors = dict()
             
-            lines = [line.strip() for line in f if line.strip() and (line[0] != "#" or "CAMO" in line or "SINGLE" in line or "DOUBLE" in line)]
+            lines = [line.strip() for line in f if line.strip() and (line[0] != "#" or "CAMO" in line.upper() or "SINGLE" in line.upper() or "INK" in line.upper() or "DOUBLE" in line.upper())]
             line_no = 0
             
             # Consume all of the colors in this
@@ -101,7 +103,7 @@ def main():
             camo = map(lambda s: int(s.strip()), camo_line.split(','))
             camo_frames = [camo[i:i+10] for i in xrange(0, len(camo), 10)]
             
-            assert "SINGLE" in lines[line_no].upper()
+            assert "SINGLE" in lines[line_no].upper() or "INK" in lines[line_no].upper()
             line_no += 1
             
             if "WIGGLE" in lines[line_no].upper():
