@@ -164,10 +164,13 @@ void rfm75_select_bank(uint8_t bank) {
 }
 
 uint8_t rfm75_post() {
-    volatile uint8_t active = send_rfm75_cmd(READ_REG|0x1d, 0x00);
-    send_rfm75_cmd(ACTIVATE_CMD, 0x73);
-    volatile uint8_t active2 = send_rfm75_cmd(READ_REG|0x1d, 0x00);
-    if (active2 != (active ^ 0b00000111)) {
+    volatile uint8_t bank_one = rfm75_get_status() & 0x80; // Get MSB, which is active bank.
+    send_rfm75_cmd(ACTIVATE_CMD, 0x53);
+    volatile uint8_t bank_two = rfm75_get_status() & 0x80; // Get MSB, which is active bank.
+
+    rfm75_select_bank(0); // Go back to the normal bank.
+
+    if (bank_one == bank_two) {
         return 0;
     }
     return 1;

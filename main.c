@@ -158,7 +158,11 @@ void init() {
 
 void post() {
     led_post();
-    rfm75_post();
+    uint8_t ret = rfm75_post();
+    if (!ret) { // bad radio:
+        face_set_ambient_direct(0b1111111111111111111111111111111111111111111111111111111111111111);
+        delay_millis(5000);
+    }
 }
 
 void delay_millis(unsigned long mils) {
