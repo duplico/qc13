@@ -377,6 +377,7 @@ void leds_timestep() {
     if (current_ambient_correct != previous_ambient_correct) {
         previous_ambient_correct = current_ambient_correct;
         face_dirty = 1;
+        legs_dirty = 1;
     }
 
     if (face_state == FACESTATE_ANIMATION) {
