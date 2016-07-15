@@ -117,6 +117,38 @@ uint8_t wiggle_mask = 0xff;
 uint8_t current_ambient_correct = 0;
 uint8_t previous_ambient_correct = 0;
 
+// See https://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+inline uint8_t log2(uint16_t v) {
+    int8_t r = 0; // r will be lg(v)
+    while (v >>= 1)
+    {
+        r++;
+    }
+
+    return r;
+}
+
+void do_brightness_correction() {
+    // Do the light averaging:
+    light = light_tot * 0.8 / ADC_WINDOW;
+
+    // We're going to get the order of magnitude (log2) of light:
+    light_order = log2(light);
+
+    // Do some correction:
+    if (light_order <=2) {
+        light_order = 0;
+    } else {
+        light_order-=2;
+    }
+
+    // Graduate our process:
+    if (current_ambient_correct < light_order)
+        current_ambient_correct++;
+    else if (current_ambient_correct > light_order)
+        current_ambient_correct--;
+}
+
 void set_face(uint64_t frame) {
     for (uint8_t i=0; i<64; i++) {
         if (frame & ((uint64_t) 1 << i)) {

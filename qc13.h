@@ -24,6 +24,8 @@ void delay_millis(unsigned long);
 // Badge & system configuration /////////////////////////////////////
 
 #define BADGES_IN_SYSTEM 250
+#define UBER_COUNT 13
+#define HANDLER_COUNT 8
 #define EVENTS_IN_SYSTEM 1
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
 
@@ -121,6 +123,7 @@ typedef struct {
     uint8_t badge_id;
     uint8_t seen_count;
     uint8_t uber_seen_count;
+    uint8_t odh_seen_count;
     uint8_t mate_count;
     uint8_t uber_mate_count;
     uint16_t bases_seen;

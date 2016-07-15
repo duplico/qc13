@@ -51,6 +51,7 @@ void face_set_ambient_direct(uint64_t amb);
 void face_start_anim(uint8_t anim_index);
 void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient);
 void leds_timestep();
+void do_brightness_correction();
 
 extern uint16_t face_banks[4];
 extern rgbcolor_t leg_colors_curr[8];
