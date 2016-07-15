@@ -62,6 +62,33 @@ void second() {
         mate_send();
     }
 
+    // Handle brightness correction:
+
+    light = light_tot * 0.8 / ADC_WINDOW;
+
+    // We're going to get the order of magnitude (log2) of light:
+
+    // See https://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
+    unsigned int v; // 32-bit word to find the log base 2 of
+    int r = -2; // r will be lg(v)
+
+    v = light;
+
+    while (v >>= 1)
+    {
+      r++;
+    }
+
+    if (r<0)
+        r=0;
+
+    light_order = r;
+
+    if (current_ambient_correct < light_order)
+        current_ambient_correct++;
+    else if (current_ambient_correct > light_order)
+        current_ambient_correct--;
+
 }
 
 void two_seconds() {

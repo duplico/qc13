@@ -24,11 +24,16 @@ void delay_millis(unsigned long);
 // Badge & system configuration /////////////////////////////////////
 
 #define BADGES_IN_SYSTEM 250
-#define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
+//#define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
+#define SLEEP_BITS 0
 #define RF_RESEND_COUNT 3
+
+#define FACE_DIM_BRIGHTNESS 0x01f0
 
 #define TIME_LOOP_PERIOD 50
 #define LOOPS_PER_SECOND 640
+
+#define ADC_WINDOW 32
 
 /////////////////////////////////////////////////////////////////////
 // Hardware related defines /////////////////////////////////////////
@@ -132,6 +137,8 @@ extern volatile uint8_t f_mate_interrupt;
 extern uint8_t s_face_anim_done;
 
 extern uint16_t light;
+extern uint16_t light_tot;
+extern uint8_t light_order;
 extern uint16_t temp;
 extern qc13conf my_conf;
 extern const qc13conf default_conf;

@@ -88,7 +88,7 @@ uint64_t face_ambient = 0xffffffffffffffff;
 uint8_t face_current_animation = FACE_ANIM_NONE;
 uint8_t face_curr_anim_frame = 0;
 uint16_t face_curr_dur = 0;
-uint16_t face_ambient_brightness = 0x01f0; // was 0x1f00
+uint16_t face_ambient_brightness = FACE_DIM_BRIGHTNESS;
 
 uint16_t face_frame_dur = 0;
 uint64_t curr_frame = 0;
@@ -114,10 +114,13 @@ const tentacle_animation_t *tentacle_current_anim;
 
 uint8_t wiggle_mask = 0xff;
 
+uint8_t current_ambient_correct = 0;
+uint8_t previous_ambient_correct = 0;
+
 void set_face(uint64_t frame) {
     for (uint8_t i=0; i<64; i++) {
         if (frame & ((uint64_t) 1 << i)) {
-            tlc_bank_gs[i/16][i%16] = face_ambient_brightness;
+            tlc_bank_gs[i/16][i%16] = face_ambient_brightness << current_ambient_correct;
         } else {
             tlc_bank_gs[i/16][i%16] = 0x00;
         }
@@ -220,9 +223,9 @@ void set_tentacles(rgbcolor_t* leg_colors) {
         if (g>UINT16_MAX) b=UINT16_MAX;
         if (g>UINT16_MAX) b=UINT16_MAX;
 
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = b;
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = g;
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = r;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = b << current_ambient_correct;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = g << current_ambient_correct;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = r << current_ambient_correct;
     }
 }
 
@@ -340,6 +343,10 @@ void led_post() {
 void leds_timestep() {
     static uint8_t face_dirty = 1;
     static uint8_t legs_dirty = 1;
+    if (current_ambient_correct != previous_ambient_correct) {
+        previous_ambient_correct = current_ambient_correct;
+        face_dirty = 1;
+    }
 
     if (face_state == FACESTATE_ANIMATION) {
         if (face_curr_dur < FACE_DUR_STEP) { // Time for next frame?

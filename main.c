@@ -43,10 +43,10 @@ uint8_t s_b_ohai = 0;
 uint8_t s_face_anim_done = 0;
 
 // ADC related:
-#define ADC_WINDOW 32
 uint16_t lights[ADC_WINDOW] = {0};
 uint16_t temps[ADC_WINDOW] = {0};
 uint16_t light = 0;
+uint8_t light_order = 0;
 uint16_t temp = 0;
 uint16_t light_tot = 0;
 uint16_t temp_tot = 0;
@@ -111,9 +111,11 @@ void poll_adc() {
 
     if (light_index == ADC_WINDOW) light_index = 0;
     if (temp_index == ADC_WINDOW) temp_index = 0;
+    // light gets set from light_tot in badge.c.
 
-    light = light_tot / ADC_WINDOW;
+
     temp = temp_tot / ADC_WINDOW;
+    // Temp has 3 bands: COLD < NORMAL < HOT
 }
 
 void term_gpio() {
@@ -225,10 +227,7 @@ int main(void)
         }
 
         if (f_mate_interrupt) {
-            if (mate_state == 1) {
-                mate_state = 2;
-                mate_start(0);
-            }
+            mate_deferred_rx_interrupt();
             f_mate_interrupt = 0;
         }
 
@@ -257,17 +256,13 @@ int main(void)
         }
 
         if (s_b_ohai == BUTTON_PRESS) { // badges connected.
-            mate_state = 1;
-//            mate_start(0);
-//            __no_operation();
-//            EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
-//            delay_millis(1000);
-//            EUSCI_A_UART_transmitData(EUSCI_A1_BASE, 0xAA);
+            mate_state = MS_PLUG; // TODO: make a function here?
             s_b_ohai = 0;
         }
 
         if (s_b_ohai == BUTTON_RELEASE) { // badges disconnected.
-            mate_end(0);
+            mate_state = MS_IDLE; // TODO: definitely function.
+            mate_end(0); // clean up.
             s_b_ohai = 0;
         }
 
