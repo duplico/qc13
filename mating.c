@@ -35,6 +35,7 @@ uint8_t mate_payload_in[sizeof(matepayload)] = {0};
 
 uint8_t mate_state = 0;
 
+volatile uint8_t uart_in_ignore = 0;
 volatile uint8_t uart_in_synced = 0;
 volatile uint8_t uart_in_index = 0;
 volatile uint8_t uart_in_len = 0;
@@ -45,11 +46,62 @@ volatile uint8_t uart_out_len = sizeof(matepayload) + MATE_NUM_SYNC_BYTES;
 void init_mating() {
     EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
     EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT);
-    mate_send();
+}
+
+void mate_deferred_rx_interrupt() {
+    // Here we handle the messages.
+    // Load 'er up:
+    memcpy(&mp_in, mate_payload_in, sizeof(matepayload));
+    uart_in_ignore = 0;
+
+    // Basic rules:
+    //  If O_HAI isn't asserted, we stay in MS_IDLE.
+
+    //  If we get a RST anywhere outside PLUG or HALF_PAIR we go back to PLUG.
+    if (mate_state > MS_HALF_PAIR && mp_in.flags & M_RST) {
+        mate_state = MS_PLUG;
+        // TODO: CLEAN SWEEP
+    }
+
+    switch(mate_state) {
+    case MS_IDLE:
+        // TODO: wtf?
+        break;
+    case MS_PLUG:
+        // Here we expect a RX from a badge or pipe.
+        //  It's probably going to have RST set, so we go to HALF_PAIR
+        //  But if it doesn't, we can send a ~RST ourselves and go to PAIRED!
+        break;
+    case MS_HALF_PAIR:
+        // Here we expect a ~RST message. If we get it we go to PAIRED!
+        // TODO: Possibly aggregate with MS_PLUG.
+        break;
+    case MS_PAIRED:
+        // Here we might get either:
+        //  ink button from partner
+        //   (go to INK_WAIT)
+        //  uber award message
+        //   (get award! yay! no state change)
+        break;
+    case MS_INK_WAIT:
+        // Here we might get an ink button from our partner.
+        break;
+    case MS_SUPER_INK:
+        // this is just a place we hang out. Ignore messages here probably.
+        // Yeah, they're probably invalid here.
+        break;
+    case MS_PIPE_PLUG:
+        // We might get a reply from the pipe. It may give us stuff!
+        //  Or it'll just print and leave us hanging. That's OK too.
+        break;
+    case MS_PIPE_DONE:
+        // Yeah, we shouldn't get anything here.
+        break;
+    }
+
 }
 
 void mate_send() {
-    // TODO: Don't spin forever like an ass
     if (uart_sending)
         return; // don't. // TODO: like an ass.
 
@@ -101,6 +153,7 @@ __interrupt void EUSCI_A1_ISR(void)
             uart_in_index++;
             if (uart_in_index >= uart_in_len) {
                 // Payload received.
+                uart_in_ignore = 1; // Don't clobber good stuff with new stuff.
                 f_mate_interrupt = 1;
                 __bic_SR_register_on_exit(SLEEP_BITS);
                 uart_in_synced = 0;
