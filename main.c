@@ -134,6 +134,7 @@ void term_gpio() {
 // TODO:
 void setup_my_conf() {
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
+    badges_seen[my_conf.badge_id] = 1; // TODO: More of this.
 }
 
 void init() {
