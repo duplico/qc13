@@ -7,6 +7,7 @@
 
 #include "qc13.h"
 #include "metrics.h"
+#include "badge.h"
 
 void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
     if (badges_seen[id])
@@ -26,6 +27,8 @@ void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
         // On-duty handler:
         my_conf.odh_seen_count++;
     }
+
+    new_badge(id);
 
     // TODO: Check for achievements.
 }

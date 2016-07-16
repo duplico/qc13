@@ -13,6 +13,7 @@
 #include "rfm75.h"
 #include "mating.h"
 #include "metrics.h"
+#include "badge.h"
 
 uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
@@ -80,6 +81,7 @@ void face_animation_done() {
 
 // TODO: move to main.
 void time_loop() {
+    static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
     static uint16_t second_loops = LOOPS_PER_SECOND;
     static uint8_t loops = 0;
     if (second_loops) {
@@ -90,6 +92,12 @@ void time_loop() {
             two_seconds();
         second_loops = LOOPS_PER_SECOND;
         second();
+        if (interval_seconds_remaining) {
+            interval_seconds_remaining--;
+        } else {
+            radio_beacon_interval();
+            interval_seconds_remaining = BEACON_INTERVAL_SECS;
+        }
     }
 }
 
@@ -122,6 +130,12 @@ void send_ink() {
     rfm75_tx();
 }
 
+void send_beacon() {
+    out_payload.ink_id = LEG_ANIM_NONE;
+    out_payload.flags = RFBC_BEACON;
+    complete_rfbc_payload(&out_payload);
+    rfm75_tx();
+}
 void start_button_clicked() {
     if (being_inked) return; // nope!
     if (mate_state == MS_IDLE) {
@@ -158,14 +172,31 @@ void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
 }
 
+void not_lonely() {
+    tentacle_start_anim(my_conf.camo_id, LEG_DOUBLEINK_INDEX, 4, 0);
+}
+
+void new_badge() {
+}
+
 void radio_beacon_interval() {
-    neighbor_count = 0;
+    uint8_t next_neighbor_count = 0;
     for (uint8_t i=0; i<BADGES_IN_SYSTEM; i++) {
         if (neighbor_badges[i]) {
-            neighbor_count++;
+            next_neighbor_count++;
             neighbor_badges[i]--;
         }
     }
+
+    if (next_neighbor_count && !neighbor_count) {
+        //  gone from alone to not alone.
+        not_lonely();
+    }
+    neighbor_count = next_neighbor_count;
+
+    // Now do our beacon:
+    send_beacon();
+    tentacle_start_anim(LEG_ANIM_HANDLER, 1, 3, 0);
 }
 
 void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {

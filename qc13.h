@@ -18,7 +18,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 101
+#define BADGE_ID 105
 
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
@@ -37,7 +37,7 @@ void delay_millis(unsigned long);
 #define LOOPS_PER_SECOND 640
 
 #define RECEIVE_WINDOW 10
-#define BEACON_INTERVAL_SECS 30
+#define BEACON_INTERVAL_SECS 10 // TODO
 
 #define ADC_WINDOW 32
 

@@ -10,6 +10,8 @@
 
 void initial_animations(); // Called when it's time to start the first ambients
 void time_loop(); // Called every time_loop_interval
+void radio_beacon_interval(); // Called when it's time for the radio to beacon.
+void new_badge(); // Called when we've seen a new badge
 void start_button_clicked(); // The start button was pressed and released
 void select_button_clicked(); // The select button was pressed and released
 void radio_broadcast_received(rfbcpayload *payload); // Received a radio message
@@ -20,5 +22,6 @@ void second(); // Called once per second (ish)
 void two_seconds(); // Called once per 2ish seconds
 void mate_start(uint8_t badge_id); // Called when badges mated (o_hai)
 void mate_end(uint8_t badge_id); // Called when badges unmated
+void new_badge(); // Called when we see someone new near us.
 
 #endif /* BADGE_H_ */
