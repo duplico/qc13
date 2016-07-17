@@ -201,8 +201,8 @@ void tlc_init() {
 
     Timer_A_initUpModeParam next_channel_timer_init = {};
     next_channel_timer_init.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
-    next_channel_timer_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_1;
-    next_channel_timer_init.timerPeriod = TIME_LOOP_PERIOD;
+    next_channel_timer_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_28;
+    next_channel_timer_init.timerPeriod = 2;
     next_channel_timer_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
     next_channel_timer_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
     next_channel_timer_init.timerClear = TIMER_A_SKIP_CLEAR;
@@ -227,7 +227,7 @@ void tlc_init() {
     ini.clockPhase = EUSCI_A_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
     ini.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
     ini.clockSourceFrequency = 16000000; // TODO: SSOT
-    ini.desiredSpiClock = 4000000;
+    ini.desiredSpiClock = 8000000; // previously 4MHz
     ini.msbFirst = EUSCI_A_SPI_MSB_FIRST;
     ini.selectClockSource = EUSCI_A_SPI_CLOCKSOURCE_SMCLK;
     ini.spiMode = EUSCI_A_SPI_3PIN;
@@ -265,7 +265,7 @@ __interrupt void EUSCI_A0_ISR(void)
                 LED_BANK1_OUT |= LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
                         | LED_BANK4_PIN;
                 LED_BANK5_OUT |= LED_BANK5_PIN | LED_BANK6_PIN;
-                GPIO_pulse(TLC_LATPORT, TLC_LATPIN); // LATCH.
+                P1OUT |= BIT4; P1OUT &= ~BIT4; // Pulse LAT
                 tlc_send_type = TLC_SEND_IDLE;
 
                 switch (tlc_active_bank) {
@@ -299,9 +299,9 @@ __interrupt void EUSCI_A0_ISR(void)
                 volatile static uint16_t channel_gs = 0;
                 channel_gs = (tlc_bank_gs[tlc_active_bank][tlc_tx_index>>1]);
                 if (tlc_tx_index & 0x01) { // odd; less significant byte
-                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, (uint8_t) (channel_gs & 0xff));
+                    UCA0TXBUF = (channel_gs & 0xff);
                 } else { // even; more significant byte
-                    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, (uint8_t) ((channel_gs >> 8) & 0xff));
+                    UCA0TXBUF = (channel_gs >> 8) & 0xff;
                 }
             }
             tlc_tx_index++;
