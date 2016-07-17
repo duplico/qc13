@@ -222,11 +222,39 @@ void rfm75_tx() {
 
 void rfm75_init()
 {
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN6, GPIO_SECONDARY_MODULE_FUNCTION); // TX
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN7, GPIO_SECONDARY_MODULE_FUNCTION); // RX
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN2, GPIO_SECONDARY_MODULE_FUNCTION); // CLK
+    // Setup USCI_B0.
+    EUSCI_B_SPI_initMasterParam ini = {0};
+    ini.selectClockSource = EUSCI_B_SPI_CLOCKSOURCE_SMCLK;
+    ini.clockSourceFrequency = 16000000; // TODO: SSOT
+//    ini.desiredSpiClock = 4000000; // TODO
+    ini.desiredSpiClock = 400000;
+    ini.msbFirst = EUSCI_B_SPI_MSB_FIRST;
+    ini.clockPhase = EUSCI_B_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
+    ini.clockPolarity = EUSCI_B_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
+    ini.spiMode = EUSCI_B_SPI_3PIN;
+
+    EUSCI_B_SPI_initMaster(EUSCI_B0_BASE, &ini);
+    EUSCI_B_SPI_enable(EUSCI_B0_BASE);
+
+
+    // We're going totally synchronous on this; no interrupts at all.
+
     delay_millis(100); // Delay more than 50ms.
     rfm75_post();
 
+    // Setup GPIO:
+    P1DIR |= BIT3; // CSN
+    P1OUT |= BIT3; // init high.
     P3DIR |= BIT2;
     P3OUT &= ~BIT2;
+    P3DIR &= ~BIT1;
+    P3REN &= ~BIT1;
+    P3SEL0 &= ~BIT1;
+    P3SEL1 &= ~BIT1;
+    // We'll wait on the interrupt enables though...
 
     // Let's start with bank 0:
     rfm75_select_bank(0);
@@ -290,11 +318,7 @@ void rfm75_init()
 
     rfm75_select_bank(0);
 
-    // Set up our pins:
-    P3DIR &= ~BIT1;
-    P3REN &= ~BIT1;
-    P3SEL0 &= ~BIT1;
-    P3SEL1 &= ~BIT1;
+    // Enable our interrupts:
     P3IES |= BIT1;
     P3IFG &= ~BIT1;
     P3IE |= BIT1;

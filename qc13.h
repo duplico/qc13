@@ -10,7 +10,8 @@
 
 #include <msp430fr5949.h>
 #include <stdint.h>
-#include <driverlib/MSP430FR5xx_6xx/driverlib.h>
+//#include <driverlib/MSP430FR5xx_6xx/driverlib.h>
+#include <driverlib.h>
 
 void usci_a_send(uint16_t base, uint8_t data);
 

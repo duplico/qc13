@@ -152,13 +152,32 @@ void tlc_start() {
 }
 
 void tlc_init() {
-    // Initialize the GPIO pins for each bank:
+	// Initialize all the TLC GPIO:
+	// 6x banks
+	// GSCLK
+	// LAT
+	// SCLK, tx, rx
+
+    // LED banks:
     P3DIR |= (LED_BANK5_PIN | LED_BANK6_PIN);
     PJDIR |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN | LED_BANK4_PIN);
-
     LED_BANK1_OUT |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
             | LED_BANK4_PIN);
     LED_BANK5_OUT |= (LED_BANK5_PIN | LED_BANK6_PIN);
+
+    P1DIR |= BIT4; // TLC_LAT
+    P1OUT &= ~BIT4;
+
+    // GS_CLK:
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION); // 1.2 TA1.1
+
+    // Set up USCI_A0 GPIO:
+    //1.5 SCLK
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN5, GPIO_SECONDARY_MODULE_FUNCTION);
+    //2.0 tx
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN0, GPIO_SECONDARY_MODULE_FUNCTION);
+    //2.1 rx
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN1, GPIO_SECONDARY_MODULE_FUNCTION);
 
     // First, we're going to configure the timer that outputs GSCLK.
     //  We want this to go as fast as possible. (Meaning as fast as we can, as
@@ -174,7 +193,6 @@ void tlc_init() {
     gsclk_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_DISABLE;
     gsclk_init.timerClear = TIMER_A_SKIP_CLEAR;
     gsclk_init.startTimer = false;
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION);
 
     // Next we configure the clock that tells us when it's time to select the
     //  next LED channel bank.
@@ -202,10 +220,21 @@ void tlc_init() {
     Timer_A_initUpMode(TIMER_A0_BASE, &next_channel_timer_init);
     Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
 
-    // This is just out of an abundance of caution:
     UCA0CTLW0 |= UCSWRST;  // Shut down USCI_A0,
-    UCA0CTLW0 &= ~UC7BIT;  //  put it in 8-bit mode
-    UCA0CTLW0 &= ~UCSWRST; //  and enable it again.
+
+    // And USCI_A0 peripheral:
+    EUSCI_A_SPI_initMasterParam ini = {0};
+    ini.clockPhase = EUSCI_A_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
+    ini.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
+    ini.clockSourceFrequency = 16000000; // TODO: SSOT
+    ini.desiredSpiClock = 4000000;
+    ini.msbFirst = EUSCI_A_SPI_MSB_FIRST;
+    ini.selectClockSource = EUSCI_A_SPI_CLOCKSOURCE_SMCLK;
+    ini.spiMode = EUSCI_A_SPI_3PIN;
+    EUSCI_A_SPI_initMaster(EUSCI_A0_BASE, &ini);
+
+    UCA0CTLW0 &= ~UC7BIT;  //  put it in 8-bit mode out of caution.
+    UCA0CTLW0 &= ~UCSWRST; //  and enable it.
 
     EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
     EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);

@@ -3,9 +3,6 @@
  */
 #include <stdio.h>
 
-// Grace includes:
-#include <ti/mcu/msp430/Grace.h>
-
 // Project includes:
 #include <stdint.h>
 #include "qc13.h"
@@ -57,6 +54,13 @@ uint8_t temp_index = 0;
 ///////////////////////////
 
 void init_adc() {
+	// Set 1.0 and 1.1 to ternary module function (A0 and A1 respectively)
+	GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN0, GPIO_TERNARY_MODULE_FUNCTION);
+	GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN1, GPIO_TERNARY_MODULE_FUNCTION);
+
+	// Set 3.3 to ternary (A15)
+	GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3, GPIO_PIN3, GPIO_TERNARY_MODULE_FUNCTION);
+
     /* Struct to pass to ADC12_B_init */
     ADC12_B_initParam initParam = {0};
 
@@ -119,6 +123,17 @@ void poll_adc() {
 }
 
 void term_gpio() {
+	P1SEL0 = 0;
+	P1SEL1 = 0;
+	P2SEL0 = 0;
+	P2SEL1 = 0;
+	P3SEL0 = 0;
+	P3SEL1 = 0;
+	P4SEL0 = 0;
+	P4SEL1 = 0;
+	PJSEL0 = 0;
+	PJSEL1 = 0;
+
     P1DIR = 0xFF;
     P1OUT = 0x00;
     P2DIR = 0xFF;
@@ -137,12 +152,38 @@ void setup_my_conf() {
     badges_seen[my_conf.badge_id] = 1; // TODO: More of this.
 }
 
+void init_clocks() {
+	// MCLK: DCO /2
+	CS_initClockSignal(CS_MCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_2);
+	// SMCLK is DCO /11
+	CS_initClockSignal(CS_SMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+	// ACLK is LFMODOSC /1
+	CS_initClockSignal(CS_ACLK, CS_LFMODOSC_SELECT, CS_CLOCK_DIVIDER_1);
+
+	// DCO to 16 MHz (high freq, option 4)
+	CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
+
+	// Clear fault flags:
+	volatile uint8_t fs = 0;
+	fs = CS_clearAllOscFlagsWithTimeout(100000);
+	__no_operation(); // TODO
+
+	// Allow conditional module requests for MCLK, SMCLK, and ACLK:
+	CS_disableClockRequest(CS_MCLK);
+	CS_disableClockRequest(CS_SMCLK);
+	CS_disableClockRequest(CS_ACLK);
+}
+
 void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
-    term_gpio();
-    Grace_init(); // Activate Grace-generated configuration
+    WDT_A_hold(WDT_A_BASE);
+    term_gpio(); // Terminate all GPIO.
+    init_clocks();
 
-    // Buttons:
+    // No waiting at all, because we're running <= 8MHz:
+    FRAMCtl_configureWaitStateControl(FRAMCTL_ACCESS_TIME_CYCLES_0);
+
+    // Buttons and mating port:
     P3DIR &= ~BIT4;
     P3REN |= BIT4;
     P3OUT |= BIT4;
@@ -157,9 +198,10 @@ void init() {
 
     setup_my_conf();
 
-    tlc_init();   // Initialize our LED system
-    rfm75_init(); // Initialize our radio
-    init_mating();// Initialize mating port
+    __bis_SR_register(GIE);
+    tlc_init();   // Initialize our LED system (including GPIO)
+    rfm75_init(); // Initialize our radio (including GPIO)
+    init_mating();// Initialize mating port (GPIO is above)
     init_adc();   // Start up the ADC for light and temp sensors.
 
 }

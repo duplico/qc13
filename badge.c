@@ -173,7 +173,6 @@ void leg_anim_done(uint8_t tentacle_anim_id) {
 }
 
 void not_lonely() {
-    tentacle_start_anim(my_conf.camo_id, LEG_DOUBLEINK_INDEX, 4, 0);
 }
 
 void new_badge() {
@@ -196,7 +195,6 @@ void radio_beacon_interval() {
 
     // Now do our beacon:
     send_beacon();
-    tentacle_start_anim(LEG_ANIM_HANDLER, 1, 3, 0);
 }
 
 void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
