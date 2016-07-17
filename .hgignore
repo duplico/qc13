@@ -2,3 +2,4 @@ syntax: glob
 Debug/
 src/
 .settings/
+*.gdoc
