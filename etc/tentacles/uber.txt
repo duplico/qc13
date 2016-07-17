@@ -1,5 +1,5 @@
 2 off
-1 default
+1 gold
 
 #camo
 wiggle

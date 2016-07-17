@@ -89,6 +89,7 @@ def main():
                 wiggles.append(0)
                 
             local_type = lines[line_no]
+            assert local_type[0] not in string.digits
             if local_type not in all_types: all_types.append(local_type)
             anim_types.append(local_type)
             line_no += 1
@@ -113,6 +114,7 @@ def main():
                 wiggles.append(0)
                 
             local_type = lines[line_no]
+            assert local_type[0] not in string.digits
             if local_type not in all_types: all_types.append(local_type)
             anim_types.append(local_type)
             line_no += 1
@@ -135,6 +137,7 @@ def main():
                 wiggles.append(0)
                 
             local_type = lines[line_no]
+            assert local_type[0] not in string.digits
             if local_type not in all_types: all_types.append(local_type)
             anim_types.append(local_type)
             line_no += 1
