@@ -177,11 +177,11 @@ void init_clocks() {
 void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
     WDT_A_hold(WDT_A_BASE);
+    // No waiting at all, because we're running <= 8MHz:
+    FRAMCtl_configureWaitStateControl(FRAMCTL_ACCESS_TIME_CYCLES_0);
     term_gpio(); // Terminate all GPIO.
     init_clocks();
 
-    // No waiting at all, because we're running <= 8MHz:
-    FRAMCtl_configureWaitStateControl(FRAMCTL_ACCESS_TIME_CYCLES_0);
 
     // Buttons and mating port:
     P3DIR &= ~BIT4;
