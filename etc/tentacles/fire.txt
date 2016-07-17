@@ -1,6 +1,6 @@
-1 red
-2 darkorange
-3 orangered
+1 crimson
+2 orangered
+3 darkorange
 4 lightyellow
 
 # CAMO
@@ -19,11 +19,11 @@ fast_twinkle
 # SINGLEINK
 fast_twinkle
 3,3,3,3,
-2,2,2,2,500,0
+2,2,2,2,6000,0
 
 # DOUBLEINK
-# ORDER: 1, 3, 2, 4
 fast_twinkle
+# ORDER: 1, 3, 2, 4
 1, 4, 2, 3, 
 4, 2, 3, 1, 50, 50,
 4, 2, 3, 1,
