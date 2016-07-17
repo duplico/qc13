@@ -44,6 +44,24 @@ volatile uint8_t uart_sending = 0;
 volatile uint8_t uart_out_len = sizeof(matepayload) + MATE_NUM_SYNC_BYTES;
 
 void init_mating() {
+	GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN5, GPIO_SECONDARY_MODULE_FUNCTION); // TX
+	GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN6, GPIO_SECONDARY_MODULE_FUNCTION); // RX
+
+	EUSCI_A_UART_initParam ini = {};
+	ini.selectClockSource = EUSCI_A_UART_CLOCKSOURCE_SMCLK;
+	ini.clockPrescalar = 104;
+	ini.firstModReg = 2;
+	ini.secondModReg = 182;
+	ini.parity = EUSCI_A_UART_NO_PARITY;
+	ini.msborLsbFirst = EUSCI_A_UART_LSB_FIRST;
+	ini.numberofStopBits = EUSCI_A_UART_ONE_STOP_BIT;
+	ini.uartMode = EUSCI_A_UART_MODE;
+	ini.overSampling = 1;
+
+	EUSCI_A_UART_init(EUSCI_A1_BASE, &ini);
+    EUSCI_A_UART_enable(EUSCI_A1_BASE);
+    EUSCI_A_UART_selectDeglitchTime(EUSCI_A1_BASE, EUSCI_A_UART_DEGLITCH_TIME_200ns);
+
     EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_RECEIVE_INTERRUPT);
     EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT);
 }
