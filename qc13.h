@@ -35,7 +35,7 @@ void delay_millis(unsigned long);
 #define FACE_DIM_BRIGHTNESS 0x01f0
 
 #define TIME_LOOP_PERIOD 50
-#define LOOPS_PER_SECOND 640
+#define LOOPS_PER_SECOND 697
 
 #define RECEIVE_WINDOW 10
 #define BEACON_INTERVAL_SECS 10 // TODO
