@@ -1,7 +1,7 @@
-1 aqua
-2 lightcyan
-3 mediumaquamarine
-4 cadetblue
+1 default
+2 DODGERBLUE
+3 blue
+4 NAVY
 
 #camo
 solid
@@ -25,7 +25,7 @@ solid
 3,4,4,3,200,300
 
 #ink
-solid
+slowtwinkle
 1,2,2,1,
 2,3,3,2,0,300,
 
@@ -40,7 +40,7 @@ solid
 
 
 #doubleink
-fast_twinkle
+fasttwinkle
 
 1,1,2,2,
 1,2,2,3,0,200,

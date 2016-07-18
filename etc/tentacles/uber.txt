@@ -1,5 +1,5 @@
 2 off
-1 gold
+1 orangered
 
 #camo
 wiggle

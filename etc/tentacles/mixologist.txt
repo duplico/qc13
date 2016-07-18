@@ -1,9 +1,9 @@
-1 yellow
+1 green
 2 purple
 3 off
 
 #camo
-fast_twinkle
+fasttwinkle
 2,1,1,2,
 1,2,2,1,0,1000,
 
@@ -31,7 +31,7 @@ solid
 1,2,2,1,0,400
 
 #doubleink
-fast_twinkle
+fasttwinkle
 
 2,1,1,2,
 1,2,2,1,300, 0,

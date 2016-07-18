@@ -115,6 +115,21 @@ extern uint16_t handler_doubleink_durations[];
 extern uint16_t handler_doubleink_fade_durs[];
 extern const tentacle_animation_t handler_doubleink;
 // frames for camo
+extern const rgbcolor_t karatekid_camo_frames[][8];
+extern uint16_t karatekid_camo_durations[];
+extern uint16_t karatekid_camo_fade_durs[];
+extern const tentacle_animation_t karatekid_camo;
+// frames for ink
+extern const rgbcolor_t karatekid_ink_frames[][8];
+extern uint16_t karatekid_ink_durations[];
+extern uint16_t karatekid_ink_fade_durs[];
+extern const tentacle_animation_t karatekid_ink;
+// frames for doubleink
+extern const rgbcolor_t karatekid_doubleink_frames[][8];
+extern uint16_t karatekid_doubleink_durations[];
+extern uint16_t karatekid_doubleink_fade_durs[];
+extern const tentacle_animation_t karatekid_doubleink;
+// frames for camo
 extern const rgbcolor_t lush_camo_frames[][8];
 extern uint16_t lush_camo_durations[];
 extern uint16_t lush_camo_fade_durs[];
@@ -189,7 +204,7 @@ extern const rgbcolor_t uber_doubleink_frames[][8];
 extern uint16_t uber_doubleink_durations[];
 extern uint16_t uber_doubleink_fade_durs[];
 extern const tentacle_animation_t uber_doubleink;
-#define LEG_ANIM_COUNT 12
+#define LEG_ANIM_COUNT 13
 #define LEG_ANIM_DEF 0
 #define LEG_ANIM_FIRE 1
 #define LEG_ANIM_FOUND 2
@@ -197,17 +212,17 @@ extern const tentacle_animation_t uber_doubleink;
 #define LEG_ANIM_GEEK_GIRL 4
 #define LEG_ANIM_GLAM 5
 #define LEG_ANIM_HANDLER 6
-#define LEG_ANIM_LUSH 7
-#define LEG_ANIM_MIXOLOGIST 8
-#define LEG_ANIM_PARTYTIME 9
-#define LEG_ANIM_SPLISH_SPLASH 10
-#define LEG_ANIM_UBER 11
-#define ANIM_TYPE_FASTTWINKLE 0
-#define ANIM_TYPE_FAST_TWINKLE 1
-#define ANIM_TYPE_SOLID 2
-#define ANIM_TYPE_SLOWTWINKLE 3
-#define ANIM_TYPE_SOFTTWINKLE 4
-#define ANIM_TYPE_HARDTWINKLE 5
-#define LEG_ANIM_TYPE_COUNT 6
+#define LEG_ANIM_KARATEKID 7
+#define LEG_ANIM_LUSH 8
+#define LEG_ANIM_MIXOLOGIST 9
+#define LEG_ANIM_PARTYTIME 10
+#define LEG_ANIM_SPLISH_SPLASH 11
+#define LEG_ANIM_UBER 12
+#define ANIM_TYPE_SOLID 0
+#define ANIM_TYPE_FASTTWINKLE 1
+#define ANIM_TYPE_SLOWTWINKLE 2
+#define ANIM_TYPE_SOFTTWINKLE 3
+#define ANIM_TYPE_HARDTWINKLE 4
+#define LEG_ANIM_TYPE_COUNT 5
 extern const tentacle_animation_t **legs_all_anim_sets[];
 #endif // _H_

@@ -8,10 +8,10 @@ color_corrections = {
     "default" : (255,255,255),
     "white" : (255,128,255),
     "off" : (0,0,0),
-    "crimson" : (220, 20, 60)
+    "pink" : (240, 20, 60)
 }
 
-global_color_correct = (1,1,1)
+global_color_correct = (1,.5,1)
 
 eye_frames = dict()
 eye_frames_uint32 = dict()
