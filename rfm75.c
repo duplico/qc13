@@ -384,6 +384,7 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
 void rfm75_deferred_interrupt() {
     // RFM75 interrupt:
     uint8_t iv = rfm75_get_status();
+    __no_operation();
     if (iv & BIT6) { // RX interrupt
         if (rfm75_state != RFM75_RX_LISTEN) {
             while (1) __no_operation();

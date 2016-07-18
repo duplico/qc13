@@ -27,7 +27,7 @@ const qc13conf default_conf = {
         0, 0, 0, // mate counts
         0, // event check-ins
         0xffffffff, // camo_unlocks bitfield // TODO: should be 0x1
-        1, // camo_id
+        LEG_ANIM_DEF, // camo_id
         0 // blank CRC.
 };
 
@@ -191,6 +191,11 @@ void radio_beacon_interval() {
         //  gone from alone to not alone.
         not_lonely();
     }
+
+    if (next_neighbor_count != neighbor_count) {
+        tentacle_start_anim(next_neighbor_count % LEG_ANIM_COUNT, 2, 0, 0);
+    }
+
     neighbor_count = next_neighbor_count;
 
     // Now do our beacon:
@@ -198,6 +203,8 @@ void radio_beacon_interval() {
 }
 
 void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
+
+    tentacle_start_anim(LEG_ANIM_HANDLER, 2, 0, 0);
     neighbor_badges[from_id] = RECEIVE_WINDOW;
     set_badge_seen(from_id, on_duty);
     tick_badge_seen(from_id, on_duty);
