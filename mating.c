@@ -7,6 +7,9 @@
 
 #include "qc13.h"
 #include "mating.h"
+#include "led_display.h"
+#include "leg_anims.h"
+#include "badge.h"
 
 //typedef struct {
 //    uint8_t proto_version;
@@ -66,6 +69,44 @@ void init_mating() {
     EUSCI_A_UART_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_UART_TRANSMIT_INTERRUPT);
 }
 
+uint8_t mate_camo = LEG_ANIM_NONE;
+uint8_t mate_id = BADGES_IN_SYSTEM;
+uint8_t mate_on_duty = 0;
+uint8_t super_ink_waits_on_me = 0;
+uint16_t mate_ink_wait = 0;
+uint8_t in_rst = 1;
+
+void mate_over_cleanup() {
+    mate_camo = LEG_ANIM_NONE;
+    mate_state = MS_IDLE;
+    in_rst = 1;
+}
+
+void maybe_enter_ink_wait(uint8_t local) {
+    if (my_conf.camo_id != mate_camo)
+        return; //nope. :-(
+    mate_state = MS_INK_WAIT;
+    mate_ink_wait = 0;
+    super_ink_waits_on_me = !local;
+}
+
+void enter_super_inking() {
+    mate_ink_wait = 0;
+    send_super_ink();
+    mate_state = MS_SUPER_INK;
+}
+
+void ink_wait_timeout() {
+    // We were in INK_WAIT, meaning we're waiting
+    //  on either a local or remote button. But it didn't happen in time.
+    mate_state = MS_PAIRED;
+}
+
+void super_ink_timeout() {
+    // Cooldown is over!
+    mate_state = MS_PAIRED;
+}
+
 void mate_deferred_rx_interrupt() {
     // Here we handle the messages.
     // Load 'er up:
@@ -81,32 +122,62 @@ void mate_deferred_rx_interrupt() {
         // TODO: CLEAN SWEEP
     }
 
+    // TODO: This is BASIC ONLY.
+
+    // TODO: Make sure these are all the same.
+    mate_camo = mp_in.camo_id;
+    mate_id = mp_in.from_addr;
+    mate_on_duty = (mp_in.flags & M_HANDLER_ON_DUTY)? 1 : 0;
+
+//    tentacle_start_anim(mate_state, 1, 0, 0);
     switch(mate_state) {
     case MS_IDLE:
-        // TODO: wtf?
-        break;
-    case MS_PLUG:
-        // Here we expect a RX from a badge or pipe.
-        //  It's probably going to have RST set, so we go to HALF_PAIR
-        //  But if it doesn't, we can send a ~RST ourselves and go to PAIRED!
+        mate_over_cleanup();
         break;
     case MS_HALF_PAIR:
         // Here we expect a ~RST message. If we get it we go to PAIRED!
-        // TODO: Possibly aggregate with MS_PLUG.
+        // Technically this is the same behavior as below, so we...
+        // fall through:
+    case MS_PLUG:
+        // Here we expect a RX from a badge or pipe.
+        // We send a ~RST regardless.
+        //  But what we get is probably going to have RST set: to HALF_PAIR
+        //  But if it doesn't, we can go to PAIRED!
+        in_rst = 0;
+        mate_send_basic(0, 0);
+        if (mp_in.flags & M_RST) {
+            // fresh message, go to HALF_PAIR
+            mate_state = MS_HALF_PAIR;
+        } else {
+            // dank message, go to PAIRED
+            mate_state = MS_PAIRED;
+            // TODO: do a thing.
+        }
         break;
     case MS_PAIRED:
         // Here we might get either:
         //  ink button from partner
         //   (go to INK_WAIT)
+        if (mp_in.flags & M_INK) {
+            maybe_enter_ink_wait(0); // waiting on me!
+        }
         //  uber award message
         //   (get award! yay! no state change)
+        //  or a regular old message that's just updating
+        //  some of the state we have about our partner.
+        //  That stuff is all handled above.
         break;
     case MS_INK_WAIT:
         // Here we might get an ink button from our partner.
+        if (!super_ink_waits_on_me) {
+            // we were waiting on our partner, so this is what we wanted.
+            enter_super_inking();
+        } // otherwise, ignore it.
         break;
     case MS_SUPER_INK:
         // this is just a place we hang out. Ignore messages here probably.
         // Yeah, they're probably invalid here.
+        // We only care about the stuff that gets set above.
         break;
     case MS_PIPE_PLUG:
         // We might get a reply from the pipe. It may give us stuff!
@@ -119,9 +190,17 @@ void mate_deferred_rx_interrupt() {
 
 }
 
-void mate_send() {
-    if (uart_sending)
+void mate_send_basic(uint8_t click, uint8_t rst) {
+    if (uart_sending) {
+        __no_operation();
         return; // don't. // TODO: like an ass.
+    }
+
+    mp_out.flags = 0; // TODO
+    if (click)
+        mp_out.flags |= M_INK;
+    if (rst)
+        mp_out.flags |= M_RST;
 
     // CRC it.
     CRC_setSeed(CRC_BASE, MATE_CRC_SEED);

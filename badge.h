@@ -10,6 +10,7 @@
 
 void initial_animations(); // Called when it's time to start the first ambients
 void time_loop(); // Called every time_loop_interval
+void send_super_ink(); // Called when time to do a double ink.
 void radio_beacon_interval(); // Called when it's time for the radio to beacon.
 void new_badge(); // Called when we've seen a new badge
 void start_button_clicked(); // The start button was pressed and released

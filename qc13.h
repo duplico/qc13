@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 129
+#define BADGE_ID 151
 
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
@@ -41,6 +41,9 @@ void delay_millis(unsigned long);
 #define BEACON_INTERVAL_SECS 10 // TODO
 
 #define ADC_WINDOW 32
+
+#define SUPER_INK_WINDOW_SECS 1
+#define SUPER_INK_DECAY_SECS 10
 
 /////////////////////////////////////////////////////////////////////
 // Hardware related defines /////////////////////////////////////////
