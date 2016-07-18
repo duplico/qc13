@@ -3,13 +3,13 @@
 
 #camo
 wiggle
-fasttwinkle
+solid
 
 1,1,1,1,
 1,1,1,1,500,0
 
 #ink
-fasttwinkle
+solid
 1,1,1,1,
 2,2,2,2,300,0,
 
@@ -17,7 +17,7 @@ fasttwinkle
 1,1,1,1,300,0
 
 #doubleink
-fasttwinkle
+solid
 1,1,1,1,
 2,2,2,2,300,0,
 

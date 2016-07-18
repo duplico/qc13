@@ -3,6 +3,7 @@
 2 green
 
 #camo
+wiggle
 solid
 1,2,1,2,
 1,2,1,2,400,0,
