@@ -19,6 +19,8 @@ uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_count = 0;
 
+uint8_t blink_repeat_count = 0;
+
 qc13conf my_conf = {0};
 
 const qc13conf default_conf = {
@@ -46,14 +48,31 @@ void initial_animations() {
 void second() {
     if (!seconds_to_next_thing) {
         if (face_state == FACESTATE_AMBIENT) {
-            if (!(rand() % 3)) {
-                // thingy!
-                face_start_anim(rand() % FACE_ANIM_COUNT);
-            } else {
-                face_start_anim(FACE_ANIM_BLINKING);
+            uint8_t to_blink = rand() % 5;
+            uint8_t thing_to_do = 0;
+
+            if (!to_blink) {
+                thing_to_do = rand() % FACE_ANIM_COUNT;
+                if (thing_to_do == FACE_ANIM_FASTBLINKING || thing_to_do == FACE_ANIM_BLINKING)
+                    to_blink = 1;
+                else
+                    face_start_anim(thing_to_do);
+            }
+
+            if (to_blink) {
+                if (neighbor_count >= 10)
+                    blink_repeat_count = 3;
+                else if (neighbor_count >= 5)
+                    blink_repeat_count = 2;
+                else if (neighbor_count)
+                    blink_repeat_count = 1;
+                else
+                    blink_repeat_count = 0;
+
+                face_start_anim(blink_repeat_count? FACE_ANIM_FASTBLINKING : FACE_ANIM_BLINKING);
             }
         }
-        seconds_to_next_thing = rand() % 6;
+        seconds_to_next_thing = 255;
     } else {
         seconds_to_next_thing--;
     }
@@ -75,8 +94,12 @@ void two_seconds() {
 }
 
 void face_animation_done() {
-    // TODO: SSOT
-    seconds_to_next_thing = rand() % 6;
+    if (blink_repeat_count) {
+        blink_repeat_count--;
+        face_start_anim(FACE_ANIM_FASTBLINKING);
+    } else {
+        seconds_to_next_thing = rand() % 5; // TODO SSOT
+    }
 }
 
 // TODO: move to main.

@@ -1,0 +1,2 @@
+blink, blink, 150
+open, open, 150
