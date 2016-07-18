@@ -174,14 +174,26 @@ void init_clocks() {
 	CS_disableClockRequest(CS_ACLK);
 }
 
+int _system_pre_init(void)
+{
+  // stop WDT
+  WDTCTL = WDTPW + WDTHOLD;
+
+  // Perform C/C++ global data initialization
+  return 1;
+}
+
 void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
-    WDT_A_hold(WDT_A_BASE);
+
+    volatile uint16_t rsv = 0;
+    rsv = SYSRSTIV;
+    __no_operation();
+
     // No waiting at all, because we're running <= 8MHz:
     FRAMCtl_configureWaitStateControl(FRAMCTL_ACCESS_TIME_CYCLES_0);
     term_gpio(); // Terminate all GPIO.
     init_clocks();
-
 
     // Buttons and mating port:
     P3DIR &= ~BIT4;
@@ -327,7 +339,7 @@ int main(void)
 
         // If no more interrupt flags are set, go to sleep.
         if (!f_time_loop && !f_rfm75_interrupt)
-            __bis_SR_register(SLEEP_BITS + GIE);
+            __bis_SR_register(SLEEP_BITS);
     }
 
 }
