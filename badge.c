@@ -77,8 +77,8 @@ void second() {
         seconds_to_next_thing--;
     }
 
-    if (mate_state == 1) {
-        mate_send();
+    if (mate_state == MS_PLUG) {
+        mate_send_basic(0, 1);
     }
 
     do_brightness_correction();
@@ -153,21 +153,42 @@ void send_ink() {
     rfm75_tx();
 }
 
+void send_super_ink() {
+    out_payload.ink_id = my_conf.camo_id;
+    out_payload.flags = RFBC_INK | RFBC_DINK;
+    complete_rfbc_payload(&out_payload);
+    rfm75_tx();
+    tentacle_start_anim(LEG_ANIM_HANDLER, 0, 0, 0);
+}
+
 void send_beacon() {
     out_payload.ink_id = LEG_ANIM_NONE;
     out_payload.flags = RFBC_BEACON;
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
 }
+
 void start_button_clicked() {
     if (being_inked) return; // nope!
-    if (mate_state == MS_IDLE) {
+
+    switch (mate_state) {
+    case MS_IDLE:
         send_ink();
-    }
-    if (mate_state == MS_INK_WAIT) {
-        // TODO:
-        //  SUPER INK!!!!
-        //  Set timeout.
+        break;
+    case MS_INK_WAIT:
+        if (super_ink_waits_on_me) { // waiting on me:
+            mate_send_basic(1,0);
+            enter_super_inking();
+        }
+        // otherwise ignore it... we're waiting on the other badge.
+        break;
+    case MS_PAIRED:
+        mate_send_basic(1,0);
+        maybe_enter_ink_wait(1);
+        break;
+    default:
+        // ignore it.
+        __no_operation();
     }
 
     // TODO: Remove when done.
@@ -215,10 +236,6 @@ void radio_beacon_interval() {
         not_lonely();
     }
 
-    if (next_neighbor_count != neighbor_count) {
-        tentacle_start_anim(next_neighbor_count % LEG_ANIM_COUNT, 2, 0, 0);
-    }
-
     neighbor_count = next_neighbor_count;
 
     // Now do our beacon:
@@ -226,8 +243,6 @@ void radio_beacon_interval() {
 }
 
 void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
-
-    tentacle_start_anim(LEG_ANIM_HANDLER, 2, 0, 0);
     neighbor_badges[from_id] = RECEIVE_WINDOW;
     set_badge_seen(from_id, on_duty);
     tick_badge_seen(from_id, on_duty);
@@ -238,6 +253,8 @@ void radio_basic_base_received(uint8_t base_id) {
 }
 
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
+    if (mate_state != MS_IDLE)
+        return; // we ignore inks if we're mated.
     being_inked = 1;
     tentacle_start_anim(ink_id, ink_type, 3, 0);
 }
@@ -266,11 +283,12 @@ void radio_transmit_done() {
 uint64_t mate_old_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
 
 void mate_start(uint8_t badge_id) {
-//    mate_old_ambient = face_ambient;
-//    face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
-    tentacle_start_anim(0, 1, 3, 0);
+    mate_old_ambient = face_ambient;
+    face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
 }
 
 void mate_end(uint8_t badge_id) {
+    face_set_ambient_direct(mate_old_ambient);
     tentacle_start_anim(0, 1, 3, 0);
+    mate_over_cleanup();
 }

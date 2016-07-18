@@ -208,7 +208,7 @@ uint16_t anim_adj_index = 0;
 // Here is where we are going to do some fancy stuff:
 //  1. brightness correction (ambient)
 //  2. twinkling
-void set_tentacles(rgbcolor_t* leg_colors) {
+void set_tentacles(const rgbcolor_t* leg_colors) {
     static uint_fast32_t r = 0;
     static uint_fast32_t g = 0;
     static uint_fast32_t b = 0;
@@ -224,16 +224,34 @@ void set_tentacles(rgbcolor_t* leg_colors) {
             r=0;
             g=0;
             b=0;
+        } else if (tent >=4 && !(wiggle_mask & (1 << (tent-4)))) {
+            r = leg_colors[tent-4].red;
+            g = leg_colors[tent-4].green;
+            b = leg_colors[tent-4].blue;
         }
 
         // Handle the particulars of the animation's
         //  sub-type. (twinkling, etc.)
         switch(tentacle_current_anim->anim_type) {
-        case ANIM_TYPE_FAST_TWINKLE:
+        case ANIM_TYPE_FASTTWINKLE:
             if (twinkle_bits & (1 << tent)) {
                 r = r >> 2;
                 g = g >> 2;
                 b = b >> 2;
+            }
+            break;
+        case ANIM_TYPE_SLOWTWINKLE:
+            if (twinkle_bits & (1 << tent)) {
+                r = r >> 2;
+                g = g >> 2;
+                b = b >> 2;
+            }
+            break;
+        case ANIM_TYPE_HARDTWINKLE:
+            if (twinkle_bits & (1 << tent)) {
+                r = 0;
+                g = 0;
+                b = 0;
             }
             break;
         default:
@@ -244,12 +262,13 @@ void set_tentacles(rgbcolor_t* leg_colors) {
         temp_tent = tent-4;
 
         // If we're upper, and our corresponding lower light is on:
+        // EVEN IF WE'RE NOT RETRACTED.
         if ((tent > 3) && (tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+1] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+2])) {
             // Dim it.
             r = r >> 3;
             g = g >> 3;
             b = b >> 3;
-        } // TODO: Really, we should add an else to steal the lower light's appearance.
+        }
 
         if (r>UINT16_MAX) r=UINT16_MAX;
         if (g>UINT16_MAX) b=UINT16_MAX;
@@ -408,9 +427,25 @@ void leds_timestep() {
     // Tentacles:
     //  Apply our current delta animation timestep.
     switch(tentacle_current_anim->anim_type) {
-    case ANIM_TYPE_FAST_TWINKLE:
+    case ANIM_TYPE_FASTTWINKLE:
         anim_adj_index++;
-        if (anim_adj_index == 100) {
+        if (anim_adj_index == 80) {
+            twinkle_bits = rand() % 256;
+            anim_adj_index = 0;
+            legs_dirty = 1;
+        }
+        break;
+    case ANIM_TYPE_SLOWTWINKLE:
+        anim_adj_index++;
+        if (anim_adj_index == 400) {
+            twinkle_bits = rand() % 256;
+            anim_adj_index = 0;
+            legs_dirty = 1;
+        }
+        break;
+    case ANIM_TYPE_HARDTWINKLE:
+        anim_adj_index++;
+        if (anim_adj_index == 400) {
             twinkle_bits = rand() % 256;
             anim_adj_index = 0;
             legs_dirty = 1;

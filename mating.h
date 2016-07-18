@@ -25,9 +25,16 @@ extern const uint8_t mate_sync_bytes[MATE_NUM_SYNC_BYTES];
 #define MS_PIPE_DONE 7
 
 extern uint8_t mate_state;
+extern uint16_t mate_ink_wait;
+extern uint8_t super_ink_waits_on_me;
 
 void init_mating();
-void mate_send();
+void mate_send_basic(uint8_t click, uint8_t rst);
 void mate_deferred_rx_interrupt();
+void maybe_enter_ink_wait(uint8_t local);
+void mate_over_cleanup();
+void enter_super_inking();
+void ink_wait_timeout();
+void super_ink_timeout();
 
 #endif /* MATING_H_ */

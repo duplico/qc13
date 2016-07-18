@@ -289,6 +289,20 @@ int main(void)
 
             time_loop();
 
+            if (mate_state == MS_INK_WAIT) {
+                mate_ink_wait++;
+                if (mate_ink_wait == SUPER_INK_WINDOW_SECS * LOOPS_PER_SECOND) {
+                    ink_wait_timeout();
+                }
+            }
+
+            if (mate_state == MS_SUPER_INK) {
+                mate_ink_wait++;
+                if (mate_ink_wait == SUPER_INK_DECAY_SECS * LOOPS_PER_SECOND) {
+                    super_ink_timeout();
+                }
+            }
+
             f_time_loop = 0;
         }
 
@@ -327,7 +341,6 @@ int main(void)
         }
 
         if (s_b_ohai == BUTTON_RELEASE) { // badges disconnected.
-            mate_state = MS_IDLE; // TODO: definitely function.
             mate_end(0); // clean up.
             s_b_ohai = 0;
         }
