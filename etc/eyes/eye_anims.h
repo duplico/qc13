@@ -36,6 +36,9 @@ extern face_animation_t eyeroll;
 extern uint64_t fall_asleep_frames[];
 extern uint16_t fall_asleep_lengths[];
 extern face_animation_t fall_asleep;
+extern uint64_t fastblinking_frames[];
+extern uint16_t fastblinking_lengths[];
+extern face_animation_t fastblinking;
 extern uint64_t konami_frames[];
 extern uint16_t konami_lengths[];
 extern face_animation_t konami;
@@ -63,7 +66,7 @@ extern face_animation_t spazz_out;
 extern uint64_t triple_blink_frames[];
 extern uint16_t triple_blink_lengths[];
 extern face_animation_t triple_blink;
-#define FACE_ANIM_COUNT 20
+#define FACE_ANIM_COUNT 21
 #define FACE_ANIM_ANGRY 0
 #define FACE_ANIM_BLINKING 1
 #define FACE_ANIM_CATS_LEFT 2
@@ -75,15 +78,16 @@ extern face_animation_t triple_blink;
 #define FACE_ANIM_CUTE_LOOKAROUND 8
 #define FACE_ANIM_EYEROLL 9
 #define FACE_ANIM_FALL_ASLEEP 10
-#define FACE_ANIM_KONAMI 11
-#define FACE_ANIM_LEFT_RIGHT_SQUINT 12
-#define FACE_ANIM_LOOK_AROUND 13
-#define FACE_ANIM_PUNCHED_IN_EYE 14
-#define FACE_ANIM_SAD 15
-#define FACE_ANIM_SHAKE 16
-#define FACE_ANIM_SOMETHING_IN_EYE 17
-#define FACE_ANIM_SPAZZ_OUT 18
-#define FACE_ANIM_TRIPLE_BLINK 19
+#define FACE_ANIM_FASTBLINKING 11
+#define FACE_ANIM_KONAMI 12
+#define FACE_ANIM_LEFT_RIGHT_SQUINT 13
+#define FACE_ANIM_LOOK_AROUND 14
+#define FACE_ANIM_PUNCHED_IN_EYE 15
+#define FACE_ANIM_SAD 16
+#define FACE_ANIM_SHAKE 17
+#define FACE_ANIM_SOMETHING_IN_EYE 18
+#define FACE_ANIM_SPAZZ_OUT 19
+#define FACE_ANIM_TRIPLE_BLINK 20
 
 extern face_animation_t *face_all_animations[FACE_ANIM_COUNT];
 #endif // _H_
