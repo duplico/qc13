@@ -32,7 +32,7 @@ void delay_millis(unsigned long);
 
 #define RF_RESEND_COUNT 3
 
-#define FACE_DIM_BRIGHTNESS 0x01f0
+#define FACE_DIM_BRIGHTNESS 0x0af0
 
 #define TIME_LOOP_PERIOD 50
 #define LOOPS_PER_SECOND 697

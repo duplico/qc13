@@ -214,9 +214,9 @@ void set_tentacles(const rgbcolor_t* leg_colors) {
     static uint_fast32_t b = 0;
 
     for (uint8_t tent=0; tent<8; tent++) {
-        r = leg_colors[tent].red;
-        g = leg_colors[tent].green;
-        b = leg_colors[tent].blue;
+        r = leg_colors[tent].red << 1;
+        g = leg_colors[tent].green << 1;
+        b = leg_colors[tent].blue << 1;
 
         // If it's <3 (meaning lower) and masked out by wiggling,
         if (tent < 4 && !(wiggle_mask & (1 << tent))) {
@@ -262,7 +262,7 @@ void set_tentacles(const rgbcolor_t* leg_colors) {
         temp_tent = tent-4;
 
         // If we're upper, and our corresponding lower light is on:
-        // EVEN IF WE'RE NOT RETRACTED.
+        // EVEN IF WE'RE NOT "RETRACTED".
         if ((tent > 3) && (tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+1] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+2])) {
             // Dim it.
             r = r >> 3;
@@ -270,13 +270,17 @@ void set_tentacles(const rgbcolor_t* leg_colors) {
             b = b >> 3;
         }
 
-        if (r>UINT16_MAX) r=UINT16_MAX;
-        if (g>UINT16_MAX) b=UINT16_MAX;
-        if (g>UINT16_MAX) b=UINT16_MAX;
+        r = r << current_ambient_correct;
+        g = g << current_ambient_correct;
+        b = b << current_ambient_correct;
 
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = b << current_ambient_correct;
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = g << current_ambient_correct;
-        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = r << current_ambient_correct;
+        if (r>UINT16_MAX) r=UINT16_MAX;
+        if (g>UINT16_MAX) g=UINT16_MAX;
+        if (b>UINT16_MAX) b=UINT16_MAX;
+
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)] = b;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = g;
+        tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = r;
     }
 }
 
