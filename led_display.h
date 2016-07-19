@@ -50,6 +50,7 @@ void face_set_ambient(uint8_t amb_index);
 void face_set_ambient_direct(uint64_t amb);
 void face_start_anim(uint8_t anim_index);
 void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient);
+void tentacle_wiggle();
 void leds_timestep();
 void do_brightness_correction();
 

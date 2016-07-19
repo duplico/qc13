@@ -16,6 +16,7 @@
 #include "badge.h"
 
 uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
+uint8_t badges_mated[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_count = 0;
 
@@ -37,59 +38,60 @@ rfbcpayload in_payload, out_payload;
 
 uint8_t being_inked = 0;
 uint8_t mated = 0;
+uint8_t just_sent_superink = 0;
 
-uint8_t seconds_to_next_thing = 0;
+uint8_t seconds_to_next_face = 0;
 
 void initial_animations() {
     face_set_ambient_direct(0b1000010000100000111111111111111010000100001000001111111111111110);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
-void second() {
-    if (!seconds_to_next_thing) {
-        if (face_state == FACESTATE_AMBIENT) {
-            uint8_t to_blink = rand() % 5;
-            uint8_t thing_to_do = 0;
+void blink_or_make_face() {
+    if (seconds_to_next_face) {
+        seconds_to_next_face--;
+        return;
+    }
+    if (face_state != FACESTATE_AMBIENT)
+        return;
 
-            if (!to_blink) {
-                thing_to_do = rand() % FACE_ANIM_COUNT;
+    uint8_t to_blink = mate_state || (rand() % 5);
+    uint8_t thing_to_do = 0;
 
-                if (thing_to_do == FACE_ANIM_SAD && neighbor_count > 0) {
-                    thing_to_do = FACE_ANIM_CUTESY;
-                } else if (thing_to_do == FACE_ANIM_CUTESY && neighbor_count == 0) {
-                    thing_to_do = FACE_ANIM_SAD;
-                }
+    if (!to_blink) {
+        thing_to_do = rand() % FACE_ANIM_COUNT;
 
-                if (thing_to_do == FACE_ANIM_FASTBLINKING || thing_to_do == FACE_ANIM_BLINKING)
-                    to_blink = 1;
-                else
-                    face_start_anim(thing_to_do);
-            }
-
-            if (to_blink) {
-                if (neighbor_count >= 10)
-                    blink_repeat_count = 3;
-                else if (neighbor_count >= 5)
-                    blink_repeat_count = 2;
-                else if (neighbor_count)
-                    blink_repeat_count = 1;
-                else
-                    blink_repeat_count = 0;
-
-                face_start_anim(blink_repeat_count? FACE_ANIM_FASTBLINKING : FACE_ANIM_BLINKING);
-            }
+        if (thing_to_do == FACE_ANIM_SAD && neighbor_count > 0) {
+            thing_to_do = FACE_ANIM_CUTESY;
+        } else if (thing_to_do == FACE_ANIM_CUTESY && neighbor_count == 0) {
+            thing_to_do = FACE_ANIM_SAD;
         }
-        seconds_to_next_thing = 255;
-    } else {
-        seconds_to_next_thing--;
+
+        if (thing_to_do == FACE_ANIM_FASTBLINKING || thing_to_do == FACE_ANIM_BLINKING)
+            to_blink = 1;
+        else
+            face_start_anim(thing_to_do);
     }
 
-    uint8_t wiggle_mask_temp = 0xff;
-    if (tentacle_current_anim->wiggle) {
-        wiggle_mask_temp &= ~(1 << (rand() % 4));
-        if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
+    if (to_blink) {
+        if (neighbor_count >= 10)
+            blink_repeat_count = 3;
+        else if (neighbor_count >= 5)
+            blink_repeat_count = 2;
+        else if (neighbor_count)
+            blink_repeat_count = 1;
+        else
+            blink_repeat_count = 0;
+
+        face_start_anim(blink_repeat_count? FACE_ANIM_FASTBLINKING : FACE_ANIM_BLINKING);
     }
-    wiggle_mask = wiggle_mask_temp;
+
+    seconds_to_next_face = 255;
+}
+
+void second() {
+    blink_or_make_face();
+    tentacle_wiggle();
 
     if (mate_state == MS_PLUG) {
         mate_send_basic(0, 1);
@@ -106,7 +108,7 @@ void face_animation_done() {
         blink_repeat_count--;
         face_start_anim(FACE_ANIM_FASTBLINKING);
     } else {
-        seconds_to_next_thing = rand() % 5; // TODO SSOT
+        seconds_to_next_face = rand() % 5; // TODO SSOT
     }
 }
 
@@ -144,7 +146,7 @@ void send_super_ink() {
     out_payload.flags = RFBC_INK | RFBC_DINK;
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
-    tentacle_start_anim(LEG_ANIM_HANDLER, 0, 0, 0);
+    just_sent_superink = 1;
 }
 
 void send_beacon() {
@@ -162,6 +164,7 @@ void start_button_clicked() {
         send_ink();
         break;
     case MS_INK_WAIT:
+        tentacle_start_anim(LEG_ANIM_META_MATING, 0, 0, 0);
         if (super_ink_waits_on_me) { // waiting on me:
             mate_send_basic(1,0);
             enter_super_inking();
@@ -169,6 +172,7 @@ void start_button_clicked() {
         // otherwise ignore it... we're waiting on the other badge.
         break;
     case MS_PAIRED:
+        tentacle_start_anim(LEG_ANIM_META_MATING, 0, 0, 0);
         mate_send_basic(1,0);
         maybe_enter_ink_wait(1);
         break;
@@ -200,12 +204,19 @@ void select_button_clicked() {
 
 void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
+    if (mate_state == MS_SUPER_INK && just_sent_superink) {
+        tentacle_start_anim(LEG_ANIM_META_MATING, 2, 5, 0);
+        just_sent_superink = 0;
+    }
 }
 
 void not_lonely() {
 }
 
-void new_badge() {
+void new_badge_seen() {
+}
+
+void new_badge_mated() {
 }
 
 void radio_beacon_interval() {
@@ -239,8 +250,8 @@ void radio_basic_base_received(uint8_t base_id) {
 }
 
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
-    if (mate_state != MS_IDLE)
-        return; // we ignore inks if we're mated.
+    if (being_inked || mate_state != MS_IDLE)
+        return; // we ignore inks if we're mated, or already being inked.
     being_inked = 1;
     tentacle_start_anim(ink_id, ink_type, 3, 0);
 }
@@ -268,13 +279,18 @@ void radio_transmit_done() {
 
 uint64_t mate_old_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
 
-void mate_start(uint8_t badge_id) {
+// 0b1000011111110000111110000011111010000111111100001111100000111110
+
+void mate_plug() {
     mate_old_ambient = face_ambient;
     face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
 }
 
+void mate_start(uint8_t badge_id) {
+    face_set_ambient_direct(0b1000011111110000111110000011111010000111111100001111100000111110);
+}
+
 void mate_end(uint8_t badge_id) {
     face_set_ambient_direct(mate_old_ambient);
-    tentacle_start_anim(0, 1, 3, 0);
     mate_over_cleanup();
 }

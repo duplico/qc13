@@ -356,7 +356,8 @@ int main(void)
         }
 
         if (s_b_ohai == BUTTON_PRESS) { // badges connected.
-            mate_state = MS_PLUG; // TODO: make a function here?
+            mate_state = MS_PLUG;
+            mate_plug();
             s_b_ohai = 0;
         }
 

@@ -83,8 +83,9 @@ void mate_over_cleanup() {
 }
 
 void maybe_enter_ink_wait(uint8_t local) {
-    if (my_conf.camo_id != mate_camo)
+    if (my_conf.camo_id != mate_camo) {
         return; //nope. :-(
+    }
     mate_state = MS_INK_WAIT;
     mate_ink_wait = 0;
     super_ink_waits_on_me = !local;
@@ -129,7 +130,10 @@ void mate_deferred_rx_interrupt() {
     mate_id = mp_in.from_addr;
     mate_on_duty = (mp_in.flags & M_HANDLER_ON_DUTY)? 1 : 0;
 
-//    tentacle_start_anim(mate_state, 1, 0, 0);
+    if ((mp_in.flags & M_INK) && (my_conf.camo_id == mate_camo)) {
+        // "received ink button" animation (and our camos match)
+        tentacle_start_anim(LEG_ANIM_META_MATING, 1, 0, 0);
+    }
     switch(mate_state) {
     case MS_IDLE:
         mate_over_cleanup();
@@ -151,7 +155,7 @@ void mate_deferred_rx_interrupt() {
         } else {
             // dank message, go to PAIRED
             mate_state = MS_PAIRED;
-            // TODO: do a thing.
+            mate_start(mate_id);
         }
         break;
     case MS_PAIRED:
@@ -169,7 +173,7 @@ void mate_deferred_rx_interrupt() {
         break;
     case MS_INK_WAIT:
         // Here we might get an ink button from our partner.
-        if (!super_ink_waits_on_me) {
+        if (!super_ink_waits_on_me && (mp_in.flags & M_INK)) {
             // we were waiting on our partner, so this is what we wanted.
             enter_super_inking();
         } // otherwise, ignore it.
@@ -195,6 +199,9 @@ void mate_send_basic(uint8_t click, uint8_t rst) {
         __no_operation();
         return; // don't. // TODO: like an ass.
     }
+
+    mp_out.from_addr = my_conf.badge_id;
+    mp_out.camo_id = my_conf.camo_id;
 
     mp_out.flags = 0; // TODO
     if (click)

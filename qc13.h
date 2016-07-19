@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 155
+#define BADGE_ID 163
 
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
@@ -32,7 +32,7 @@ void delay_millis(unsigned long);
 
 #define RF_RESEND_COUNT 3
 
-#define FACE_DIM_BRIGHTNESS 0x0af0
+#define FACE_DIM_BRIGHTNESS 0x08f0
 
 #define TIME_LOOP_PERIOD 50
 #define LOOPS_PER_SECOND 697
@@ -154,6 +154,7 @@ extern const qc13conf default_conf;
 extern rfbcpayload in_payload, out_payload;
 
 extern uint8_t badges_seen[BADGES_IN_SYSTEM];
+extern uint8_t badges_mated[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_badges[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_count;
 
