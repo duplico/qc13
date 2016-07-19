@@ -103,28 +103,6 @@ void face_animation_done() {
     }
 }
 
-// TODO: move to main.
-void time_loop() {
-    static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
-    static uint16_t second_loops = LOOPS_PER_SECOND;
-    static uint8_t loops = 0;
-    if (second_loops) {
-        second_loops--;
-    } else {
-        loops += 1;
-        if (loops & 0x01)
-            two_seconds();
-        second_loops = LOOPS_PER_SECOND;
-        second();
-        if (interval_seconds_remaining) {
-            interval_seconds_remaining--;
-        } else {
-            radio_beacon_interval();
-            interval_seconds_remaining = BEACON_INTERVAL_SECS;
-        }
-    }
-}
-
 // IMPORTANT: Call this last.
 //  DON'T change stuff after calling it.
 void complete_rfbc_payload(rfbcpayload *payload) {
