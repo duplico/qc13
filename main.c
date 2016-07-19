@@ -273,6 +273,42 @@ void poll_buttons() {
 
 } // poll_buttons
 
+void time_loop() {
+    static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
+    static uint16_t second_loops = LOOPS_PER_SECOND;
+    static uint8_t loops = 0;
+    if (second_loops) {
+        second_loops--;
+    } else {
+        loops += 1;
+        if (loops & 0x01)
+            two_seconds();
+        second_loops = LOOPS_PER_SECOND;
+        second();
+        if (interval_seconds_remaining) {
+            interval_seconds_remaining--;
+        } else {
+            radio_beacon_interval();
+            interval_seconds_remaining = BEACON_INTERVAL_SECS;
+        }
+    }
+
+    if (mate_state == MS_INK_WAIT) {
+        mate_ink_wait++;
+        if (mate_ink_wait == SUPER_INK_WINDOW_SECS * LOOPS_PER_SECOND) {
+            ink_wait_timeout();
+        }
+    }
+
+    if (mate_state == MS_SUPER_INK) {
+        mate_ink_wait++;
+        if (mate_ink_wait == SUPER_INK_DECAY_SECS * LOOPS_PER_SECOND) {
+            super_ink_timeout();
+        }
+    }
+
+}
+
 int main(void)
 {
     init();
@@ -286,23 +322,7 @@ int main(void)
             poll_buttons();
             poll_adc();
             leds_timestep();
-
             time_loop();
-
-            if (mate_state == MS_INK_WAIT) {
-                mate_ink_wait++;
-                if (mate_ink_wait == SUPER_INK_WINDOW_SECS * LOOPS_PER_SECOND) {
-                    ink_wait_timeout();
-                }
-            }
-
-            if (mate_state == MS_SUPER_INK) {
-                mate_ink_wait++;
-                if (mate_ink_wait == SUPER_INK_DECAY_SECS * LOOPS_PER_SECOND) {
-                    super_ink_timeout();
-                }
-            }
-
             f_time_loop = 0;
         }
 
