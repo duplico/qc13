@@ -135,6 +135,7 @@ void complete_rfbc_payload(rfbcpayload *payload) {
 }
 
 void send_ink() {
+    tentacle_start_anim(LEG_ANIM_META_MATING, 2, 5, 0);
     out_payload.ink_id = my_conf.camo_id;
     out_payload.flags = RFBC_INK;
     complete_rfbc_payload(&out_payload);

@@ -43,6 +43,8 @@ typedef struct {
 
 #define FACESTATE_AMBIENT 0
 #define FACESTATE_ANIMATION 1
+#define FACESTATE_INKOUT 2
+#define FACESTATE_INKIN 3
 
 void led_post();
 
