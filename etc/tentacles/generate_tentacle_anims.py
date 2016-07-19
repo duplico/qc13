@@ -2,10 +2,10 @@ import sys, os, string
 
 import webcolors
 
-COLOR_SCALE_FACTOR = 2.0
+COLOR_SCALE_FACTOR = 5.0
 
 color_corrections = {
-    "default" : (50,255,255),
+    "default" : (40*3.0/COLOR_SCALE_FACTOR,255*3.0/COLOR_SCALE_FACTOR,150*3.0/COLOR_SCALE_FACTOR),
     "white" : (255,128,255),
     "off" : (0,0,0),
     "pink" : (240, 20, 60)
