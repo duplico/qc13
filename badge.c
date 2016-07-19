@@ -77,6 +77,13 @@ void second() {
         seconds_to_next_thing--;
     }
 
+    uint8_t wiggle_mask_temp = 0xff;
+    if (tentacle_current_anim->wiggle) {
+        wiggle_mask_temp &= ~(1 << (rand() % 4));
+        if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
+    }
+    wiggle_mask = wiggle_mask_temp;
+
     if (mate_state == MS_PLUG) {
         mate_send_basic(0, 1);
     }
@@ -85,12 +92,6 @@ void second() {
 }
 
 void two_seconds() {
-    uint8_t wiggle_mask_temp = 0xff;
-    if (tentacle_current_anim->wiggle) {
-        wiggle_mask_temp &= ~(1 << (rand() % 4));
-        if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
-    }
-    wiggle_mask = wiggle_mask_temp;
 }
 
 void face_animation_done() {
