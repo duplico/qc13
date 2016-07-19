@@ -5,7 +5,7 @@ import webcolors
 COLOR_SCALE_FACTOR = 2.0
 
 color_corrections = {
-    "default" : (255,255,255),
+    "default" : (50,255,255),
     "white" : (255,128,255),
     "off" : (0,0,0),
     "pink" : (240, 20, 60)
