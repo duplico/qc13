@@ -177,9 +177,6 @@ uint8_t rfm75_post() {
 }
 
 void rfm75_enter_prx() {
-    // Make sure we're in an inactive state
-    while (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE);
-
     rfm75_state = RFM75_RX_INIT;
     CE_DEACTIVATE;
     // Power up & PRX: CONFIG=0b01101011
@@ -197,9 +194,6 @@ void rfm75_enter_prx() {
 uint8_t rfm75_retran_seq_num = 0;
 
 void rfm75_tx() {
-    // Make sure we're in an inactive state
-    while (rfm75_state != RFM75_BOOT && rfm75_state != RFM75_RX_LISTEN && rfm75_state != RFM75_TX_DONE);
-
     rfm75_retran_seq_num = 0;
 
     // Fill'er up:
@@ -387,7 +381,7 @@ void rfm75_deferred_interrupt() {
     __no_operation();
     if (iv & BIT6) { // RX interrupt
         if (rfm75_state != RFM75_RX_LISTEN) {
-            while (1) __no_operation();
+            return; // TODO: reset?
         }
 
         // We've received something.
@@ -417,7 +411,7 @@ void rfm75_deferred_interrupt() {
 
     if (iv & BIT5) { // TX interrupt
         if (rfm75_state != RFM75_TX_SEND) {
-            while (1) __no_operation();
+            return; // TODO: reset?
         }
 
         // We sent a thing.
@@ -446,7 +440,7 @@ __interrupt void RFM_ISR(void)
 {
     if (P3IV != 0x04) {
         //assert 0
-        while (1) __no_operation();
+        return; // TODO: reset?
     }
     f_rfm75_interrupt = 1;
     CE_DEACTIVATE; // stop listening or sending.
