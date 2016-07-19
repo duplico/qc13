@@ -429,7 +429,7 @@ void leds_timestep() {
     switch(tentacle_current_anim->anim_type) {
     case ANIM_TYPE_FASTTWINKLE:
         anim_adj_index++;
-        if (anim_adj_index == 80) {
+        if (anim_adj_index == 50) {
             twinkle_bits = rand() % 256;
             anim_adj_index = 0;
             legs_dirty = 1;
@@ -445,7 +445,7 @@ void leds_timestep() {
         break;
     case ANIM_TYPE_HARDTWINKLE:
         anim_adj_index++;
-        if (anim_adj_index == 400) {
+        if (anim_adj_index == 40) {
             twinkle_bits = rand() % 256;
             anim_adj_index = 0;
             legs_dirty = 1;
