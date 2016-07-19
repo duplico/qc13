@@ -254,6 +254,7 @@ void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
         return; // we ignore inks if we're mated, or already being inked.
     being_inked = 1;
     tentacle_start_anim(ink_id, ink_type, 3, 0);
+    face_start_anim(FACE_ANIM_META_GOTINKED);
 }
 
 void radio_broadcast_received(rfbcpayload *payload) {

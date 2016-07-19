@@ -1,0 +1,16 @@
+open, open, 500
+off, off, 1500
+blink, blink, 150
+open, open, 150
+blink, blink, 150
+open, open, 150
+blink, blink, 350
+open, open, 150
+blink, blink, 150
+open, open, 150
+blink, blink, 150
+open, open, 150
+blink, blink, 150
+open, open, 150
+blink, blink, 350
+open, open, 150

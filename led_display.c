@@ -88,7 +88,7 @@ uint64_t face_ambient = 0xffffffffffffffff;
 uint8_t face_current_animation = FACE_ANIM_NONE;
 uint8_t face_curr_anim_frame = 0;
 uint16_t face_curr_dur = 0;
-uint16_t face_ambient_brightness = FACE_DIM_BRIGHTNESS;
+uint32_t face_ambient_brightness = FACE_DIM_BRIGHTNESS;
 
 uint16_t face_frame_dur = 0;
 uint64_t curr_frame = 0;
@@ -147,12 +147,18 @@ void do_brightness_correction() {
         current_ambient_correct++;
     else if (current_ambient_correct > light_order)
         current_ambient_correct--;
+
+    face_ambient_brightness = FACE_DIM_BRIGHTNESS << current_ambient_correct;
+    if (face_ambient_brightness > UINT16_MAX) {
+        face_ambient_brightness = UINT16_MAX;
+    }
+
 }
 
 void set_face(uint64_t frame) {
     for (uint8_t i=0; i<64; i++) {
         if (frame & ((uint64_t) 1 << i)) {
-            tlc_bank_gs[i/16][i%16] = face_ambient_brightness << current_ambient_correct;
+            tlc_bank_gs[i/16][i%16] = face_ambient_brightness;
         } else {
             tlc_bank_gs[i/16][i%16] = 0x00;
         }
