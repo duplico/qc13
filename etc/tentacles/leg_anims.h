@@ -10,6 +10,21 @@
 #define LEG_ANIM_NONE 211
 
 // frames for camo
+extern const rgbcolor_t bookworm_camo_frames[][8];
+extern uint16_t bookworm_camo_durations[];
+extern uint16_t bookworm_camo_fade_durs[];
+extern const tentacle_animation_t bookworm_camo;
+// frames for ink
+extern const rgbcolor_t bookworm_ink_frames[][8];
+extern uint16_t bookworm_ink_durations[];
+extern uint16_t bookworm_ink_fade_durs[];
+extern const tentacle_animation_t bookworm_ink;
+// frames for doubleink
+extern const rgbcolor_t bookworm_doubleink_frames[][8];
+extern uint16_t bookworm_doubleink_durations[];
+extern uint16_t bookworm_doubleink_fade_durs[];
+extern const tentacle_animation_t bookworm_doubleink;
+// frames for camo
 extern const rgbcolor_t def_camo_frames[][8];
 extern uint16_t def_camo_durations[];
 extern uint16_t def_camo_fade_durs[];
@@ -24,6 +39,21 @@ extern const rgbcolor_t def_doubleink_frames[][8];
 extern uint16_t def_doubleink_durations[];
 extern uint16_t def_doubleink_fade_durs[];
 extern const tentacle_animation_t def_doubleink;
+// frames for camo
+extern const rgbcolor_t doubleink_camo_frames[][8];
+extern uint16_t doubleink_camo_durations[];
+extern uint16_t doubleink_camo_fade_durs[];
+extern const tentacle_animation_t doubleink_camo;
+// frames for ink
+extern const rgbcolor_t doubleink_ink_frames[][8];
+extern uint16_t doubleink_ink_durations[];
+extern uint16_t doubleink_ink_fade_durs[];
+extern const tentacle_animation_t doubleink_ink;
+// frames for doubleink
+extern const rgbcolor_t doubleink_doubleink_frames[][8];
+extern uint16_t doubleink_doubleink_durations[];
+extern uint16_t doubleink_doubleink_fade_durs[];
+extern const tentacle_animation_t doubleink_doubleink;
 // frames for camo
 extern const rgbcolor_t fire_camo_frames[][8];
 extern uint16_t fire_camo_durations[];
@@ -175,6 +205,21 @@ extern uint16_t partytime_doubleink_durations[];
 extern uint16_t partytime_doubleink_fade_durs[];
 extern const tentacle_animation_t partytime_doubleink;
 // frames for camo
+extern const rgbcolor_t powerhungry_camo_frames[][8];
+extern uint16_t powerhungry_camo_durations[];
+extern uint16_t powerhungry_camo_fade_durs[];
+extern const tentacle_animation_t powerhungry_camo;
+// frames for ink
+extern const rgbcolor_t powerhungry_ink_frames[][8];
+extern uint16_t powerhungry_ink_durations[];
+extern uint16_t powerhungry_ink_fade_durs[];
+extern const tentacle_animation_t powerhungry_ink;
+// frames for doubleink
+extern const rgbcolor_t powerhungry_doubleink_frames[][8];
+extern uint16_t powerhungry_doubleink_durations[];
+extern uint16_t powerhungry_doubleink_fade_durs[];
+extern const tentacle_animation_t powerhungry_doubleink;
+// frames for camo
 extern const rgbcolor_t splish_splash_camo_frames[][8];
 extern uint16_t splish_splash_camo_durations[];
 extern uint16_t splish_splash_camo_fade_durs[];
@@ -204,20 +249,23 @@ extern const rgbcolor_t uber_doubleink_frames[][8];
 extern uint16_t uber_doubleink_durations[];
 extern uint16_t uber_doubleink_fade_durs[];
 extern const tentacle_animation_t uber_doubleink;
-#define LEG_ANIM_COUNT 13
-#define LEG_ANIM_DEF 0
-#define LEG_ANIM_FIRE 1
-#define LEG_ANIM_FOUND 2
-#define LEG_ANIM_GAMER 3
-#define LEG_ANIM_GEEK_GIRL 4
-#define LEG_ANIM_GLAM 5
-#define LEG_ANIM_HANDLER 6
-#define LEG_ANIM_KARATEKID 7
-#define LEG_ANIM_LUSH 8
-#define LEG_ANIM_MIXOLOGIST 9
-#define LEG_ANIM_PARTYTIME 10
-#define LEG_ANIM_SPLISH_SPLASH 11
-#define LEG_ANIM_UBER 12
+#define LEG_ANIM_COUNT 16
+#define LEG_ANIM_BOOKWORM 0
+#define LEG_ANIM_DEF 1
+#define LEG_ANIM_DOUBLEINK 2
+#define LEG_ANIM_FIRE 3
+#define LEG_ANIM_FOUND 4
+#define LEG_ANIM_GAMER 5
+#define LEG_ANIM_GEEK_GIRL 6
+#define LEG_ANIM_GLAM 7
+#define LEG_ANIM_HANDLER 8
+#define LEG_ANIM_KARATEKID 9
+#define LEG_ANIM_LUSH 10
+#define LEG_ANIM_MIXOLOGIST 11
+#define LEG_ANIM_PARTYTIME 12
+#define LEG_ANIM_POWERHUNGRY 13
+#define LEG_ANIM_SPLISH_SPLASH 14
+#define LEG_ANIM_UBER 15
 #define ANIM_TYPE_SOLID 0
 #define ANIM_TYPE_FASTTWINKLE 1
 #define ANIM_TYPE_SLOWTWINKLE 2
