@@ -169,7 +169,11 @@ def main():
                 for f in l:
                     metadata1 += [str(f[8])]
                     metadata2 += [str(f[9])]
-                    fr = map(lambda a: local_colors[a], f[:8])
+                    try:
+                        fr = map(lambda a: local_colors[a], f[:8])
+                    except Exception as e:
+                        print 'Error on frame: ', f
+                        exit(1)
                     fr = fr[::-1]
                     c_lines.append("    {%s}," % ', '.join(map(lambda rgb: "{0x%x, 0x%x, 0x%x}" % rgb, fr)))
                 c_lines.append("};")
