@@ -204,6 +204,15 @@ inline void leg_fade_colors() {
 uint8_t twinkle_bits = 0xea;
 uint16_t anim_adj_index = 0;
 
+void tentacle_wiggle() {
+    uint8_t wiggle_mask_temp = 0xff;
+    if (tentacle_current_anim->wiggle) {
+        wiggle_mask_temp &= ~(1 << (rand() % 4));
+        if (rand() % 2) wiggle_mask_temp &= ~(1 << (rand() % 4));
+    }
+    wiggle_mask = wiggle_mask_temp;
+}
+
 // This actually sets the colors of the tentacles/legs.
 // Here is where we are going to do some fancy stuff:
 //  1. brightness correction (ambient)
@@ -354,8 +363,8 @@ void tentacle_next_anim_frame() {
             tentacle_anim_frame = 0;
             tentacle_anim_looping--;
         } else { // not ambient, no loops remaining
-            leg_anim_done(tentacle_anim_id);
             tentacle_start_anim(tentacle_saved_anim_id, tentacle_saved_anim_type, 0, 1);
+            leg_anim_done(tentacle_anim_id);
             return; // skip the transitions_and_go because that's called in start_anim.
         }
     }
