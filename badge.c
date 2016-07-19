@@ -53,6 +53,13 @@ void second() {
 
             if (!to_blink) {
                 thing_to_do = rand() % FACE_ANIM_COUNT;
+
+                if (thing_to_do == FACE_ANIM_SAD && neighbor_count > 0) {
+                    thing_to_do = FACE_ANIM_CUTESY;
+                } else if (thing_to_do == FACE_ANIM_CUTESY && neighbor_count == 0) {
+                    thing_to_do = FACE_ANIM_SAD;
+                }
+
                 if (thing_to_do == FACE_ANIM_FASTBLINKING || thing_to_do == FACE_ANIM_BLINKING)
                     to_blink = 1;
                 else
