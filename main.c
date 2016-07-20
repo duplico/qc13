@@ -312,6 +312,8 @@ void time_loop() {
 int main(void)
 {
     init();
+    led_post();
+    while (1);
     post();
 
     initial_animations();
