@@ -385,19 +385,11 @@ void led_post() {
     tlc_set_fun();
     chase = 1;
 
-    uint16_t old_ab = face_ambient_brightness;
-    for (face_ambient_brightness=0x1000; face_ambient_brightness;face_ambient_brightness-=32) {
-        set_face(0xffffffffffffffff);
-        for (uint8_t t=4; t<6; t++) {
-            for (uint8_t i=4; i<16; i++) {
-                tlc_bank_gs[t][i] = face_ambient_brightness;
-            }
-        }
-    }
-    face_ambient_brightness = old_ab;
+    face_ambient_brightness = 0x80f;
+    set_face(0xffffffffffffffff);
     for (uint8_t t=4; t<6; t++) {
         for (uint8_t i=4; i<16; i++) {
-            tlc_bank_gs[t][i] = 0;
+            tlc_bank_gs[t][i] = face_ambient_brightness;
         }
     }
 }
