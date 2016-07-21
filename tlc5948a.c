@@ -226,8 +226,8 @@ void tlc_init() {
     EUSCI_A_SPI_initMasterParam ini = {0};
     ini.clockPhase = EUSCI_A_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
     ini.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
-    ini.clockSourceFrequency = 16000000; // TODO: SSOT
-    ini.desiredSpiClock = 8000000; // previously 4MHz
+    ini.clockSourceFrequency = SMCLK_RATE_HZ;
+    ini.desiredSpiClock = 8000000;
     ini.msbFirst = EUSCI_A_SPI_MSB_FIRST;
     ini.selectClockSource = EUSCI_A_SPI_CLOCKSOURCE_SMCLK;
     ini.spiMode = EUSCI_A_SPI_3PIN;

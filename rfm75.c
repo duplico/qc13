@@ -222,9 +222,8 @@ void rfm75_init()
     // Setup USCI_B0.
     EUSCI_B_SPI_initMasterParam ini = {0};
     ini.selectClockSource = EUSCI_B_SPI_CLOCKSOURCE_SMCLK;
-    ini.clockSourceFrequency = 16000000; // TODO: SSOT
-//    ini.desiredSpiClock = 4000000; // TODO
-    ini.desiredSpiClock = 400000;
+    ini.clockSourceFrequency = SMCLK_RATE_HZ;
+    ini.desiredSpiClock = 4000000;
     ini.msbFirst = EUSCI_B_SPI_MSB_FIRST;
     ini.clockPhase = EUSCI_B_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
     ini.clockPolarity = EUSCI_B_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
