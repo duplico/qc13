@@ -25,10 +25,25 @@ void delay_millis(unsigned long);
 // Badge & system configuration /////////////////////////////////////
 
 #define BADGES_IN_SYSTEM 250
-#define UBER_COUNT 13
-#define HANDLER_COUNT 8
 #define EVENTS_IN_SYSTEM 1
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
+
+// Special badge system setup:
+
+#define UBER_MIN_INCLUSIVE 0
+#define UBER_MAX_INCLUSIVE 12
+#define HANDLER_MIN_INCLUSIVE 7
+#define HANDLER_MAX_INCLUSIVE 14
+#define DONOR_MIN_INCLUSIVE 15
+#define DONOR_MAX_INCLUSIVE 18
+#define EVAN_ID 1
+#define GEORGE_ID 0
+#define JASON_ID 7
+#define JONATHAN_ID 9
+
+#define UBER_COUNT UBER_MAX_INCLUSIVE + 1 - UBER_MIN_INCLUSIVE
+#define HANDLER_COUNT HANDLER_MAX_INCLUSIVE + 1 - HANDLER_MIN_INCLUSIVE
+
 
 #define RF_RESEND_COUNT 3
 
@@ -46,6 +61,11 @@ void delay_millis(unsigned long);
 
 #define SUPER_INK_WINDOW_SECS 1
 #define SUPER_INK_DECAY_SECS 10
+
+#define BADGE_SEEN_BITS BIT7
+#define ODH_SEEN_BITS BIT6
+#define BADGE_MATED_BITS BIT5
+#define ODH_MATED_BITS BIT4
 
 /////////////////////////////////////////////////////////////////////
 // Hardware related defines /////////////////////////////////////////

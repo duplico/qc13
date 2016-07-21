@@ -255,6 +255,7 @@ void new_badge_seen(uint8_t deferred) {
 }
 
 void new_badge_mated() {
+	// The animation is handled elsewhere.
 }
 
 void radio_beacon_interval() {
