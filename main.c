@@ -400,7 +400,7 @@ int main(void)
         if (s_b_start == BUTTON_RELEASE) {
             s_b_start = 0;
             start_pressed = 0;
-            if (start_seconds_pressed < LONG_PRESS_THRESH) { // TODO: SSOT
+            if (start_seconds_pressed < LONG_PRESS_THRESH) {
                 start_button_clicked();
             }
         }

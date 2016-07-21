@@ -39,7 +39,6 @@
 
 void tlc_init();
 void tlc_start();
-void tlc_stop(); //TODO: Not guaranteed to work. (read: guaranteed not to work)
 
 uint8_t tlc_test_loopback(uint8_t);
 
