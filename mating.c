@@ -32,7 +32,6 @@ matepayload mp_in = {0};
 
 const uint8_t mate_sync_bytes[MATE_NUM_SYNC_BYTES] = {0xa0, 0xff, 0x00, 0xaa};
 
-// TODO: larger of this or achievements payload:
 uint8_t mate_payload_out[sizeof(matepayload) + MATE_NUM_SYNC_BYTES] = {0};
 uint8_t mate_payload_in[sizeof(matepayload)] = {0};
 
@@ -122,8 +121,6 @@ void mate_deferred_rx_interrupt() {
         mate_state = MS_PLUG;
         // TODO: CLEAN SWEEP
     }
-
-    // TODO: This is BASIC ONLY.
 
     // TODO: Make sure these are all the same.
     mate_camo = mp_in.camo_id;
@@ -224,7 +221,7 @@ void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild) {
     mp_out.crc16 = CRC_getResult(CRC_BASE);
 
     // Fill'er up:
-    memcpy(mate_payload_out, mate_sync_bytes, MATE_NUM_SYNC_BYTES); // TODO: unnecessary more than once
+    memcpy(mate_payload_out, mate_sync_bytes, MATE_NUM_SYNC_BYTES);
     memcpy(mate_payload_out+MATE_NUM_SYNC_BYTES, &mp_out, sizeof(matepayload)); // TODO: assert/confirm proper length
 
     uart_out_index = 0;
@@ -258,8 +255,9 @@ __interrupt void EUSCI_A1_ISR(void)
         } else { // If we are, let's add it to the payload.
             mate_payload_in[uart_in_index] = uart_in_byte;
             if (uart_in_index == 0) { // the protocol one:
-                // TODO: check which kind of payload we're dealing with, first off:
                 uart_in_len = sizeof(matepayload);
+            } else {
+            	// ???? TODO ????
             }
             uart_in_index++;
             if (uart_in_index >= uart_in_len) {

@@ -438,8 +438,7 @@ void rfm75_deferred_interrupt() {
 __interrupt void RFM_ISR(void)
 {
     if (P3IV != 0x04) {
-        //assert 0
-        return; // TODO: reset?
+        return;
     }
     f_rfm75_interrupt = 1;
     CE_DEACTIVATE; // stop listening or sending.
