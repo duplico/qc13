@@ -236,8 +236,7 @@ void rfm75_init()
 
     // We're going totally synchronous on this; no interrupts at all.
 
-    delay_millis(100); // Delay more than 50ms.
-    rfm75_post();
+    delay_millis(150); // Delay more than 50ms.
 
     // Setup GPIO:
     P1DIR |= BIT3; // CSN
