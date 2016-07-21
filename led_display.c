@@ -117,6 +117,12 @@ uint8_t wiggle_mask = 0xff;
 uint8_t current_ambient_correct = 0;
 uint8_t previous_ambient_correct = 0;
 
+uint64_t eye_twinkle_bits = 0xffffffffffffffff;
+uint8_t eyes_twinkling = 0;
+uint8_t tentacle_twinkle_bits = 0xea;
+uint16_t leg_anim_adj_index = 0;
+uint16_t face_anim_adj_index = 0;
+
 // See https://graphics.stanford.edu/~seander/bithacks.html#IntegerLogObvious
 inline uint8_t log2(uint16_t v) {
     int8_t r = 0; // r will be lg(v)
@@ -162,9 +168,14 @@ void do_brightness_correction(uint8_t order, uint8_t immediate) {
 }
 
 void set_face(uint64_t frame) {
+    static uint64_t eye_mask = 0;
     for (uint8_t i=0; i<64; i++) {
-        if (frame & ((uint64_t) 1 << i)) {
-            tlc_bank_gs[i/16][i%16] = face_ambient_brightness;
+        eye_mask = ((uint64_t) 1 << i);
+        if (frame & eye_mask) {
+            if (!eyes_twinkling || (eye_twinkle_bits & eye_mask)) // not twinkling, or twinkle full
+                tlc_bank_gs[i/16][i%16] = face_ambient_brightness;
+            else
+                tlc_bank_gs[i/16][i%16] = face_ambient_brightness << 2;
         } else {
             tlc_bank_gs[i/16][i%16] = 0x00;
         }
@@ -213,8 +224,15 @@ inline void leg_fade_colors() {
     }
 }
 
-uint8_t twinkle_bits = 0xea;
-uint16_t anim_adj_index = 0;
+void eye_twinkle_off() {
+    eye_twinkle_bits = 0xffffffffffffffff;
+    eyes_twinkling = 0;
+}
+
+void eye_twinkle_on() {
+    eyes_twinkling = 1;
+    face_anim_adj_index = 0;
+}
 
 void tentacle_wiggle() {
     uint8_t wiggle_mask_temp = 0xff;
@@ -255,21 +273,21 @@ void set_tentacles(const rgbcolor_t* leg_colors) {
         //  sub-type. (twinkling, etc.)
         switch(tentacle_current_anim->anim_type) {
         case ANIM_TYPE_FASTTWINKLE:
-            if (twinkle_bits & (1 << tent)) {
+            if (tentacle_twinkle_bits & (1 << tent)) {
                 r = r >> 2;
                 g = g >> 2;
                 b = b >> 2;
             }
             break;
         case ANIM_TYPE_SLOWTWINKLE:
-            if (twinkle_bits & (1 << tent)) {
+            if (tentacle_twinkle_bits & (1 << tent)) {
                 r = r >> 2;
                 g = g >> 2;
                 b = b >> 2;
             }
             break;
         case ANIM_TYPE_HARDTWINKLE:
-            if (twinkle_bits & (1 << tent)) {
+            if (tentacle_twinkle_bits & (1 << tent)) {
                 r = 0;
                 g = 0;
                 b = 0;
@@ -356,7 +374,7 @@ void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8
     tentacle_current_anim = legs_all_anim_sets[anim_id][anim_type];
     tentacle_anim_frame = 0; // This is our frame index in the animation.
     tentacle_animation_state = 1; // animating
-    anim_adj_index = 0;
+    leg_anim_adj_index = 0;
     tentacle_anim_looping = loop;
     tentacle_anim_length = tentacle_current_anim->len;
 
@@ -417,6 +435,19 @@ void leds_timestep() {
         legs_dirty = 1;
     }
 
+    if (eyes_twinkling) {
+        face_anim_adj_index++;
+        if (face_anim_adj_index == 50) {
+            face_anim_adj_index = 0;
+            eye_twinkle_bits = 0;
+            for (uint8_t i=0; i<64; i+=8) {
+                eye_twinkle_bits |= ((uint64_t)(rand() % 256) << i);
+            }
+            face_dirty = 1;
+        }
+
+    }
+
     if (face_state == FACESTATE_ANIMATION) {
         if (face_curr_dur < FACE_DUR_STEP) { // Time for next frame?
             face_curr_anim_frame++;
@@ -446,26 +477,26 @@ void leds_timestep() {
     //  Apply our current delta animation timestep.
     switch(tentacle_current_anim->anim_type) {
     case ANIM_TYPE_FASTTWINKLE:
-        anim_adj_index++;
-        if (anim_adj_index == 50) {
-            twinkle_bits = rand() % 256;
-            anim_adj_index = 0;
+        leg_anim_adj_index++;
+        if (leg_anim_adj_index == 50) {
+            tentacle_twinkle_bits = rand() % 256;
+            leg_anim_adj_index = 0;
             legs_dirty = 1;
         }
         break;
     case ANIM_TYPE_SLOWTWINKLE:
-        anim_adj_index++;
-        if (anim_adj_index == 400) {
-            twinkle_bits = rand() % 256;
-            anim_adj_index = 0;
+        leg_anim_adj_index++;
+        if (leg_anim_adj_index == 400) {
+            tentacle_twinkle_bits = rand() % 256;
+            leg_anim_adj_index = 0;
             legs_dirty = 1;
         }
         break;
     case ANIM_TYPE_HARDTWINKLE:
-        anim_adj_index++;
-        if (anim_adj_index == 40) {
-            twinkle_bits = rand() % 256;
-            anim_adj_index = 0;
+        leg_anim_adj_index++;
+        if (leg_anim_adj_index == 40) {
+            tentacle_twinkle_bits = rand() % 256;
+            leg_anim_adj_index = 0;
             legs_dirty = 1;
         }
         break;
