@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 163
+#define BADGE_ID 101
 
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
