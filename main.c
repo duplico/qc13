@@ -12,6 +12,7 @@
 #include "etc/tentacles/leg_anims.h"
 #include "badge.h"
 #include "mating.h"
+#include "metrics.h"
 
 /*
  *
@@ -146,10 +147,39 @@ void term_gpio() {
     PJOUT = 0x00;
 }
 
-// TODO:
-void setup_my_conf() {
+uint8_t is_camo_avail(uint8_t camo_id) {
+	return (my_conf.camo_unlocks & (uint32_t)(1 << camo_id)) ? 1 : 0;
+}
+
+void unlock_camo(uint8_t camo_id) {
+	if (is_camo_avail(camo_id))
+		return;
+	my_conf.camo_unlocks |= (uint32_t)(1 << camo_id);
+	my_conf.camo_id = camo_id;
+	// TODO: CRC
+    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
+}
+
+void make_fresh_conf() {
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
-    badges_seen[my_conf.badge_id] = 1; // TODO: More of this.
+    my_conf.camo_id = LEG_ANIM_DEF;
+    if (is_uber(my_conf.badge_id)) {
+    	unlock_camo(LEG_ANIM_UBER);
+    }
+    if (is_handler(my_conf.badge_id)) {
+    	// We'll unlock the camo when we go on duty.
+    }
+    if (is_donor(my_conf.badge_id)) {
+    	// Unlock the hat...
+    }
+
+	set_badge_seen(my_conf.badge_id, is_handler(my_conf.badge_id));
+	set_badge_mated(my_conf.badge_id, is_handler(my_conf.badge_id));
+}
+
+void setup_my_conf() {
+	// If we don't have a valid conf:
+	make_fresh_conf();
 }
 
 void init_clocks() {
