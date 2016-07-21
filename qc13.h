@@ -155,13 +155,36 @@ typedef struct {
     uint8_t badge_id;
     uint8_t seen_count, uber_seen_count, odh_seen_count;
     uint8_t mate_count, uber_mate_count, odh_mate_count;
+    uint8_t hat_holder, hat_claimed, hat_id;
     uint16_t event_checkins;
     uint32_t camo_unlocks;
     uint8_t camo_id;
+    uint8_t uber_hat_given;
     uint64_t achievements;
     uint8_t gilded;
     uint16_t crc16;
 } qc13conf;
+
+// Hats:
+#define HAT_GEORGE 0
+#define HAT_EVAN 1
+#define HAT_TPROPHET 2
+#define HAT_ZAC 3
+#define HAT_ERIC 4
+#define HAT_SHAUN 5
+#define HAT_MARCUS 6
+#define HAT_JASON 7
+#define HAT_AARON 8
+#define HAT_JONATHAN 9
+#define HAT_JAKE 10
+#define HAT_COLLIN 11
+#define HAT_ALYSSA 12
+#define HAT_UBER 13
+#define HAT_HANDLER 14
+#define HAT_DONOR_REED 15
+#define HAT_DONOR_HEATHER 16
+#define HAT_DONOR_ERIC 17
+#define HAT_DONOR_CHRIS 18
 
 /////////////////////////////////////////////////////////////////////
 // Global declarations //////////////////////////////////////////////

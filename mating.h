@@ -23,6 +23,7 @@ extern const uint8_t mate_sync_bytes[MATE_NUM_SYNC_BYTES];
 #define MS_SUPER_INK 5
 #define MS_PIPE_PLUG 6
 #define MS_PIPE_DONE 7
+#define MS_UBER_HAT_OFFER 8
 
 extern uint8_t mate_state;
 extern uint16_t mate_ink_wait;
@@ -30,6 +31,9 @@ extern uint8_t super_ink_waits_on_me;
 
 void init_mating();
 void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild);
+void mate_send_uber_hat_response(uint8_t ack);
+void mate_send_uber_hat_bestow();
+uint8_t award_hat(uint8_t id);
 void mate_deferred_rx_interrupt();
 void maybe_enter_ink_wait(uint8_t local);
 void mate_over_cleanup();

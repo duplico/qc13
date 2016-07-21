@@ -28,10 +28,12 @@ const qc13conf default_conf = {
         BADGE_ID,
         0, 0, 0, // seen counts
         0, 0, 0, // mate counts
+        0, 0, 0, // hats!
         0, // event check-ins
         0xffffffff, // camo_unlocks bitfield // TODO: should be 0x1
         LEG_ANIM_DEF, // camo_id
-        0, // Blank
+        0, // Uber hat not given out
+        0, // No achievements
         0b110, // Gilded. TODO!!!!!
         0 // blank CRC.
 };
@@ -133,13 +135,13 @@ void complete_rfbc_payload(rfbcpayload *payload) {
     payload->base_addr = NOT_A_BASE;
     payload->from_addr = my_conf.badge_id;
     // TODO: if handler and wearing a hat:
-//    payload->flags |= RFBC_HANDLER_ON_DUTY;
+    //    payload->flags |= RFBC_HANDLER_ON_DUTY;
     // TODO: if hatholder:
-//    payload->flags |= RFBC_HATHOLDER
+    //    payload->flags |= RFBC_HATHOLDER
     // TODO: if hat on:
-//    payload->flags |= RFBC_HAT_ON
+    //    payload->flags |= RFBC_HAT_ON
     // TODO: if eligible for a push hat:
-//    payload.flags |= RFBC_PUSH_HAT_ELIGIBLE
+    //    payload.flags |= RFBC_PUSH_HAT_ELIGIBLE
 
     // CRC it.
     CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
@@ -173,6 +175,7 @@ void send_beacon() {
 
 void start_button_longpressed() {
     if (being_inked || !my_conf.gilded) return; // nope!
+
     if (mate_state == MS_IDLE && (my_conf.gilded & GILD_AVAIL)) {
         // gild on for ourselves
         my_conf.gilded ^= GILD_ON;
@@ -180,7 +183,10 @@ void start_button_longpressed() {
             eye_twinkle_on();
         else
             eye_twinkle_off();
-    } else if (mate_state == MS_PAIRED && (my_conf.gilded & GILD_BESTOWABLE)) {
+    } else if (mate_state == MS_PAIRED && is_uber(my_conf.badge_id) && !my_conf.uber_hat_given) {
+        mate_send_uber_hat_bestow();
+    }
+    else if (mate_state == MS_PAIRED && (my_conf.gilded & GILD_BESTOWABLE)) {
         mate_send_basic(0, 0, 1);
     }
 }
@@ -246,7 +252,7 @@ void new_badge_seen(uint8_t deferred) {
 }
 
 void new_badge_mated() {
-	// The animation is handled elsewhere.
+    // The animation is handled elsewhere.
 }
 
 void radio_beacon_interval() {

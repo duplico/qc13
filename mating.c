@@ -10,6 +10,7 @@
 #include "led_display.h"
 #include "leg_anims.h"
 #include "badge.h"
+#include "metrics.h"
 
 //typedef struct {
 //    uint8_t proto_version;
@@ -46,21 +47,21 @@ volatile uint8_t uart_sending = 0;
 volatile uint8_t uart_out_len = sizeof(matepayload) + MATE_NUM_SYNC_BYTES;
 
 void init_mating() {
-	GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN5, GPIO_SECONDARY_MODULE_FUNCTION); // TX
-	GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN6, GPIO_SECONDARY_MODULE_FUNCTION); // RX
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN5, GPIO_SECONDARY_MODULE_FUNCTION); // TX
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN6, GPIO_SECONDARY_MODULE_FUNCTION); // RX
 
-	EUSCI_A_UART_initParam ini = {};
-	ini.selectClockSource = EUSCI_A_UART_CLOCKSOURCE_SMCLK;
-	ini.clockPrescalar = 104;
-	ini.firstModReg = 2;
-	ini.secondModReg = 182;
-	ini.parity = EUSCI_A_UART_NO_PARITY;
-	ini.msborLsbFirst = EUSCI_A_UART_LSB_FIRST;
-	ini.numberofStopBits = EUSCI_A_UART_ONE_STOP_BIT;
-	ini.uartMode = EUSCI_A_UART_MODE;
-	ini.overSampling = 1;
+    EUSCI_A_UART_initParam ini = {};
+    ini.selectClockSource = EUSCI_A_UART_CLOCKSOURCE_SMCLK;
+    ini.clockPrescalar = 104;
+    ini.firstModReg = 2;
+    ini.secondModReg = 182;
+    ini.parity = EUSCI_A_UART_NO_PARITY;
+    ini.msborLsbFirst = EUSCI_A_UART_LSB_FIRST;
+    ini.numberofStopBits = EUSCI_A_UART_ONE_STOP_BIT;
+    ini.uartMode = EUSCI_A_UART_MODE;
+    ini.overSampling = 1;
 
-	EUSCI_A_UART_init(EUSCI_A1_BASE, &ini);
+    EUSCI_A_UART_init(EUSCI_A1_BASE, &ini);
     EUSCI_A_UART_enable(EUSCI_A1_BASE);
     EUSCI_A_UART_selectDeglitchTime(EUSCI_A1_BASE, EUSCI_A_UART_DEGLITCH_TIME_200ns);
 
@@ -162,8 +163,15 @@ void mate_deferred_rx_interrupt() {
         if (mp_in.flags & M_INK) {
             maybe_enter_ink_wait(0); // waiting on me!
         }
-        //  uber award message
-        //   (get award! yay! no state change)
+        //  award message
+        //   (get award! yay!)
+        if ((is_uber(mp_in.from_addr) || (mp_in.from_addr == DEDICATED_BASE_ID)) && mp_in.flags & M_BESTOW_HAT) {
+            if (award_hat(mp_in.hat_award_id)) {
+                mate_send_uber_hat_response(1);
+            } else {
+                mate_send_uber_hat_response(0);
+            }
+        }
         //  gild message
         if ((mp_in.flags & M_BESTOW_GILD) && !(my_conf.gilded & GILD_AVAIL)) {
             my_conf.gilded = GILD_AVAIL | GILD_ON;
@@ -192,11 +200,21 @@ void mate_deferred_rx_interrupt() {
     case MS_PIPE_DONE:
         // Yeah, we shouldn't get anything here.
         break;
+    case MS_UBER_HAT_OFFER:
+        // we expect an ACK or a NACK.
+        if (mp_in.flags & M_HAT_AWARD_ACK) {
+            // our hat offer was accepted.
+            my_conf.uber_hat_given = 1;
+            mate_state = MS_PAIRED;
+            // TODO: save
+        } else if (mp_in.flags & M_HAT_AWARD_NACK) {
+            // nuttin.
+            mate_state = MS_PAIRED;
+        }
     }
-
 }
 
-void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild) {
+void mate_send_preserve_flags() {
     if (uart_sending) {
         __no_operation();
         return; // don't. // TODO: like an ass.
@@ -205,13 +223,7 @@ void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild) {
     mp_out.from_addr = my_conf.badge_id;
     mp_out.camo_id = my_conf.camo_id;
 
-    mp_out.flags = 0; // TODO
-    if (click)
-        mp_out.flags |= M_INK;
-    if (rst)
-        mp_out.flags |= M_RST;
-    if (gild)
-        mp_out.flags |= M_BESTOW_GILD;
+    mp_out.achievements = my_conf.achievements;
 
     // CRC it.
     CRC_setSeed(CRC_BASE, MATE_CRC_SEED);
@@ -228,6 +240,40 @@ void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild) {
     uart_sending = 1;
     uart_out_len = sizeof(matepayload) + MATE_NUM_SYNC_BYTES;
     EUSCI_A_UART_transmitData(EUSCI_A1_BASE, mate_payload_out[0]);
+}
+
+void mate_send_flags(uint16_t flags) {
+    if (uart_sending) {
+        __no_operation();
+        return; // don't. // TODO: like an ass.
+    }
+    mp_out.flags = flags;
+    mate_send_preserve_flags();
+}
+
+void mate_send_uber_hat_bestow() {
+    mp_out.hat_award_id = my_conf.badge_id;
+    mate_send_flags(M_HAT_AWARD);
+}
+
+void mate_send_uber_hat_response(uint8_t ack) {
+    if (ack) { // Yes!
+        mate_send_flags(M_HAT_AWARD_ACK);
+    } else { // NACK
+        mate_send_flags(M_HAT_AWARD_NACK);
+    }
+}
+
+void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild) {
+    uint16_t flags_out = 0;
+    flags_out = 0; // TODO
+    if (click)
+        flags_out |= M_INK;
+    if (rst)
+        flags_out |= M_RST;
+    if (gild)
+        flags_out |= M_BESTOW_GILD;
+    mate_send_flags(flags_out);
 }
 
 volatile uint8_t uart_in_byte = 0;
@@ -257,7 +303,7 @@ __interrupt void EUSCI_A1_ISR(void)
             if (uart_in_index == 0) { // the protocol one:
                 uart_in_len = sizeof(matepayload);
             } else {
-            	// ???? TODO ????
+                // ???? TODO ????
             }
             uart_in_index++;
             if (uart_in_index >= uart_in_len) {
