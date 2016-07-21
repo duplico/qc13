@@ -12,6 +12,7 @@
 #include "qc13.h"
 #include "badge.h"
 #include "leg_anims.h"
+#include "metrics.h"
 
 // Radio (RFM75):
 // CE   P3.2 (or 1.2 for launchpad)
@@ -366,7 +367,7 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
 //    }
 
     // handler on duty but source isn't a handler
-    if (payload.flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload.from_addr)) {
+    if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->from_addr)) {
     	return 0;
     }
 
