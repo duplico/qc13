@@ -123,7 +123,7 @@ void face_animation_done() {
         blink_repeat_count--;
         face_start_anim(FACE_ANIM_FASTBLINKING);
     } else {
-        seconds_to_next_face = rand() % 5; // TODO SSOT
+        seconds_to_next_face = rand() % 5;
     }
 }
 
@@ -172,7 +172,7 @@ void send_beacon() {
 }
 
 void start_button_longpressed() {
-    if (being_inked || !my_conf.gilded) return; // nope! // TODO: SSOT
+    if (being_inked || !my_conf.gilded) return; // nope!
     if (mate_state == MS_IDLE && (my_conf.gilded & GILD_AVAIL)) {
         // gild on for ourselves
         my_conf.gilded ^= GILD_ON;
@@ -186,7 +186,7 @@ void start_button_longpressed() {
 }
 
 void start_button_clicked() {
-    if (being_inked) return; // nope! // TODO: SSOT
+    if (being_inked) return; // nope!
 
     switch (mate_state) {
     case MS_IDLE:
@@ -209,12 +209,6 @@ void start_button_clicked() {
         // ignore it.
         __no_operation();
     }
-
-    // TODO: Remove when done.
-    // The testing code to cycle through faces:
-//    static uint8_t face_anim_no = 0;
-//    face_anim_no = (face_anim_no+1) % FACE_ANIM_COUNT;
-//    face_start_anim(face_anim_no);
 }
 
 void select_button_clicked() {
@@ -226,9 +220,6 @@ void select_button_clicked() {
         my_conf.camo_id = (my_conf.camo_id+1) % LEG_ANIM_COUNT;
         tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
     }
-
-    // The testing code to cycle through faces:
-//    face_start_anim(face_anim_no);
 }
 
 void leg_anim_done(uint8_t tentacle_anim_id) {
@@ -245,7 +236,7 @@ void not_lonely() {
 
 void new_badge_seen(uint8_t deferred) {
     // I think I skip this if I'm paired or being inked...
-    if (mate_state || being_inked || !tentacle_is_ambient) { // TODO: SSOT for being busy?
+    if (mate_state || being_inked || !tentacle_is_ambient) {
         if (!deferred) deferred_new_badges++;
         return;
     }
@@ -326,9 +317,9 @@ void mate_plug() {
     face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
 }
 
-void mate_start(uint8_t badge_id, uint8_t handler_on_duty) { // TODO: add handler_on_duty
+void mate_start(uint8_t badge_id, uint8_t handler_on_duty) {
     face_set_ambient_direct(0b1000011111110000111110000011111010000111111100001111100000111110);
-    if (badges_mated[badge_id]) { // TODO: be sure to set ourselves mated. Eventually.
+    if (badges_mated[badge_id]) {
         // We've mated before
         tentacle_start_anim(LEG_ANIM_META_SOCIAL, 1, 0, 0);
     } else {
