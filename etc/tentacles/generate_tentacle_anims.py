@@ -11,6 +11,8 @@ color_corrections = {
     "pink" : (240, 20, 60)
 }
 
+INK_LEN = 6000
+
 global_color_correct = (1,.5,1)
 
 eye_frames = dict()
@@ -166,9 +168,11 @@ def main():
                 frames = []
                 metadata1 = []
                 metadata2 = []
+                total_duration = 0
                 for f in l:
                     metadata1 += [str(f[8])]
                     metadata2 += [str(f[9])]
+                    total_duration += int(f[8]) + int(f[9])
                     try:
                         fr = map(lambda a: local_colors[a], f[:8])
                     except Exception as e:
@@ -176,6 +180,12 @@ def main():
                         exit(1)
                     fr = fr[::-1]
                     c_lines.append("    {%s}," % ', '.join(map(lambda rgb: "{0x%x, 0x%x, 0x%x}" % rgb, fr)))
+                
+                if total_duration > INK_LEN:
+                    ink_loops = 0
+                else:
+                    ink_loops = INK_LEN / total_duration
+                
                 c_lines.append("};")
                 c_lines.append("uint16_t %s_%s_durations[] = {%s};" % (anim_name, lname, ', '.join(metadata1)))
                 c_lines.append("uint16_t %s_%s_fade_durs[] = {%s};" % (anim_name, lname, ', '.join(metadata2)))
@@ -184,7 +194,7 @@ def main():
                 h_lines.append("extern uint16_t %s_%s_fade_durs[];" % (anim_name, lname))
                 
                 c_lines.append("// the animation:")
-                c_lines.append("const tentacle_animation_t %s_%s = {%s_%s_frames, %s_%s_durations, %s_%s_fade_durs, %d, ANIM_TYPE_%s, %d, };" % (anim_name, lname, anim_name, lname, anim_name, lname, anim_name, lname, len(l), atype.upper(), wiggle))
+                c_lines.append("const tentacle_animation_t %s_%s = {%s_%s_frames, %s_%s_durations, %s_%s_fade_durs, %d, ANIM_TYPE_%s, %d, %d};" % (anim_name, lname, anim_name, lname, anim_name, lname, anim_name, lname, len(l), atype.upper(), wiggle, ink_loops))
                 
                 h_lines.append("extern const tentacle_animation_t %s_%s;" % (anim_name, lname))
             c_lines.append("")
