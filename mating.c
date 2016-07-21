@@ -148,7 +148,7 @@ void mate_deferred_rx_interrupt() {
         //  But what we get is probably going to have RST set: to HALF_PAIR
         //  But if it doesn't, we can go to PAIRED!
         in_rst = 0;
-        mate_send_basic(0, 0);
+        mate_send_basic(0, 0, 0);
         if (mp_in.flags & M_RST) {
             // fresh message, go to HALF_PAIR
             mate_state = MS_HALF_PAIR;
@@ -167,6 +167,11 @@ void mate_deferred_rx_interrupt() {
         }
         //  uber award message
         //   (get award! yay! no state change)
+        //  gild message
+        if ((mp_in.flags & M_BESTOW_GILD) && !(my_conf.gilded & GILD_AVAIL)) {
+            my_conf.gilded = GILD_AVAIL | GILD_ON;
+            eye_twinkle_on();
+        }
         //  or a regular old message that's just updating
         //  some of the state we have about our partner.
         //  That stuff is all handled above.
@@ -194,7 +199,7 @@ void mate_deferred_rx_interrupt() {
 
 }
 
-void mate_send_basic(uint8_t click, uint8_t rst) {
+void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild) {
     if (uart_sending) {
         __no_operation();
         return; // don't. // TODO: like an ass.
@@ -208,6 +213,8 @@ void mate_send_basic(uint8_t click, uint8_t rst) {
         mp_out.flags |= M_INK;
     if (rst)
         mp_out.flags |= M_RST;
+    if (gild)
+        mp_out.flags |= M_BESTOW_GILD;
 
     // CRC it.
     CRC_setSeed(CRC_BASE, MATE_CRC_SEED);

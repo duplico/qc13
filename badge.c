@@ -32,6 +32,7 @@ const qc13conf default_conf = {
         0xffffffff, // camo_unlocks bitfield // TODO: should be 0x1
         LEG_ANIM_DEF, // camo_id
         0, // Blank
+        0b110, // Gilded. TODO!!!!!
         0 // blank CRC.
 };
 
@@ -47,7 +48,11 @@ uint64_t mate_old_ambient;
 void initial_animations() {
     face_set_ambient_direct(0b1000010000100000111111111111111010000100001000001111111111111110);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
-    eye_twinkle_off();
+
+    if (my_conf.gilded & GILD_ON)
+        eye_twinkle_on();
+    else
+        eye_twinkle_off();
 }
 
 void blink_or_make_face() {
@@ -97,7 +102,7 @@ void second() {
     tentacle_wiggle();
 
     if (mate_state == MS_PLUG) {
-        mate_send_basic(0, 1);
+        mate_send_basic(0, 1, 0);
     }
 
     if (deferred_new_badges) {
@@ -166,8 +171,22 @@ void send_beacon() {
     rfm75_tx();
 }
 
+void start_button_longpressed() {
+    if (being_inked || !my_conf.gilded) return; // nope! // TODO: SSOT
+    if (mate_state == MS_IDLE && (my_conf.gilded & GILD_AVAIL)) {
+        // gild on for ourselves
+        my_conf.gilded ^= GILD_ON;
+        if (my_conf.gilded & GILD_ON)
+            eye_twinkle_on();
+        else
+            eye_twinkle_off();
+    } else if (mate_state == MS_PAIRED && (my_conf.gilded & GILD_BESTOWABLE)) {
+        mate_send_basic(0, 0, 1);
+    }
+}
+
 void start_button_clicked() {
-    if (being_inked) return; // nope!
+    if (being_inked) return; // nope! // TODO: SSOT
 
     switch (mate_state) {
     case MS_IDLE:
@@ -176,14 +195,14 @@ void start_button_clicked() {
     case MS_INK_WAIT:
         tentacle_start_anim(LEG_ANIM_META_MATING, 0, 0, 0);
         if (super_ink_waits_on_me) { // waiting on me:
-            mate_send_basic(1,0);
+            mate_send_basic(1,0,0);
             enter_super_inking();
         }
         // otherwise ignore it... we're waiting on the other badge.
         break;
     case MS_PAIRED:
         tentacle_start_anim(LEG_ANIM_META_MATING, 0, 0, 0);
-        mate_send_basic(1,0);
+        mate_send_basic(1,0,0);
         maybe_enter_ink_wait(1);
         break;
     default:

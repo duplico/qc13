@@ -236,6 +236,9 @@ void delay_millis(unsigned long mils) {
     }
 }
 
+uint8_t start_seconds_pressed = 0;
+uint8_t start_pressed = 1;
+
 void poll_buttons() {
     static uint8_t b_start_read_prev = 1;
     static uint8_t b_start_read = 1;
@@ -293,6 +296,14 @@ void time_loop() {
             radio_beacon_interval();
             interval_seconds_remaining = BEACON_INTERVAL_SECS;
         }
+
+        if (start_pressed) {
+            start_seconds_pressed++;
+            if (start_seconds_pressed >= LONG_PRESS_THRESH) {
+                start_button_longpressed();
+            }
+        }
+
     }
 
     if (mate_state == MS_INK_WAIT) {
@@ -340,12 +351,16 @@ int main(void)
 
         if (s_b_start == BUTTON_PRESS) {
             s_b_start = 0;
+            start_seconds_pressed = 0;
+            start_pressed = 1;
         }
 
         if (s_b_start == BUTTON_RELEASE) {
             s_b_start = 0;
-
-            start_button_clicked();
+            start_pressed = 0;
+            if (start_seconds_pressed < LONG_PRESS_THRESH) { // TODO: SSOT
+                start_button_clicked();
+            }
         }
 
         if (s_b_select == BUTTON_PRESS) {

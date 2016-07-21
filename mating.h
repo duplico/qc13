@@ -29,7 +29,7 @@ extern uint16_t mate_ink_wait;
 extern uint8_t super_ink_waits_on_me;
 
 void init_mating();
-void mate_send_basic(uint8_t click, uint8_t rst);
+void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild);
 void mate_deferred_rx_interrupt();
 void maybe_enter_ink_wait(uint8_t local);
 void mate_over_cleanup();
