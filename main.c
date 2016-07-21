@@ -178,6 +178,9 @@ void make_fresh_conf() {
         // Unlock the hat...
         award_hat(my_conf.badge_id);
     }
+    if (my_conf.badge_id == JASON_ID) {
+        unlock_camo(LEG_ANIM_SHUTDOWN);
+    }
 
     set_badge_seen(my_conf.badge_id, is_handler(my_conf.badge_id));
     set_badge_mated(my_conf.badge_id, is_handler(my_conf.badge_id));
