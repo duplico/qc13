@@ -219,6 +219,7 @@ void new_badge_seen() {
 }
 
 void new_badge_mated() {
+	// The animation is handled elsewhere.
 }
 
 void radio_beacon_interval() {
