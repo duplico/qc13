@@ -154,7 +154,7 @@ void mate_deferred_rx_interrupt() {
         } else {
             // dank message, go to PAIRED
             mate_state = MS_PAIRED;
-            mate_start(mate_id);
+            mate_start(mate_id, mate_on_duty);
         }
         break;
     case MS_PAIRED:
