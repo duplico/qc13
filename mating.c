@@ -152,10 +152,23 @@ void mate_deferred_rx_interrupt() {
             mate_state = MS_HALF_PAIR;
         } else {
             // dank message, go to PAIRED
-            mate_state = MS_PAIRED;
-            mate_start(mate_id, mate_on_duty);
+            if ((mp_in.flags & M_PIPE) && (mate_id == DEDICATED_BASE_ID)) {
+                // pipe
+                mate_state = MS_PIPE_PAIRED;
+            } else if (!(mp_in.flags & M_PIPE) && mate_id != DEDICATED_BASE_ID){
+                // badge
+                mate_state = MS_PAIRED;
+                mate_start(mate_id, mate_on_duty);
+            }
         }
         break;
+    case MS_INK_WAIT:
+        // Here we might get an ink button from our partner.
+        if (!super_ink_waits_on_me && (mp_in.flags & M_INK)) {
+            // we were waiting on our partner, so this is what we wanted.
+            enter_super_inking();
+        } // otherwise, ignore it.
+        // fall through:
     case MS_PAIRED:
         // Here we might get either:
         //  ink button from partner
@@ -167,9 +180,9 @@ void mate_deferred_rx_interrupt() {
         //   (get award! yay!)
         if ((is_uber(mp_in.from_addr) || (mp_in.from_addr == DEDICATED_BASE_ID)) && mp_in.flags & M_BESTOW_HAT) {
             if (award_hat(mp_in.hat_award_id)) {
-                mate_send_uber_hat_response(1);
+                mate_send_hat_response(1);
             } else {
-                mate_send_uber_hat_response(0);
+                mate_send_hat_response(0);
             }
         }
         //  gild message
@@ -181,21 +194,23 @@ void mate_deferred_rx_interrupt() {
         //  some of the state we have about our partner.
         //  That stuff is all handled above.
         break;
-    case MS_INK_WAIT:
-        // Here we might get an ink button from our partner.
-        if (!super_ink_waits_on_me && (mp_in.flags & M_INK)) {
-            // we were waiting on our partner, so this is what we wanted.
-            enter_super_inking();
-        } // otherwise, ignore it.
-        break;
     case MS_SUPER_INK:
         // this is just a place we hang out. Ignore messages here probably.
-        // Yeah, they're probably invalid here.
         // We only care about the stuff that gets set above.
         break;
-    case MS_PIPE_PLUG:
+    case MS_PIPE_PAIRED:
         // We might get a reply from the pipe. It may give us stuff!
         //  Or it'll just print and leave us hanging. That's OK too.
+        if ((mp_in.from_addr == DEDICATED_BASE_ID) && (mp_in.flags & M_BESTOW_HAT)) {
+            // If the incoming hat ID matches my current hat, OR it gets awarded successfully,
+            //  CLAIM IT.
+            if ((mp_in.hat_award_id == my_conf.hat_id) || award_hat(mp_in.hat_award_id)) { // TODO: I suspect fragility.
+                mate_send_hat_response(1);
+                claim_hat(mp_in.hat_award_id);
+            } else {
+                mate_send_hat_response(0);
+            }
+        }
         break;
     case MS_PIPE_DONE:
         // Yeah, we shouldn't get anything here.
@@ -224,6 +239,13 @@ void mate_send_preserve_flags() {
     mp_out.camo_id = my_conf.camo_id;
 
     mp_out.achievements = my_conf.achievements;
+
+    if (0) // TODO
+        mp_out.flags |= M_HANDLER_ON_DUTY;
+    if (my_conf.hat_holder)
+        mp_out.flags |= M_HAT_HOLDER;
+    if (my_conf.hat_claimed)
+        mp_out.flags |= M_HAT_CLAIMED;
 
     // CRC it.
     CRC_setSeed(CRC_BASE, MATE_CRC_SEED);
@@ -256,7 +278,7 @@ void mate_send_uber_hat_bestow() {
     mate_send_flags(M_HAT_AWARD);
 }
 
-void mate_send_uber_hat_response(uint8_t ack) {
+void mate_send_hat_response(uint8_t ack) {
     if (ack) { // Yes!
         mate_send_flags(M_HAT_AWARD_ACK);
     } else { // NACK
@@ -303,7 +325,9 @@ __interrupt void EUSCI_A1_ISR(void)
             if (uart_in_index == 0) { // the protocol one:
                 uart_in_len = sizeof(matepayload);
             } else {
+                // broken
                 // ???? TODO ????
+                //  CLEAN SWEEP
             }
             uart_in_index++;
             if (uart_in_index >= uart_in_len) {
