@@ -6,4 +6,10 @@
  */
 
 void set_badge_seen(uint8_t id, uint8_t handler_on_duty);
+void set_badge_mated(uint8_t id, uint8_t handler_on_duty);
 void tick_badge_seen(uint8_t id, uint8_t handler_on_duty);
+void tick_badge_mated(uint8_t id, uint8_t handler_on_duty);
+uint8_t is_uber(uint8_t badge_id);
+uint8_t is_handler(uint8_t badge_id);
+uint8_t is_donor(uint8_t badge_id);
+uint8_t is_gilder(uint8_t badge_id);
