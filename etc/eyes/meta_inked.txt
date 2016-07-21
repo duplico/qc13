@@ -1,0 +1,12 @@
+off,off,3000
+blink,blink,400
+open,open,800
+cutein,cutein,1100
+blink,blink,200
+cutein,cutein,200
+blink,blink,200
+cutein,cutein,200
+blink,blink,200
+cutein,cutein,1100
+open,open,800
+blink,blink,400
