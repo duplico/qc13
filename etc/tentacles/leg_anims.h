@@ -160,6 +160,21 @@ extern uint16_t handler_doubleink_durations[];
 extern uint16_t handler_doubleink_fade_durs[];
 extern const tentacle_animation_t handler_doubleink;
 // frames for camo
+extern const rgbcolor_t human_hat_camo_frames[][8];
+extern uint16_t human_hat_camo_durations[];
+extern uint16_t human_hat_camo_fade_durs[];
+extern const tentacle_animation_t human_hat_camo;
+// frames for ink
+extern const rgbcolor_t human_hat_ink_frames[][8];
+extern uint16_t human_hat_ink_durations[];
+extern uint16_t human_hat_ink_fade_durs[];
+extern const tentacle_animation_t human_hat_ink;
+// frames for doubleink
+extern const rgbcolor_t human_hat_doubleink_frames[][8];
+extern uint16_t human_hat_doubleink_durations[];
+extern uint16_t human_hat_doubleink_fade_durs[];
+extern const tentacle_animation_t human_hat_doubleink;
+// frames for camo
 extern const rgbcolor_t karatekid_camo_frames[][8];
 extern uint16_t karatekid_camo_durations[];
 extern uint16_t karatekid_camo_fade_durs[];
@@ -204,6 +219,21 @@ extern const rgbcolor_t meta_mating_doubleink_frames[][8];
 extern uint16_t meta_mating_doubleink_durations[];
 extern uint16_t meta_mating_doubleink_fade_durs[];
 extern const tentacle_animation_t meta_mating_doubleink;
+// frames for camo
+extern const rgbcolor_t meta_social_camo_frames[][8];
+extern uint16_t meta_social_camo_durations[];
+extern uint16_t meta_social_camo_fade_durs[];
+extern const tentacle_animation_t meta_social_camo;
+// frames for ink
+extern const rgbcolor_t meta_social_ink_frames[][8];
+extern uint16_t meta_social_ink_durations[];
+extern uint16_t meta_social_ink_fade_durs[];
+extern const tentacle_animation_t meta_social_ink;
+// frames for doubleink
+extern const rgbcolor_t meta_social_doubleink_frames[][8];
+extern uint16_t meta_social_doubleink_durations[];
+extern uint16_t meta_social_doubleink_fade_durs[];
+extern const tentacle_animation_t meta_social_doubleink;
 // frames for camo
 extern const rgbcolor_t mixologist_camo_frames[][8];
 extern uint16_t mixologist_camo_durations[];
@@ -384,7 +414,7 @@ extern const rgbcolor_t wrapup_4_doubleink_frames[][8];
 extern uint16_t wrapup_4_doubleink_durations[];
 extern uint16_t wrapup_4_doubleink_fade_durs[];
 extern const tentacle_animation_t wrapup_4_doubleink;
-#define LEG_ANIM_COUNT 25
+#define LEG_ANIM_COUNT 27
 #define LEG_ANIM_BOOKWORM 0
 #define LEG_ANIM_DEF 1
 #define LEG_ANIM_DOUBLEINK 2
@@ -395,21 +425,23 @@ extern const tentacle_animation_t wrapup_4_doubleink;
 #define LEG_ANIM_GIVER 7
 #define LEG_ANIM_GLAM 8
 #define LEG_ANIM_HANDLER 9
-#define LEG_ANIM_KARATEKID 10
-#define LEG_ANIM_LUSH 11
-#define LEG_ANIM_META_MATING 12
-#define LEG_ANIM_MIXOLOGIST 13
-#define LEG_ANIM_PARTYTIME 14
-#define LEG_ANIM_POOLPARTY 15
-#define LEG_ANIM_POWERHUNGRY 16
-#define LEG_ANIM_PUSHOVER 17
-#define LEG_ANIM_SHUTDOWN 18
-#define LEG_ANIM_SPLISH_SPLASH 19
-#define LEG_ANIM_UBER 20
-#define LEG_ANIM_WRAPUP_1 21
-#define LEG_ANIM_WRAPUP_2 22
-#define LEG_ANIM_WRAPUP_3 23
-#define LEG_ANIM_WRAPUP_4 24
+#define LEG_ANIM_HUMAN_HAT 10
+#define LEG_ANIM_KARATEKID 11
+#define LEG_ANIM_LUSH 12
+#define LEG_ANIM_META_MATING 13
+#define LEG_ANIM_META_SOCIAL 14
+#define LEG_ANIM_MIXOLOGIST 15
+#define LEG_ANIM_PARTYTIME 16
+#define LEG_ANIM_POOLPARTY 17
+#define LEG_ANIM_POWERHUNGRY 18
+#define LEG_ANIM_PUSHOVER 19
+#define LEG_ANIM_SHUTDOWN 20
+#define LEG_ANIM_SPLISH_SPLASH 21
+#define LEG_ANIM_UBER 22
+#define LEG_ANIM_WRAPUP_1 23
+#define LEG_ANIM_WRAPUP_2 24
+#define LEG_ANIM_WRAPUP_3 25
+#define LEG_ANIM_WRAPUP_4 26
 #define ANIM_TYPE_SOLID 0
 #define ANIM_TYPE_FASTTWINKLE 1
 #define ANIM_TYPE_HARDTWINKLE 2
