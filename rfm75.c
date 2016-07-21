@@ -354,9 +354,22 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
+    // event flag when base_addr overflows
     if (payload->flags & RFBC_EVENT && payload->base_addr > EVENTS_IN_SYSTEM) {
         return 0;
     }
+
+    // TODO:
+    // incoming ID is same as local ID
+//    if (payload.from_addr == my_conf.badge_id) {
+//    	return 0;
+//    }
+
+    // handler on duty but source isn't a handler
+    if (payload.flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload.from_addr)) {
+    	return 0;
+    }
+
 
     // CRC it.
     CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
