@@ -40,14 +40,14 @@ rfbcpayload in_payload, out_payload;
 uint8_t being_inked = 0;
 uint8_t mated = 0;
 uint8_t just_sent_superink = 0;
-
 uint8_t seconds_to_next_face = 0;
-
 uint8_t deferred_new_badges = 0;
+uint64_t mate_old_ambient;
 
 void initial_animations() {
     face_set_ambient_direct(0b1000010000100000111111111111111010000100001000001111111111111110);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
+    eye_twinkle_off();
 }
 
 void blink_or_make_face() {
@@ -300,10 +300,6 @@ void radio_broadcast_received(rfbcpayload *payload) {
 
 void radio_transmit_done() {
 }
-
-uint64_t mate_old_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
-
-// 0b1000011111110000111110000011111010000111111100001111100000111110
 
 void mate_plug() {
     mate_old_ambient = face_ambient;
