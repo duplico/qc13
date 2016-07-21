@@ -339,10 +339,18 @@ void tentacle_setup_transitions_and_go() {
 }
 
 void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient) {
-    // If not ambient, remember what IS ambient so we can go back.
+    // If we've been asked to do an interrupting animation, remember what our ambient anim
+	//  was so we can go back to it.
     if (!ambient && tentacle_is_ambient) {
         tentacle_saved_anim_id = tentacle_anim_id;
         tentacle_saved_anim_type = tentacle_anim_type;
+    } else if (ambient && !tentacle_is_ambient) {
+    	// Or if we've been asked to switch our ambient animation, but we're currently in an
+    	//  interrupting animation, we need to change what we have saved so we go back to
+    	//  the new ambient animation.
+        tentacle_saved_anim_id = anim_id;
+        tentacle_saved_anim_type = anim_type;
+        return;
     }
     tentacle_is_ambient = ambient;
     tentacle_anim_id = anim_id;
@@ -369,6 +377,7 @@ void tentacle_next_anim_frame() {
             tentacle_anim_frame = 0;
             tentacle_anim_looping--;
         } else { // not ambient, no loops remaining
+        	tentacle_is_ambient = 1; // Now we're back to being ambient...
             tentacle_start_anim(tentacle_saved_anim_id, tentacle_saved_anim_type, 0, 1);
             leg_anim_done(tentacle_anim_id);
             return; // skip the transitions_and_go because that's called in start_anim.
