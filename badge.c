@@ -98,13 +98,15 @@ void second() {
         mate_send_basic(0, 1);
     }
 
-    do_brightness_correction();
+    do_light_step();
+    do_brightness_correction(light_order, 0);
 }
 
 void two_seconds() {
 }
 
 void face_animation_done() {
+    do_brightness_correction(light_order, 0);
     if (blink_repeat_count) {
         blink_repeat_count--;
         face_start_anim(FACE_ANIM_FASTBLINKING);
@@ -208,6 +210,7 @@ void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
     if (mate_state == MS_SUPER_INK && just_sent_superink) {
         tentacle_start_anim(LEG_ANIM_META_MATING, 2, 5, 0);
+        send_super_ink();
         just_sent_superink = 0;
     }
 }
@@ -254,7 +257,11 @@ void radio_basic_base_received(uint8_t base_id) {
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
     if (being_inked || mate_state != MS_IDLE)
         return; // we ignore inks if we're mated, or already being inked.
-    being_inked = 1;
+    being_inked = ink_type; // 1 for regular, 2 for double.
+    if (being_inked == 1)
+        do_brightness_correction(light_order+2, 1);
+    else
+        do_brightness_correction(light_order+8, 1);
     tentacle_start_anim(ink_id, ink_type, legs_all_anim_sets[ink_id][ink_type]->ink_loops, 0);
     face_start_anim(FACE_ANIM_META_GOTINKED);
 }

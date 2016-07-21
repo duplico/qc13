@@ -128,7 +128,7 @@ inline uint8_t log2(uint16_t v) {
     return r;
 }
 
-void do_brightness_correction() {
+void do_light_step() {
     // Do the light averaging:
     light = light_tot * 0.8 / ADC_WINDOW;
 
@@ -141,11 +141,14 @@ void do_brightness_correction() {
     } else {
         light_order-=2;
     }
+}
 
-    // Graduate our process:
-    if (current_ambient_correct < light_order)
+void do_brightness_correction(uint8_t order, uint8_t immediate) {
+    if (immediate)
+        current_ambient_correct = order;
+    else if (current_ambient_correct < order)
         current_ambient_correct++;
-    else if (current_ambient_correct > light_order)
+    else if (current_ambient_correct > order)
         current_ambient_correct--;
 
     face_ambient_brightness = FACE_DIM_BRIGHTNESS << current_ambient_correct;
