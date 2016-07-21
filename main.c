@@ -195,15 +195,16 @@ void init_clocks() {
 	// DCO to 16 MHz (high freq, option 4)
 	CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
 
-	// Clear fault flags:
-	volatile uint8_t fs = 0;
-	fs = CS_clearAllOscFlagsWithTimeout(100000);
-	__no_operation(); // TODO
-
 	// Allow conditional module requests for MCLK, SMCLK, and ACLK:
 	CS_disableClockRequest(CS_MCLK);
 	CS_disableClockRequest(CS_SMCLK);
 	CS_disableClockRequest(CS_ACLK);
+}
+
+// 0: OK; nonzero: problems
+uint8_t clocks_post_errors() {
+	// Clear fault flags:
+	return CS_clearAllOscFlagsWithTimeout(100000);
 }
 
 int _system_pre_init(void)
@@ -251,12 +252,23 @@ void init() {
 }
 
 void post() {
-    led_post();
+    // test LEDs:
+	led_post();
+
+	// test RFM75:
     uint8_t ret = rfm75_post();
     if (!ret) { // bad radio:
-        face_set_ambient_direct(0b1111111111111111111111111111111111111111111111111111111111111111);
-        delay_millis(5000);
+        face_set_ambient_direct(0bffffffff00000000);
+        delay_millis(3000);
     }
+
+    // test clocks:
+    ret = clocks_post_errors();
+    if (ret) { // bad clock flag:
+        face_set_ambient_direct(0b00000000ffffffff);
+        delay_millis(3000);
+    }
+
 }
 
 void delay_millis(unsigned long mils) {
