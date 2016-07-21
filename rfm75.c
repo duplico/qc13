@@ -29,13 +29,13 @@
 #define CSN_HIGH_END  RFM75_CSN_OUT |= RFM75_CSN_PIN
 
 #if BADGE_TARGET
-    // Target is the actual badge:
-    #define CE_ACTIVATE P3OUT   |=  BIT2
-    #define CE_DEACTIVATE P3OUT &= ~BIT2
+// Target is the actual badge:
+#define CE_ACTIVATE P3OUT   |=  BIT2
+#define CE_DEACTIVATE P3OUT &= ~BIT2
 #else
-    // Target is the Launchpad+shield:
-    #define CE_ACTIVATE P1OUT   |=  BIT2
-    #define CE_DEACTIVATE P1OUT &= ~BIT2
+// Target is the Launchpad+shield:
+#define CE_ACTIVATE P1OUT   |=  BIT2
+#define CE_DEACTIVATE P1OUT &= ~BIT2
 #endif
 
 uint8_t rx_addr_p0[3] = {0xff, 0xff, 0xff};
@@ -62,26 +62,26 @@ uint8_t rfm75_state = RFM75_BOOT;
 
 //Bank0 register initialization value
 const uint8_t bank0_init_data[BANK0_INITS][2] = {
-    { CONFIG, 0b00001111 }, //
-    { 0x01, 0b00000000 }, //No auto-ack
-    { 0x02, 0b00000011 }, //Enable RX pipe 0 and 1
-    { 0x03, 0b00000001 }, //RX/TX address field width 3byte
-    { 0x04, 0b00000000 }, //no auto-RT
-    { 0x05, 0x53 }, //channel: 2400 + LS 7 bits of this field = channel (2.483)
-    { 0x06, 0b00000101 }, //air data rate-1M,out power 5dbm,setup LNA gain.
-    { 0x07, 0b01110000 }, // Clear interrupt flags
-    // 0x0a - RX_ADDR_P0 - 3 bytes
-    // 0x0b - RX_ADDR_P1 - 3 bytes
-    // 0x10 - TX_ADDR - 5 bytes
-    { 0x11, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe0(32 byte)
-    { 0x12, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe1(32 byte)
-    { 0x13, 0 }, //Number of bytes in RX payload in data pipe2 - disable
-    { 0x14, 0 }, //Number of bytes in RX payload in data pipe3 - disable
-    { 0x15, 0 }, //Number of bytes in RX payload in data pipe4 - disable
-    { 0x16, 0 }, //Number of bytes in RX payload in data pipe5 - disable
-    { 0x17, 0 },
-    { 0x1c, 0x00 }, // No dynamic packet length
-    { 0x1d, 0b00000000 } // 00000 | DPL | ACK | DYN_ACK
+        { CONFIG, 0b00001111 }, //
+        { 0x01, 0b00000000 }, //No auto-ack
+        { 0x02, 0b00000011 }, //Enable RX pipe 0 and 1
+        { 0x03, 0b00000001 }, //RX/TX address field width 3byte
+        { 0x04, 0b00000000 }, //no auto-RT
+        { 0x05, 0x53 }, //channel: 2400 + LS 7 bits of this field = channel (2.483)
+        { 0x06, 0b00000101 }, //air data rate-1M,out power 5dbm,setup LNA gain.
+        { 0x07, 0b01110000 }, // Clear interrupt flags
+        // 0x0a - RX_ADDR_P0 - 3 bytes
+        // 0x0b - RX_ADDR_P1 - 3 bytes
+        // 0x10 - TX_ADDR - 5 bytes
+        { 0x11, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe0(32 byte)
+        { 0x12, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe1(32 byte)
+        { 0x13, 0 }, //Number of bytes in RX payload in data pipe2 - disable
+        { 0x14, 0 }, //Number of bytes in RX payload in data pipe3 - disable
+        { 0x15, 0 }, //Number of bytes in RX payload in data pipe4 - disable
+        { 0x16, 0 }, //Number of bytes in RX payload in data pipe5 - disable
+        { 0x17, 0 },
+        { 0x1c, 0x00 }, // No dynamic packet length
+        { 0x1d, 0b00000000 } // 00000 | DPL | ACK | DYN_ACK
 };
 
 uint8_t payload_serial_bytes[RFM75_PAYLOAD_SIZE] = {0xff, 0x00, 0xff, 0};
@@ -92,7 +92,7 @@ uint8_t payload_out[RFM75_PAYLOAD_SIZE] = {0};
 uint8_t usci_b0_recv_sync(uint8_t data) {
     EUSCI_A_SPI_transmitData(EUSCI_B0_BASE, data);
     while (!EUSCI_B_SPI_getInterruptStatus(EUSCI_B0_BASE,
-              EUSCI_B_SPI_TRANSMIT_INTERRUPT));
+            EUSCI_B_SPI_TRANSMIT_INTERRUPT));
     while (!EUSCI_B_SPI_getInterruptStatus(EUSCI_B0_BASE,
             EUSCI_B_SPI_RECEIVE_INTERRUPT));
     return EUSCI_B_SPI_receiveData(EUSCI_B0_BASE);
@@ -281,12 +281,12 @@ void rfm75_init()
     //   reverse everything we send.)
     // Like this:
     uint8_t bank1_config_0x00[][4] = {
-        {0xe2, 0x01, 0x4b, 0x40}, // reserved (prescribed)
-        {0x00, 0x00, 0x4b, 0xc0}, // reserved (prescribed)
-        {0x02, 0x8c, 0xfc, 0xd0}, // reserved (prescribed)
-        {0x41, 0x39, 0x00, 0x99}, // reserved (prescribed)
-        {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us.
-        {0xa6, 0x0f, 0x06, 0x24}, // 1 Mbps
+            {0xe2, 0x01, 0x4b, 0x40}, // reserved (prescribed)
+            {0x00, 0x00, 0x4b, 0xc0}, // reserved (prescribed)
+            {0x02, 0x8c, 0xfc, 0xd0}, // reserved (prescribed)
+            {0x41, 0x39, 0x00, 0x99}, // reserved (prescribed)
+            {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us.
+            {0xa6, 0x0f, 0x06, 0x24}, // 1 Mbps
     };
 
     for (uint8_t i=0; i<6; i++) {
@@ -294,8 +294,8 @@ void rfm75_init()
     }
 
     uint8_t bank1_config_0x0c[][4] = {
-        {0x00, 0x73, 0x12, 0x00}, // 120 us mode (PLL settle time?)
-        {0x00, 0x80, 0xb4, 0x36}, // reserved?
+            {0x00, 0x73, 0x12, 0x00}, // 120 us mode (PLL settle time?)
+            {0x00, 0x80, 0xb4, 0x36}, // reserved?
     };
 
     for (uint8_t i=0; i<2; i++) {
@@ -362,13 +362,13 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
 
     // TODO:
     // incoming ID is same as local ID
-//    if (payload.from_addr == my_conf.badge_id) {
-//    	return 0;
-//    }
+    //    if (payload.from_addr == my_conf.badge_id) {
+    //    	return 0;
+    //    }
 
     // handler on duty but source isn't a handler
     if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->from_addr)) {
-    	return 0;
+        return 0;
     }
 
 
