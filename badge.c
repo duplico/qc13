@@ -157,7 +157,6 @@ void send_super_ink() {
     out_payload.flags = RFBC_INK | RFBC_DINK;
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
-    just_sent_superink = 1;
 }
 
 void send_beacon() {
@@ -216,7 +215,7 @@ void select_button_clicked() {
 void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
     if (mate_state == MS_SUPER_INK && just_sent_superink) {
-        tentacle_start_anim(LEG_ANIM_META_MATING, 2, 5, 0);
+        tentacle_start_anim(LEG_ANIM_META_MATING, 2, 4, 0);
         send_super_ink();
         just_sent_superink = 0;
     }

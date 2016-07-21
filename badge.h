@@ -26,4 +26,6 @@ void mate_plug(); // Called when badges connected
 void mate_start(uint8_t badge_id, uint8_t handler_on_duty); // Called when badges mated (pair)
 void mate_end(uint8_t badge_id); // Called when badges unmated
 
+extern uint8_t just_sent_superink;
+
 #endif /* BADGE_H_ */
