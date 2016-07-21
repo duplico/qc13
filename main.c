@@ -55,12 +55,12 @@ uint8_t temp_index = 0;
 ///////////////////////////
 
 void init_adc() {
-	// Set 1.0 and 1.1 to ternary module function (A0 and A1 respectively)
-	GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN0, GPIO_TERNARY_MODULE_FUNCTION);
-	GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN1, GPIO_TERNARY_MODULE_FUNCTION);
+    // Set 1.0 and 1.1 to ternary module function (A0 and A1 respectively)
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN0, GPIO_TERNARY_MODULE_FUNCTION);
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN1, GPIO_TERNARY_MODULE_FUNCTION);
 
-	// Set 3.3 to ternary (A15)
-	GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3, GPIO_PIN3, GPIO_TERNARY_MODULE_FUNCTION);
+    // Set 3.3 to ternary (A15)
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3, GPIO_PIN3, GPIO_TERNARY_MODULE_FUNCTION);
 
     /* Struct to pass to ADC12_B_init */
     ADC12_B_initParam initParam = {0};
@@ -126,16 +126,16 @@ void poll_adc() {
 }
 
 void term_gpio() {
-	P1SEL0 = 0;
-	P1SEL1 = 0;
-	P2SEL0 = 0;
-	P2SEL1 = 0;
-	P3SEL0 = 0;
-	P3SEL1 = 0;
-	P4SEL0 = 0;
-	P4SEL1 = 0;
-	PJSEL0 = 0;
-	PJSEL1 = 0;
+    P1SEL0 = 0;
+    P1SEL1 = 0;
+    P2SEL0 = 0;
+    P2SEL1 = 0;
+    P3SEL0 = 0;
+    P3SEL1 = 0;
+    P4SEL0 = 0;
+    P4SEL1 = 0;
+    PJSEL0 = 0;
+    PJSEL1 = 0;
 
     P1DIR = 0xFF;
     P1OUT = 0x00;
@@ -150,15 +150,15 @@ void term_gpio() {
 }
 
 uint8_t is_camo_avail(uint8_t camo_id) {
-	return (my_conf.camo_unlocks & (uint32_t)(1 << camo_id)) ? 1 : 0;
+    return (my_conf.camo_unlocks & (uint32_t)(1 << camo_id)) ? 1 : 0;
 }
 
 void unlock_camo(uint8_t camo_id) {
-	if (is_camo_avail(camo_id))
-		return;
-	my_conf.camo_unlocks |= (uint32_t)(1 << camo_id);
-	my_conf.camo_id = camo_id;
-	// TODO: CRC
+    if (is_camo_avail(camo_id))
+        return;
+    my_conf.camo_unlocks |= (uint32_t)(1 << camo_id);
+    my_conf.camo_id = camo_id;
+    // TODO: CRC
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
@@ -166,54 +166,58 @@ void make_fresh_conf() {
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
     my_conf.camo_id = LEG_ANIM_DEF;
     if (is_uber(my_conf.badge_id)) {
-    	unlock_camo(LEG_ANIM_UBER);
+        unlock_camo(LEG_ANIM_UBER);
+        my_conf.uber_hat_given = 0;
+        award_hat(HAT_UBER);
     }
     if (is_handler(my_conf.badge_id)) {
-    	// We'll unlock the camo when we go on duty.
+        // We'll unlock the camo when we go on duty.
+        award_hat(HAT_HANDLER);
     }
     if (is_donor(my_conf.badge_id)) {
-    	// Unlock the hat...
+        // Unlock the hat...
+        award_hat(my_conf.badge_id);
     }
 
-	set_badge_seen(my_conf.badge_id, is_handler(my_conf.badge_id));
-	set_badge_mated(my_conf.badge_id, is_handler(my_conf.badge_id));
+    set_badge_seen(my_conf.badge_id, is_handler(my_conf.badge_id));
+    set_badge_mated(my_conf.badge_id, is_handler(my_conf.badge_id));
 }
 
 void setup_my_conf() {
-	// If we don't have a valid conf:
-	make_fresh_conf();
+    // TODO: If we don't have a valid conf:
+    make_fresh_conf();
 }
 
 void init_clocks() {
-	// MCLK: DCO /2
-	CS_initClockSignal(CS_MCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_2);
-	// SMCLK is DCO /11
-	CS_initClockSignal(CS_SMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
-	// ACLK is LFMODOSC /1
-	CS_initClockSignal(CS_ACLK, CS_LFMODOSC_SELECT, CS_CLOCK_DIVIDER_1);
+    // MCLK: DCO /2
+    CS_initClockSignal(CS_MCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_2);
+    // SMCLK is DCO /11
+    CS_initClockSignal(CS_SMCLK, CS_DCOCLK_SELECT, CS_CLOCK_DIVIDER_1);
+    // ACLK is LFMODOSC /1
+    CS_initClockSignal(CS_ACLK, CS_LFMODOSC_SELECT, CS_CLOCK_DIVIDER_1);
 
-	// DCO to 16 MHz (high freq, option 4)
-	CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
+    // DCO to 16 MHz (high freq, option 4)
+    CS_setDCOFreq(CS_DCORSEL_1, CS_DCOFSEL_4);
 
-	// Allow conditional module requests for MCLK, SMCLK, and ACLK:
-	CS_disableClockRequest(CS_MCLK);
-	CS_disableClockRequest(CS_SMCLK);
-	CS_disableClockRequest(CS_ACLK);
+    // Allow conditional module requests for MCLK, SMCLK, and ACLK:
+    CS_disableClockRequest(CS_MCLK);
+    CS_disableClockRequest(CS_SMCLK);
+    CS_disableClockRequest(CS_ACLK);
 }
 
 // 0: OK; nonzero: problems
 uint8_t clocks_post_errors() {
-	// Clear fault flags:
-	return CS_clearAllOscFlagsWithTimeout(100000);
+    // Clear fault flags:
+    return CS_clearAllOscFlagsWithTimeout(100000);
 }
 
 int _system_pre_init(void)
 {
-  // stop WDT
-  WDTCTL = WDTPW + WDTHOLD;
+    // stop WDT
+    WDTCTL = WDTPW + WDTHOLD;
 
-  // Perform C/C++ global data initialization
-  return 1;
+    // Perform C/C++ global data initialization
+    return 1;
 }
 
 void init() {
@@ -253,19 +257,19 @@ void init() {
 
 void post() {
     // test LEDs:
-	led_post();
+    led_post();
 
-	// test RFM75:
+    // test RFM75:
     uint8_t ret = rfm75_post();
     if (!ret) { // bad radio:
-        face_set_ambient_direct(0bffffffff00000000);
+        face_set_ambient_direct(0xffffffff00000000);
         delay_millis(3000);
     }
 
     // test clocks:
     ret = clocks_post_errors();
     if (ret) { // bad clock flag:
-        face_set_ambient_direct(0b00000000ffffffff);
+        face_set_ambient_direct(0x00000000ffffffff);
         delay_millis(3000);
     }
 
