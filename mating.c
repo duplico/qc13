@@ -93,6 +93,7 @@ void maybe_enter_ink_wait(uint8_t local) {
 
 void enter_super_inking() {
     mate_ink_wait = 0;
+    just_sent_superink = 1;
     mate_state = MS_SUPER_INK;
 }
 
