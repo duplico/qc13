@@ -100,26 +100,28 @@ void init_adc() {
 }
 
 void poll_adc() {
-    light_tot -= lights[light_index];
+
+    if (!being_inked) {
+        // Light:
+        light_tot -= lights[light_index];
+        lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
+        if (lights[light_index] < 3) lights[light_index] = 3;
+        light_tot += lights[light_index];
+        light_index++;
+        if (light_index == ADC_WINDOW) light_index = 0;
+    }
+
+    // Temp:
     temp_tot -= temps[temp_index];
-    lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
     temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1) >> 1;
-
-    if (lights[light_index] < 3) lights[light_index] = 3;
-
-    light_tot += lights[light_index];
     temp_tot += temps[temp_index];
-
-    light_index++;
     temp_index++;
-
-    if (light_index == ADC_WINDOW) light_index = 0;
     if (temp_index == ADC_WINDOW) temp_index = 0;
-    // light gets set from light_tot in badge.c.
-
 
     temp = temp_tot / ADC_WINDOW;
     // Temp has 3 bands: COLD < NORMAL < HOT
+
+    // Hat:
 }
 
 void term_gpio() {

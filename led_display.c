@@ -130,9 +130,11 @@ inline uint8_t log2(uint16_t v) {
 
 void do_light_step() {
     // Do the light averaging:
+    // This can go up to 12 bits:
     light = light_tot * 0.8 / ADC_WINDOW;
 
     // We're going to get the order of magnitude (log2) of light:
+    // 0 .. 12
     light_order = log2(light);
 
     // Do some correction:
@@ -141,6 +143,7 @@ void do_light_step() {
     } else {
         light_order-=2;
     }
+    // 0 .. 10
 }
 
 void do_brightness_correction(uint8_t order, uint8_t immediate) {
@@ -151,7 +154,7 @@ void do_brightness_correction(uint8_t order, uint8_t immediate) {
     else if (current_ambient_correct > order)
         current_ambient_correct--;
 
-    face_ambient_brightness = FACE_DIM_BRIGHTNESS << current_ambient_correct;
+    face_ambient_brightness = ((uint32_t)FACE_DIM_BRIGHTNESS) << current_ambient_correct;
     if (face_ambient_brightness > UINT16_MAX) {
         face_ambient_brightness = UINT16_MAX;
     }
