@@ -130,20 +130,17 @@ typedef struct {
 
 #define MATE_VERSION 1
 
-#define M_ACHIEVEMENT BIT0 // 0=mate; 1=achievement
 #define M_HAT_AWARD BIT1
 #define M_HAT_AWARD_ACK BIT2
 #define M_HAT_AWARD_NACK BIT3
 #define M_INK BIT4
 #define M_HAT_HOLDER BIT5
 #define M_RST BIT6
-#define M_PUSH_HAT_ELIGIBLE BIT7
+#define M_HAT_CLAIMED BIT7
 #define M_HANDLER_ON_DUTY BIT8
 #define M_PIPE BIT9 // 0=badge; 1=pipe
 #define M_BESTOW_HAT BITA
-#define M_RQ_ACHIEVEMENTS BITB
-#define M_BESTOW_ACH_0 BITC
-#define M_BESTOW_ACH_1 BITD
+#define M_REPRINT_HAT BITB
 #define M_BESTOW_GILD BITF
 
 #define GILD_ON BIT0

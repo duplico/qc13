@@ -188,6 +188,8 @@ void start_button_longpressed() {
     }
     else if (mate_state == MS_PAIRED && (my_conf.gilded & GILD_BESTOWABLE)) {
         mate_send_basic(0, 0, 1);
+    } else if (mate_state == MS_PIPE_PAIRED && my_conf.hat_holder) {
+        mate_send_flags(M_REPRINT_HAT);
     }
 }
 
