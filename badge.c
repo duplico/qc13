@@ -43,6 +43,8 @@ uint8_t just_sent_superink = 0;
 
 uint8_t seconds_to_next_face = 0;
 
+uint8_t deferred_new_badges = 0;
+
 void initial_animations() {
     face_set_ambient_direct(0b1000010000100000111111111111111010000100001000001111111111111110);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
@@ -96,6 +98,11 @@ void second() {
 
     if (mate_state == MS_PLUG) {
         mate_send_basic(0, 1);
+    }
+
+    if (deferred_new_badges) {
+        deferred_new_badges--;
+        new_badge_seen(1);
     }
 
     do_light_step();
@@ -218,7 +225,15 @@ void leg_anim_done(uint8_t tentacle_anim_id) {
 void not_lonely() {
 }
 
-void new_badge_seen() {
+void new_badge_seen(uint8_t deferred) {
+    // I think I skip this if I'm paired or being inked...
+    if (mate_state || being_inked || !tentacle_is_ambient) { // TODO: SSOT for being busy?
+        if (!deferred) deferred_new_badges++;
+        return;
+    }
+
+    do_brightness_correction(light_order+2, 1);
+    tentacle_start_anim(LEG_ANIM_META_SOCIAL, 0, 0, 0);
 }
 
 void new_badge_mated() {
@@ -296,8 +311,15 @@ void mate_plug() {
     face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
 }
 
-void mate_start(uint8_t badge_id) {
+void mate_start(uint8_t badge_id, uint8_t handler_on_duty) { // TODO: add handler_on_duty
     face_set_ambient_direct(0b1000011111110000111110000011111010000111111100001111100000111110);
+    if (badges_mated[badge_id]) { // TODO: be sure to set ourselves mated. Eventually.
+        // We've mated before
+        tentacle_start_anim(LEG_ANIM_META_SOCIAL, 1, 0, 0);
+    } else {
+        tentacle_start_anim(LEG_ANIM_META_SOCIAL, 2, 0, 0);
+    }
+    set_badge_mated(badge_id, handler_on_duty);
 }
 
 void mate_end(uint8_t badge_id) {

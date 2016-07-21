@@ -12,7 +12,7 @@ void initial_animations(); // Called when it's time to start the first ambients
 void time_loop(); // Called every time_loop_interval
 void send_super_ink(); // Called when time to do a double ink.
 void radio_beacon_interval(); // Called when it's time for the radio to beacon.
-void new_badge_seen(); // Called when we've seen a new badge
+void new_badge_seen(uint8_t deferred); // Called when we've seen a new badge
 void new_badge_mated(); // Called when we've mated to a new badge.
 void start_button_clicked(); // The start button was pressed and released
 void select_button_clicked(); // The select button was pressed and released
@@ -23,8 +23,7 @@ void face_animation_done(); // Eye animation finished
 void second(); // Called once per second (ish)
 void two_seconds(); // Called once per 2ish seconds
 void mate_plug(); // Called when badges connected
-void mate_start(uint8_t badge_id); // Called when badges mated (pair)
+void mate_start(uint8_t badge_id, uint8_t handler_on_duty); // Called when badges mated (pair)
 void mate_end(uint8_t badge_id); // Called when badges unmated
-void new_badge_seen(); // Called when we see someone new near us.
 
 #endif /* BADGE_H_ */

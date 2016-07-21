@@ -28,7 +28,7 @@ void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
         my_conf.odh_seen_count++;
     }
 
-    new_badge_seen();
+    new_badge_seen(0);
 
     // TODO: Check for achievements.
 }
