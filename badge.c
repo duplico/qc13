@@ -31,6 +31,7 @@ const qc13conf default_conf = {
         0, // event check-ins
         0xffffffff, // camo_unlocks bitfield // TODO: should be 0x1
         LEG_ANIM_DEF, // camo_id
+        0, // Blank
         0 // blank CRC.
 };
 

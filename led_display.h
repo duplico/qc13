@@ -31,6 +31,7 @@ typedef struct {
     uint8_t len;
     uint8_t anim_type;
     uint8_t wiggle;
+    uint8_t ink_loops;
 } tentacle_animation_t;
 
 typedef struct {
