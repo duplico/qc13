@@ -72,6 +72,9 @@ void delay_millis(unsigned long);
 
 #define GPIO_pulse(port, pin) do { GPIO_setOutputHighOnPin(port, pin); GPIO_setOutputLowOnPin(port, pin); } while (0)
 
+#define SMCLK_RATE_KHZ 16000
+#define SMCLK_RATE_HZ  16000000
+
 /////////////////////////////////////////////////////////////////////
 // State constants //////////////////////////////////////////////////
 
