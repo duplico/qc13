@@ -27,5 +27,6 @@ void mate_start(uint8_t badge_id, uint8_t handler_on_duty); // Called when badge
 void mate_end(uint8_t badge_id); // Called when badges unmated
 
 extern uint8_t just_sent_superink;
+extern uint8_t being_inked;
 
 #endif /* BADGE_H_ */
