@@ -40,6 +40,8 @@ void delay_millis(unsigned long);
 #define RECEIVE_WINDOW 10
 #define BEACON_INTERVAL_SECS 10 // TODO
 
+#define LONG_PRESS_THRESH 2
+
 #define ADC_WINDOW 32
 
 #define SUPER_INK_WINDOW_SECS 1
@@ -119,6 +121,12 @@ typedef struct {
 #define M_RQ_ACHIEVEMENTS BITB
 #define M_BESTOW_ACH_0 BITC
 #define M_BESTOW_ACH_1 BITD
+#define M_BESTOW_GILD BITF
+
+#define GILD_ON BIT0
+#define GILD_AVAIL BIT1
+// TODO: nooooope:
+#define GILD_BESTOWABLE BIT2
 
 typedef struct {
     uint8_t badge_id;
@@ -128,6 +136,7 @@ typedef struct {
     uint32_t camo_unlocks;
     uint8_t camo_id;
     uint64_t achievements;
+    uint8_t gilded;
     uint16_t crc16;
 } qc13conf;
 

@@ -227,6 +227,7 @@ inline void leg_fade_colors() {
 void eye_twinkle_off() {
     eye_twinkle_bits = 0xffffffffffffffff;
     eyes_twinkling = 0;
+    set_face(face_curr); // Dirty face.
 }
 
 void eye_twinkle_on() {
