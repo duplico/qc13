@@ -35,22 +35,36 @@ volatile uint8_t f_time_loop = 0;
 volatile uint8_t f_rfm75_interrupt = 0;
 volatile uint8_t f_mate_interrupt = 0;
 
+uint8_t hat_check_this_cycle = 0;
+
+uint8_t hat_state = HS_NONE;
+
 // Signals to the main loop (not caused by interrupts):
 uint8_t s_b_start = 0;
 uint8_t s_b_select = 0;
 uint8_t s_b_ohai = 0;
 uint8_t s_face_anim_done = 0;
+uint8_t s_hat_check = 0;
 
 // ADC related:
+//  light:
 uint16_t lights[ADC_WINDOW] = {0};
-uint16_t temps[ADC_WINDOW] = {0};
 uint16_t light = 0;
 uint8_t light_order = 0;
-uint16_t temp = 0;
 uint16_t light_tot = 0;
-uint16_t temp_tot = 0;
 uint8_t light_index = 0;
+
+//  temp:
+uint16_t temps[ADC_WINDOW] = {0};
+uint16_t temp = 0;
+uint16_t temp_tot = 0;
 uint8_t temp_index = 0;
+
+// hat voltage:
+uint16_t hat_potentials[ADC_WINDOW] = {0};
+volatile uint16_t hat_potential = 0; // TODO
+uint16_t hat_v_tot = 0;
+uint8_t hat_v_index = 0;
 
 // Initialization functions
 ///////////////////////////
@@ -66,9 +80,6 @@ void init_adc() {
     /* Struct to pass to ADC12_B_init */
     ADC12_B_initParam initParam = {0};
 
-    /* Struct to pass to ADC12_B_configureMemory */
-    ADC12_B_configureMemoryParam configureMemoryParam = {0};
-
     /* Initializes ADC12_B */
     initParam.sampleHoldSignalSourceSelect = ADC12_B_SAMPLEHOLDSOURCE_SC;
     initParam.clockSourceSelect = ADC12_B_CLOCKSOURCE_ADC12OSC;
@@ -83,9 +94,30 @@ void init_adc() {
     /* Sets up and enables the Sampling Timer Pulse Mode */
     ADC12_B_setupSamplingTimer(ADC12_B_BASE, ADC12_B_CYCLEHOLD_8_CYCLES, ADC12_B_CYCLEHOLD_8_CYCLES, ADC12_B_MULTIPLESAMPLESENABLE);
 
-    /* Configures the memory buffer 1 */
+    /* Struct to pass to ADC12_B_configureMemory */
+    ADC12_B_configureMemoryParam configureMemoryParam = {0};
+
+    // Buffer 0
+    configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_0;
+    configureMemoryParam.inputSourceSelect = ADC12_B_INPUT_A0;
+    configureMemoryParam.refVoltageSourceSelect = ADC12_B_VREFPOS_AVCC_VREFNEG_VSS;
+    configureMemoryParam.endOfSequence = ADC12_B_NOTENDOFSEQUENCE;
+    configureMemoryParam.windowComparatorSelect = ADC12_B_WINDOW_COMPARATOR_DISABLE;
+    configureMemoryParam.differentialModeSelect = ADC12_B_DIFFERENTIAL_MODE_DISABLE;
+    ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
+
+    // Buffer 1
     configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_1;
     configureMemoryParam.inputSourceSelect = ADC12_B_INPUT_A1;
+    configureMemoryParam.refVoltageSourceSelect = ADC12_B_VREFPOS_AVCC_VREFNEG_VSS;
+    configureMemoryParam.endOfSequence = ADC12_B_NOTENDOFSEQUENCE;
+    configureMemoryParam.windowComparatorSelect = ADC12_B_WINDOW_COMPARATOR_DISABLE;
+    configureMemoryParam.differentialModeSelect = ADC12_B_DIFFERENTIAL_MODE_DISABLE;
+    ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
+
+    // Buffer 3
+    configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_2;
+    configureMemoryParam.inputSourceSelect = ADC12_B_INPUT_A15;
     configureMemoryParam.refVoltageSourceSelect = ADC12_B_VREFPOS_AVCC_VREFNEG_VSS;
     configureMemoryParam.endOfSequence = ADC12_B_ENDOFSEQUENCE;
     configureMemoryParam.windowComparatorSelect = ADC12_B_WINDOW_COMPARATOR_DISABLE;
@@ -115,15 +147,25 @@ void poll_adc() {
 
     // Temp:
     temp_tot -= temps[temp_index];
-    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1) >> 1;
+    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1);
     temp_tot += temps[temp_index];
     temp_index++;
     if (temp_index == ADC_WINDOW) temp_index = 0;
-
     temp = temp_tot / ADC_WINDOW;
+
     // Temp has 3 bands: COLD < NORMAL < HOT
 
     // Hat:
+    hat_v_tot -= hat_potentials[hat_v_index];
+    hat_potentials[hat_v_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_2);
+    hat_v_tot += hat_potentials[hat_v_index];
+    hat_v_index++;
+    if (hat_v_index == ADC_WINDOW) {
+        hat_v_index = 0;
+        if (hat_check_this_cycle)
+            s_hat_check = 1;
+        hat_check_this_cycle = !hat_check_this_cycle;
+    }
 }
 
 void term_gpio() {
@@ -318,6 +360,23 @@ void poll_buttons() {
 
 } // poll_buttons
 
+void do_hat_check() {
+    hat_potential = hat_v_tot / ADC_WINDOW;
+
+    uint8_t hat_type_detected = HS_NONE;
+    if (1750 < hat_potential && hat_potential < 1950) {
+        hat_type_detected = HS_HANDLER;
+    } else if (hat_potential > 3950) {
+        hat_type_detected = HS_HUMAN;
+    }
+
+    if (hat_type_detected != hat_state) {
+        // switching hats
+        hat_state = hat_type_detected;
+        new_hat(hat_state);
+    }
+}
+
 void time_loop() {
     static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
     static uint16_t second_loops = LOOPS_PER_SECOND;
@@ -387,6 +446,11 @@ int main(void)
         if (f_rfm75_interrupt) {
             rfm75_deferred_interrupt();
             f_rfm75_interrupt = 0;
+        }
+
+        if (s_hat_check) {
+            do_hat_check();
+            s_hat_check = 0;
         }
 
         if (s_b_start == BUTTON_PRESS) {

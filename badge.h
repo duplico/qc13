@@ -16,6 +16,7 @@ void new_badge_seen(uint8_t deferred); // Called when we've seen a new badge
 void new_badge_mated(); // Called when we've mated to a new badge.
 void start_button_clicked(); // The start button was pressed and released
 void start_button_longpressed(); // Start button press & hold (fired before release)
+void new_hat(uint8_t hat_id); // The hat we're wearing has changed.
 void select_button_clicked(); // The select button was pressed and released
 void radio_broadcast_received(rfbcpayload *payload); // Received a radio message
 void radio_transmit_done(); // Finished transmitting a radio message
