@@ -173,6 +173,10 @@ void send_beacon() {
     rfm75_tx();
 }
 
+void new_hat(uint8_t hat_id) {
+    tentacle_start_anim(LEG_ANIM_HANDLER, 0, 1, 0);
+}
+
 void start_button_longpressed() {
     if (being_inked || !my_conf.gilded) return; // nope!
 

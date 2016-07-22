@@ -44,6 +44,7 @@ void delay_millis(unsigned long);
 #define UBER_COUNT UBER_MAX_INCLUSIVE + 1 - UBER_MIN_INCLUSIVE
 #define HANDLER_COUNT HANDLER_MAX_INCLUSIVE + 1 - HANDLER_MIN_INCLUSIVE
 
+#define HAT_STATE_WAIT_SECS 3
 
 #define RF_RESEND_COUNT 3
 
@@ -181,6 +182,12 @@ typedef struct {
 #define HAT_DONOR_ERIC 17
 #define HAT_DONOR_CHRIS 18
 
+#define HS_NONE 0
+#define HS_WAIT 1
+#define HS_UBER 2
+#define HS_HANDLER 3
+#define HS_HUMAN 4
+
 /////////////////////////////////////////////////////////////////////
 // Global declarations //////////////////////////////////////////////
 
@@ -202,5 +209,7 @@ extern uint8_t badges_seen[BADGES_IN_SYSTEM];
 extern uint8_t badges_mated[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_badges[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_count;
+
+extern uint8_t hat_state;
 
 #endif /* QC13_H_ */
