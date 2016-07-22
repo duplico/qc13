@@ -130,7 +130,7 @@ typedef struct {
 
 #define MATE_VERSION 1
 
-#define M_HAT_AWARD BIT1
+#define M_HAT_AWARD BIT1 // Award = PUSH hat. From badge.
 #define M_HAT_AWARD_ACK BIT2
 #define M_HAT_AWARD_NACK BIT3
 #define M_INK BIT4
@@ -139,7 +139,7 @@ typedef struct {
 #define M_HAT_CLAIMED BIT7
 #define M_HANDLER_ON_DUTY BIT8
 #define M_PIPE BIT9 // 0=badge; 1=pipe
-#define M_BESTOW_HAT BITA
+#define M_CLAIMED_HAT BITA // comes from pipe
 #define M_REPRINT_HAT BITB
 #define M_BESTOW_GILD BITF
 

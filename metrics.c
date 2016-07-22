@@ -31,7 +31,6 @@ uint8_t is_gilder(uint8_t badge_id) {
 // Returns 1 if accepted.
 uint8_t award_hat(uint8_t id) {
     // TODO: validate id
-    tentacle_start_anim(LEG_ANIM_META_SOCIAL, 0, 5, 0); // TODO
     if (my_conf.hat_holder)
         return 0;
     my_conf.achievements |= ((uint16_t) 0x01 << id);

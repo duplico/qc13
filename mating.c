@@ -179,7 +179,7 @@ void mate_deferred_rx_interrupt() {
         }
         //  award message
         //   (get award! yay!)
-        if ((is_uber(mp_in.from_addr) || (mp_in.from_addr == DEDICATED_BASE_ID)) && mp_in.flags & M_BESTOW_HAT) {
+        if ((is_uber(mp_in.from_addr) || (mp_in.from_addr == DEDICATED_BASE_ID)) && mp_in.flags & M_HAT_AWARD) {
             if (award_hat(mp_in.hat_award_id)) {
                 mate_send_hat_response(1);
             } else {
@@ -202,7 +202,7 @@ void mate_deferred_rx_interrupt() {
     case MS_PIPE_PAIRED:
         // We might get a reply from the pipe. It may give us stuff!
         //  Or it'll just print and leave us hanging. That's OK too.
-        if ((mp_in.from_addr == DEDICATED_BASE_ID) && (mp_in.flags & M_BESTOW_HAT)) {
+        if ((mp_in.from_addr == DEDICATED_BASE_ID) && (mp_in.flags & M_CLAIMED_HAT)) {
             // If the incoming hat ID matches my current hat, OR it gets awarded successfully,
             //  CLAIM IT.
             if ((mp_in.hat_award_id == my_conf.hat_id) || award_hat(mp_in.hat_award_id)) { // TODO: I suspect fragility.
@@ -277,7 +277,9 @@ void mate_send_flags(uint16_t flags) {
 }
 
 void mate_send_uber_hat_bestow() {
+    // TODO: Make sure our partner doesn't have a hat already.
     mp_out.hat_award_id = my_conf.badge_id;
+    mate_state = MS_UBER_HAT_OFFER;
     mate_send_flags(M_HAT_AWARD);
 }
 
@@ -310,6 +312,8 @@ __interrupt void EUSCI_A1_ISR(void)
     //Vector 2 - RXIFG
     case 2:
         uart_in_byte = EUSCI_A_UART_receiveData(EUSCI_A1_BASE);
+        if (uart_in_ignore)
+            return;
         // If we're not synced, we need to be checking against sync bytes.
         if (!uart_in_synced) {
             if (uart_in_byte == mate_sync_bytes[uart_in_index]) { // matchy:
@@ -336,9 +340,9 @@ __interrupt void EUSCI_A1_ISR(void)
                 // Payload received.
                 uart_in_ignore = 1; // Don't clobber good stuff with new stuff.
                 f_mate_interrupt = 1;
-                __bic_SR_register_on_exit(SLEEP_BITS);
                 uart_in_synced = 0;
                 uart_in_index = 0;
+                __bic_SR_register_on_exit(SLEEP_BITS);
             }
         }
         break; // End of RXIFG ///////////////////////////////////////////////////////
