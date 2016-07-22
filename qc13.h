@@ -173,12 +173,44 @@ typedef struct {
 #define HAT_JAKE 10
 #define HAT_COLLIN 11
 #define HAT_ALYSSA 12
-#define HAT_UBER 13
-#define HAT_HANDLER 14
-#define HAT_DONOR_REED 15
-#define HAT_DONOR_HEATHER 16
-#define HAT_DONOR_ERIC 17
-#define HAT_DONOR_CHRIS 18
+#define HAT_DONOR_REED 13
+#define HAT_DONOR_HEATHER 14
+#define HAT_DONOR_ERIC 15
+#define HAT_DONOR_CHRIS 16
+#define HAT_BADGE_TALK 17       // TODO
+#define HAT_POOL_FIRST 18       // TODO
+#define HAT_POOL_LAST 19        // TODO
+#define HAT_MIXER_SAT_FIRST 20  // TODO
+#define HAT_KARAOKE_FIRST 21    // TODO
+#define HAT_KARAOKE_LAST 22     // TODO
+#define HAT_PEST 23             // TODO
+#define HAT_MORNING 24          // TODO
+#define HAT_HOT_COLD 25         // TODO
+#define HAT_BRIGHT_DARK 26      // TODO
+#define HAT_COLD 27             // TODO
+#define HAT_HOT 28              // TODO
+#define HAT_MATE_UBER 29        // TODO
+#define HAT_MATE_HANDLER 30     // TODO
+#define HAT_MATE_50 31          // TODO
+#define HAT_MATE_100 32         // TODO
+#define HAT_MATE_200 33         // TODO
+#define HAT_DINK_50 34          // TODO
+#define HAT_TIME_NEAR_UBERS 35  // TODO
+#define HAT_NEAR_HANDLERS 36    // TODO
+#define HAT_TIME_NEAR_HANDLERS 37 // TODO
+#define HAT_ALL_MIXERS 38       // TODO
+#define HAT_KONAMI 39           // TODO
+#define HAT_MINUTEMAN 40        // TODO
+#define HAT_POWER_CYCLES 41     // TODO
+#define HAT_SUPER_INK 42        // TODO
+#define HAT_MARGIN_HIGH 43      // TODO
+#define HAT_MARGIN_LOW 44       // TODO
+#define HAT_LOW_MARGIN 45       // TODO
+#define HAT_BORROWER 46         // TODO
+
+
+#define HAT_UBER 55
+#define HAT_HANDLER 56
 
 #define HS_NONE 0
 #define HS_WAIT 1
