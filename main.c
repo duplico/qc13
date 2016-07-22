@@ -364,10 +364,12 @@ void do_hat_check() {
     hat_potential = hat_v_tot / ADC_WINDOW;
 
     uint8_t hat_type_detected = HS_NONE;
-    if (1750 < hat_potential && hat_potential < 1950) {
+    if (1750 < hat_potential && hat_potential < 1950) { // 1.5 V
         hat_type_detected = HS_HANDLER;
     } else if (hat_potential > 3950) {
         hat_type_detected = HS_HUMAN;
+    } else if (3000 < hat_potential && hat_potential < 3200) { // 2.5 V
+        hat_type_detected = HS_UBER;
     }
 
     if (hat_type_detected != hat_state) {
