@@ -107,9 +107,7 @@ typedef struct {
 #define RFBC_EVENT BIT1
 #define RFBC_INK BIT2
 #define RFBC_DINK BIT3
-#define RFBC_HAT_ON BIT4
 #define RFBC_HATHOLDER BIT5
-#define RFBC_PUSH_HAT_ELIGIBLE BIT6
 #define RFBC_HANDLER_ON_DUTY BIT7
 
 typedef struct {
@@ -187,6 +185,7 @@ typedef struct {
 #define HS_UBER 2
 #define HS_HANDLER 3
 #define HS_HUMAN 4
+#define HS_UBER_HANDLER 5
 
 /////////////////////////////////////////////////////////////////////
 // Global declarations //////////////////////////////////////////////
