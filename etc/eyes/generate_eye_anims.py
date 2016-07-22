@@ -78,6 +78,7 @@ def main():
     c_lines.append('#include "../../led_display.h"')
 
     all_animations = []
+    meta_animations = []
     
     for anim in os.listdir("."):
         if not anim[-3:] == "txt": continue
@@ -86,8 +87,14 @@ def main():
         anims = []
         lengths = []
         c_lines.append("")
-        c_lines.append("// Frames for %s" % anim[:-4])
-        all_animations.append(anim[:-4])
+        anim_name = anim[:-4]
+        c_lines.append("// Frames for %s" % anim_name)
+        
+        if anim_name.upper().startswith('META'):
+            meta_animations.append(anim_name)
+        else:
+            all_animations.append(anim_name)
+        
         with open(anim) as f:
             i=0
             for line in f:
@@ -117,12 +124,14 @@ def main():
     c_lines.append("// All animations here:")
     #print "#define FACE_ANIM_NONE 0"
     h_lines.append("#define FACE_ANIM_COUNT %d" % len(all_animations))
+    all_animations = all_animations + meta_animations
+    h_lines.append("#define FACE_ANIM_COUNT_INCL_META %d" % len(all_animations))
     for i in range(len(all_animations)):
-        h_lines.append("#define FACE_ANIM_%s %d" % (all_animations[i].upper(), i))
+        h_lines.append("#define FACE_ANIM_%s %d" % ((all_animations)[i].upper(), i))
     h_lines.append("")
     all_animations_ptrs = map(lambda a: "&" + a, all_animations)
-    c_lines.append("face_animation_t *face_all_animations[FACE_ANIM_COUNT] = {%s};" % ", ".join(all_animations_ptrs))
-    h_lines.append("extern face_animation_t *face_all_animations[FACE_ANIM_COUNT];")
+    c_lines.append("face_animation_t *face_all_animations[FACE_ANIM_COUNT_INCL_META] = {%s};" % ", ".join(all_animations_ptrs))
+    h_lines.append("extern face_animation_t *face_all_animations[FACE_ANIM_COUNT_INCL_META];")
     
     h_lines.append("#endif // _H_")
     with open("eye_anims.c", 'w') as f:
