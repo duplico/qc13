@@ -8,6 +8,7 @@
 #include "qc13.h"
 #include "metrics.h"
 #include "badge.h"
+#include "leg_anims.h"
 
 uint8_t is_uber(uint8_t badge_id) {
     return badge_id >= UBER_MIN_INCLUSIVE && badge_id <= UBER_MAX_INCLUSIVE;
@@ -30,6 +31,7 @@ uint8_t is_gilder(uint8_t badge_id) {
 // Returns 1 if accepted.
 uint8_t award_hat(uint8_t id) {
     // TODO: validate id
+    tentacle_start_anim(LEG_ANIM_META_SOCIAL, 0, 5, 0); // TODO
     if (my_conf.hat_holder)
         return 0;
     my_conf.achievements |= ((uint16_t) 0x01 << id);
@@ -60,7 +62,8 @@ void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
             my_conf.uber_seen_count++;
         }
 
-        new_badge_seen(0);
+        if (id != my_conf.badge_id)
+            new_badge_seen(0);
     }
 
     if (handler_on_duty && is_handler(id) && !(badges_seen[id] & ODH_SEEN_BITS) && my_conf.odh_seen_count < HANDLER_COUNT) {
@@ -91,7 +94,8 @@ void set_badge_mated(uint8_t id, uint8_t handler_on_duty) {
             my_conf.uber_mate_count++;
         }
 
-        new_badge_mated();
+        if (id != my_conf.badge_id)
+            new_badge_mated();
     }
 
     if (handler_on_duty && is_handler(id) && !(badges_mated[id] & ODH_MATED_BITS) && my_conf.odh_mate_count < HANDLER_COUNT) {
@@ -100,4 +104,17 @@ void set_badge_mated(uint8_t id, uint8_t handler_on_duty) {
         badges_mated[id] |= ODH_MATED_BITS;
     }
     // TODO: Check for achievements.
+}
+
+uint8_t is_camo_avail(uint8_t camo_id) {
+    return (my_conf.camo_unlocks & ((uint32_t)1 << camo_id)) ? 1 : 0;
+}
+
+void unlock_camo(uint8_t camo_id) {
+    if (is_camo_avail(camo_id))
+        return;
+    my_conf.camo_unlocks |= (uint32_t)1 << camo_id;
+    my_conf.camo_id = camo_id;
+    // TODO: CRC
+    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }

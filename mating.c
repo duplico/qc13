@@ -167,6 +167,7 @@ void mate_deferred_rx_interrupt() {
         if (!super_ink_waits_on_me && (mp_in.flags & M_INK)) {
             // we were waiting on our partner, so this is what we wanted.
             enter_super_inking();
+            break;
         } // otherwise, ignore it.
         // fall through:
     case MS_PAIRED:
@@ -242,8 +243,10 @@ void mate_send_preserve_flags() {
 
     if (0) // TODO
         mp_out.flags |= M_HANDLER_ON_DUTY;
+
     if (my_conf.hat_holder)
         mp_out.flags |= M_HAT_HOLDER;
+
     if (my_conf.hat_claimed)
         mp_out.flags |= M_HAT_CLAIMED;
 
@@ -288,7 +291,6 @@ void mate_send_hat_response(uint8_t ack) {
 
 void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild) {
     uint16_t flags_out = 0;
-    flags_out = 0; // TODO
     if (click)
         flags_out |= M_INK;
     if (rst)

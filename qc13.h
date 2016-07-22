@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 102
+#define BADGE_ID 0
 
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
@@ -145,8 +145,6 @@ typedef struct {
 
 #define GILD_ON BIT0
 #define GILD_AVAIL BIT1
-// TODO: nooooope:
-#define GILD_BESTOWABLE BIT2
 
 typedef struct {
     uint8_t badge_id;

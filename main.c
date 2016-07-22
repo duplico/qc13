@@ -5,6 +5,7 @@
 
 // Project includes:
 #include <stdint.h>
+#include <stdlib.h>
 #include "qc13.h"
 #include "rfm75.h"
 #include "led_display.h"
@@ -149,26 +150,14 @@ void term_gpio() {
     PJOUT = 0x00;
 }
 
-uint8_t is_camo_avail(uint8_t camo_id) {
-    return (my_conf.camo_unlocks & (uint32_t)(1 << camo_id)) ? 1 : 0;
-}
-
-void unlock_camo(uint8_t camo_id) {
-    if (is_camo_avail(camo_id))
-        return;
-    my_conf.camo_unlocks |= (uint32_t)(1 << camo_id);
-    my_conf.camo_id = camo_id;
-    // TODO: CRC
-    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
-}
-
 void make_fresh_conf() {
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
-    my_conf.camo_id = LEG_ANIM_DEF;
+    unlock_camo(LEG_ANIM_DEF);
     if (is_uber(my_conf.badge_id)) {
         unlock_camo(LEG_ANIM_UBER);
         my_conf.uber_hat_given = 0;
         award_hat(HAT_UBER);
+        my_conf.gilded = GILD_AVAIL;
     }
     if (is_handler(my_conf.badge_id)) {
         // We'll unlock the camo when we go on duty.
@@ -189,6 +178,8 @@ void make_fresh_conf() {
 void setup_my_conf() {
     // TODO: If we don't have a valid conf:
     make_fresh_conf();
+
+    srand(my_conf.badge_id);
 }
 
 void init_clocks() {
@@ -286,7 +277,7 @@ void delay_millis(unsigned long mils) {
 }
 
 uint8_t start_seconds_pressed = 0;
-uint8_t start_pressed = 1;
+uint8_t start_pressed = 0;
 
 void poll_buttons() {
     static uint8_t b_start_read_prev = 1;

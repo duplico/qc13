@@ -30,11 +30,11 @@ const qc13conf default_conf = {
         0, 0, 0, // mate counts
         0, 0, 0, // hats!
         0, // event check-ins
-        0xffffffff, // camo_unlocks bitfield // TODO: should be 0x1
+        0, // camo_unlocks bitfield
         LEG_ANIM_DEF, // camo_id
         0, // Uber hat not given out
         0, // No achievements
-        0b110, // Gilded. TODO!!!!!
+        0, // Not gilded.
         0 // blank CRC.
 };
 
@@ -185,8 +185,7 @@ void start_button_longpressed() {
             eye_twinkle_off();
     } else if (mate_state == MS_PAIRED && is_uber(my_conf.badge_id) && !my_conf.uber_hat_given) {
         mate_send_uber_hat_bestow();
-    }
-    else if (mate_state == MS_PAIRED && (my_conf.gilded & GILD_BESTOWABLE)) {
+    } else if (mate_state == MS_PAIRED && (is_gilder(my_conf.badge_id))) {
         mate_send_basic(0, 0, 1);
     } else if (mate_state == MS_PIPE_PAIRED && my_conf.hat_holder) {
         mate_send_flags(M_REPRINT_HAT);
@@ -222,12 +221,16 @@ void start_button_clicked() {
 void select_button_clicked() {
     if (being_inked) return; // nope!
 
-    if ((my_conf.camo_id+1) % LEG_ANIM_COUNT == my_conf.camo_id) {
-        // not allowed to change camo
-    } else {
-        my_conf.camo_id = (my_conf.camo_id+1) % LEG_ANIM_COUNT;
-        tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
-    }
+    static uint8_t new_camo = 0;
+
+    new_camo = my_conf.camo_id;
+
+    do {
+        new_camo = (new_camo+1) % LEG_ANIM_COUNT;
+    } while (!is_camo_avail(new_camo));
+
+    my_conf.camo_id = new_camo;
+    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
 void leg_anim_done(uint8_t tentacle_anim_id) {
