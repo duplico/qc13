@@ -134,14 +134,10 @@ void face_animation_done() {
 void complete_rfbc_payload(rfbcpayload *payload) {
     payload->base_addr = NOT_A_BASE;
     payload->from_addr = my_conf.badge_id;
-    // TODO: if handler and wearing a hat:
-    //    payload->flags |= RFBC_HANDLER_ON_DUTY;
-    // TODO: if hatholder:
-    //    payload->flags |= RFBC_HATHOLDER
-    // TODO: if hat on:
-    //    payload->flags |= RFBC_HAT_ON
-    // TODO: if eligible for a push hat:
-    //    payload.flags |= RFBC_PUSH_HAT_ELIGIBLE
+    if (is_handler(my_conf.badge_id) && hat_state == HS_HANDLER)
+        payload->flags |= RFBC_HANDLER_ON_DUTY;
+    if (my_conf.hat_holder)
+        payload->flags |= RFBC_HATHOLDER;
 
     // CRC it.
     CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
@@ -173,8 +169,8 @@ void send_beacon() {
     rfm75_tx();
 }
 
-void new_hat(uint8_t hat_id) {
-    tentacle_start_anim(LEG_ANIM_HANDLER, 0, 1, 0);
+void hat_change(uint8_t hat_id) {
+    // Borrowing called from elsewhere. AFTER this.
 }
 
 void start_button_longpressed() {
@@ -346,4 +342,8 @@ void mate_start(uint8_t badge_id, uint8_t handler_on_duty) {
 void mate_end(uint8_t badge_id) {
     face_set_ambient_direct(mate_old_ambient);
     mate_over_cleanup();
+}
+
+void borrowing_hat() {
+
 }

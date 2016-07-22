@@ -375,7 +375,14 @@ void do_hat_check() {
     if (hat_type_detected != hat_state) {
         // switching hats
         hat_state = hat_type_detected;
-        new_hat(hat_state);
+        hat_change(hat_state);
+
+        if ((!my_conf.hat_holder && hat_state) ||
+                (!is_uber(my_conf.badge_id) && hat_state == HS_UBER) ||
+                (!is_handler(my_conf.badge_id) && hat_state == HS_HANDLER)) {
+            borrowing_hat();
+        }
+
     }
 }
 
