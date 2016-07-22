@@ -171,4 +171,4 @@ uint16_t triple_blink_lengths[] = {300, 300, 300, 300, 300, 2300, 700, 700, 700,
 face_animation_t triple_blink = {triple_blink_frames, triple_blink_lengths, 10};
 
 // All animations here:
-face_animation_t *face_all_animations[FACE_ANIM_COUNT] = {&angry, &blinking, &cats_left, &cats_right, &crosseyedcat, &cutesy, &cutesy_left, &cutesy_right, &cute_lookaround, &eyeroll, &fall_asleep, &fastblinking, &konami, &left_right_squint, &look_around, &meta_doubleinked, &meta_gotinked, &meta_inked, &punched_in_eye, &sad, &shake, &something_in_eye, &spazz_out, &triple_blink};
+face_animation_t *face_all_animations[FACE_ANIM_COUNT_INCL_META] = {&angry, &blinking, &cats_left, &cats_right, &crosseyedcat, &cutesy, &cutesy_left, &cutesy_right, &cute_lookaround, &eyeroll, &fall_asleep, &fastblinking, &konami, &left_right_squint, &look_around, &punched_in_eye, &sad, &shake, &something_in_eye, &spazz_out, &triple_blink, &meta_doubleinked, &meta_gotinked, &meta_inked};

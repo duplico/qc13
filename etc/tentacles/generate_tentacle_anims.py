@@ -38,6 +38,7 @@ def main():
     c_lines.append('#include "leg_anims.h"')
     
     all_animations = []
+    meta_animations = []
     all_types = []
     
     for anim in os.listdir("."):
@@ -51,7 +52,10 @@ def main():
         super_ink_lengths = []
         
         anim_name = anim[:-4]
-        all_animations.append(anim_name)
+        if anim_name.upper().startswith('META'):
+            meta_animations.append(anim_name)
+        else:
+            all_animations.append(anim_name)
         
         c_lines.append("")
         c_lines.append("///////////////// %s:" % anim_name.upper())
@@ -201,12 +205,13 @@ def main():
             c_lines.append("const tentacle_animation_t *%s_anim_set[3] = {%s};" % (anim_name, ', '.join(map(lambda a: "&%s" % a, local_animation_names))))
     c_lines.append("")
     h_lines.append("#define LEG_ANIM_COUNT %d" % len(all_animations))
-    for i in range(len(all_animations)):
-        h_lines.append("#define LEG_ANIM_%s %d" % (all_animations[i].upper(), i))
+    h_lines.append("#define LEG_ANIM_COUNT_INCL_META %d" % len(all_animations+meta_animations))
+    for i in range(len(all_animations+meta_animations)):
+        h_lines.append("#define LEG_ANIM_%s %d" % ((all_animations+meta_animations)[i].upper(), i))
     for i in range(len(all_types)):
         h_lines.append("#define ANIM_TYPE_%s %d" % (all_types[i].upper(), i))
     h_lines.append("#define LEG_ANIM_TYPE_COUNT %d" % len(all_types))
-    c_lines.append("const tentacle_animation_t **legs_all_anim_sets[] = {%s};" % ', '.join(map(lambda a: "%s_anim_set" % a, all_animations)))
+    c_lines.append("const tentacle_animation_t **legs_all_anim_sets[] = {%s};" % ', '.join(map(lambda a: "%s_anim_set" % a, all_animations+meta_animations)))
     h_lines.append("extern const tentacle_animation_t **legs_all_anim_sets[];")
     
     h_lines.append("#endif // _H_")
