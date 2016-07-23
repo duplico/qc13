@@ -131,6 +131,8 @@ face_animation_t face_animations[0];
 
 uint64_t face_curr;
 uint64_t face_ambient = 0xffffffffffffffff;
+uint64_t face_stored_ambient = 0xffffffffffffffff;
+uint8_t face_ambient_is_temp = 0;
 uint8_t face_current_animation = FACE_ANIM_NONE;
 uint8_t face_curr_anim_frame = 0;
 uint16_t face_curr_dur = 0;
@@ -368,6 +370,29 @@ void set_tentacles(const rgbcolor_t* leg_colors) {
         tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+1] = g;
         tlc_bank_gs[4+(tent/4)][4+((tent*3)%12)+2] = r;
     }
+}
+
+void face_set_ambient_temp_direct(uint64_t amb) {
+    if (!face_ambient_is_temp) // If we're not in a temporary state, save our current.
+        face_stored_ambient = face_ambient;
+    face_ambient_is_temp = 1;
+    face_ambient = amb;
+    if (face_state == FACESTATE_AMBIENT) {
+        face_curr = face_ambient;
+        set_face(face_curr);
+    }
+}
+
+void face_restore_ambient() {
+    face_ambient_is_temp = 0;
+    face_set_ambient_direct(face_stored_ambient);
+}
+
+void face_set_baseline_ambient_direct(uint64_t amb) {
+    if (face_ambient_is_temp)
+        face_stored_ambient = face_ambient;
+    else
+        face_set_ambient_direct(amb);
 }
 
 void face_set_ambient_direct(uint64_t amb) {

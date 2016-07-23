@@ -22,6 +22,8 @@ uint8_t neighbor_count = 0;
 
 uint8_t blink_repeat_count = 0;
 
+uint8_t ink_cooldown = 0;
+
 qc13conf my_conf = {0};
 
 const qc13conf default_conf = {
@@ -45,7 +47,6 @@ uint8_t mated = 0;
 uint8_t just_sent_superink = 0;
 uint8_t seconds_to_next_face = 0;
 uint8_t deferred_new_badges = 0;
-uint64_t mate_old_ambient;
 
 void initial_animations() {
     face_set_ambient_direct(DEFAULT_EYES);
@@ -65,7 +66,7 @@ void blink_or_make_face() {
     if (face_state != FACESTATE_AMBIENT)
         return;
 
-    uint8_t to_blink = mate_state || (rand() % 5);
+    uint8_t to_blink = mate_state || ink_cooldown || (rand() % 5);
     uint8_t thing_to_do = 0;
 
     if (!to_blink) {
@@ -114,6 +115,16 @@ void second() {
 
     do_light_step();
     do_brightness_correction(light_order, 0);
+
+    if (ink_cooldown) {
+        ink_cooldown--;
+        if (!ink_cooldown) {
+            // something something something
+            face_restore_ambient();
+            if (!(my_conf.gilded & GILD_ON))
+                eye_twinkle_off();
+        }
+    }
 }
 
 void two_seconds() {
@@ -148,7 +159,13 @@ void complete_rfbc_payload(rfbcpayload *payload) {
 }
 
 void send_ink() {
+    if (ink_cooldown)
+        return;
+    ink_cooldown = INK_OUT_COOLDOWN_SECS;
+    face_start_anim(FACE_ANIM_CUTESY);
     tentacle_send_meta_mating(2);
+    eye_twinkle_on();
+    face_set_ambient_temp_direct(INKING_EYES);
     out_payload.ink_id = my_conf.camo_id;
     out_payload.flags = RFBC_INK;
     complete_rfbc_payload(&out_payload);
@@ -177,12 +194,12 @@ void hat_change(uint8_t from, uint8_t to) {
 
     if (to & HS_HANDLER) {
         // angry eyes.
-        face_set_ambient_direct(ANGRY_EYES);
+        face_set_baseline_ambient_direct(ANGRY_EYES);
         // set the camo.
         unlock_camo(LEG_ANIM_HANDLER);
         tentacle_start_anim(LEG_ANIM_HANDLER, LEG_CAMO_INDEX, 1, 1);
     } else if (from & HS_HANDLER) {
-        face_set_ambient_direct(DEFAULT_EYES);
+        face_set_baseline_ambient_direct(DEFAULT_EYES);
     }
 }
 
@@ -337,12 +354,11 @@ void radio_transmit_done() {
 }
 
 void mate_plug() {
-    mate_old_ambient = face_ambient;
-    face_set_ambient_direct(CLOSED_EYES);
+    face_set_ambient_temp_direct(CLOSED_EYES);
 }
 
 void mate_start(uint8_t badge_id, uint8_t handler_on_duty) {
-    face_set_ambient_direct(GIGGITY_EYES);
+    face_set_ambient_temp_direct(GIGGITY_EYES);
     if (badges_mated[badge_id]) {
         // We've mated before
         tentacle_start_anim(LEG_ANIM_META_SOCIAL, 1, 0, 0);
@@ -353,7 +369,7 @@ void mate_start(uint8_t badge_id, uint8_t handler_on_duty) {
 }
 
 void mate_end(uint8_t badge_id) {
-    face_set_ambient_direct(mate_old_ambient);
+    face_restore_ambient();
     mate_over_cleanup();
 }
 
