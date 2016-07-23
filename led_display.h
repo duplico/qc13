@@ -56,7 +56,7 @@ void face_set_ambient_temp_direct(uint64_t amb);
 void face_start_anim(uint8_t anim_index);
 void tentacle_start_anim_direct(const tentacle_animation_t *animation, uint8_t loop, uint8_t ambient);
 void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient);
-void tentacle_send_meta_mating(uint8_t index);
+void tentacle_send_meta_mating(uint8_t index, uint8_t loop);
 void tentacle_wiggle();
 void eye_twinkle_off();
 void eye_twinkle_on();

@@ -452,8 +452,8 @@ void tentacle_start_anim_direct(const tentacle_animation_t *animation, uint8_t l
 }
 
 // pew pew pew
-void tentacle_send_meta_mating(uint8_t index) {
-    tentacle_start_anim_direct(leg_meta_mate_anim_set[index], 4, 0);
+void tentacle_send_meta_mating(uint8_t index, uint8_t loop) {
+    tentacle_start_anim_direct(leg_meta_mate_anim_set[index], loop, 0);
 //    tentacle_start_anim(LEG_ANIM_META_MATING, 2, 4, 0);
 }
 
