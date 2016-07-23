@@ -148,7 +148,7 @@ void complete_rfbc_payload(rfbcpayload *payload) {
 }
 
 void send_ink() {
-    tentacle_start_anim(LEG_ANIM_META_MATING, 2, 4, 0);
+    tentacle_send_meta_mating(2);
     out_payload.ink_id = my_conf.camo_id;
     out_payload.flags = RFBC_INK;
     complete_rfbc_payload(&out_payload);
@@ -213,7 +213,7 @@ void start_button_clicked() {
         send_ink();
         break;
     case MS_INK_WAIT:
-        tentacle_start_anim(LEG_ANIM_META_MATING, 0, 0, 0);
+        tentacle_send_meta_mating(0);
         if (super_ink_waits_on_me) { // waiting on me:
             mate_send_basic(1,0,0);
             enter_super_inking();
@@ -221,7 +221,7 @@ void start_button_clicked() {
         // otherwise ignore it... we're waiting on the other badge.
         break;
     case MS_PAIRED:
-        tentacle_start_anim(LEG_ANIM_META_MATING, 0, 0, 0);
+        tentacle_send_meta_mating(0);
         mate_send_basic(1,0,0);
         maybe_enter_ink_wait(1);
         break;
@@ -249,7 +249,7 @@ void select_button_clicked() {
 void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
     if (mate_state == MS_SUPER_INK && just_sent_superink) {
-        tentacle_start_anim(LEG_ANIM_META_MATING, 2, 4, 0);
+        tentacle_send_meta_mating(2);
         send_super_ink();
         just_sent_superink = 0;
     }
