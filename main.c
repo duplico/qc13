@@ -288,7 +288,6 @@ void init() {
     rfm75_init(); // Initialize our radio (including GPIO)
     init_mating();// Initialize mating port (GPIO is above)
     init_adc();   // Start up the ADC for light and temp sensors.
-
 }
 
 void post() {
@@ -374,12 +373,12 @@ void do_hat_check() {
 
     if (hat_type_detected != hat_state) {
         // switching hats
+        hat_change(hat_state, hat_type_detected);
         hat_state = hat_type_detected;
-        hat_change(hat_state);
 
         if ((!my_conf.hat_holder && hat_state) ||
-                (!is_uber(my_conf.badge_id) && hat_state == HS_UBER) ||
-                (!is_handler(my_conf.badge_id) && hat_state == HS_HANDLER)) {
+                (!is_uber(my_conf.badge_id) && (hat_state & HS_UBER)) ||
+                (!is_handler(my_conf.badge_id) && (hat_state & HS_HANDLER))) {
             borrowing_hat();
         }
 
