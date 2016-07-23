@@ -35,6 +35,8 @@ volatile uint8_t f_time_loop = 0;
 volatile uint8_t f_rfm75_interrupt = 0;
 volatile uint8_t f_mate_interrupt = 0;
 
+uint8_t fresh_power = 0; // Turned on for the first time.
+
 uint8_t hat_check_this_cycle = 0;
 
 uint8_t hat_state = HS_NONE;
@@ -190,9 +192,19 @@ void term_gpio() {
     P4OUT = 0x00;
     PJDIR = 0xFF;
     PJOUT = 0x00;
+
+    // LED banks:
+    P3DIR |= (LED_BANK5_PIN | LED_BANK6_PIN);
+    PJDIR |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN | LED_BANK4_PIN);
+    LED_BANK1_OUT |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
+            | LED_BANK4_PIN);
+    LED_BANK5_OUT |= (LED_BANK5_PIN | LED_BANK6_PIN);
+
 }
 
 void make_fresh_conf() {
+    // fresh_power = 1; // TODO
+
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
     unlock_camo(LEG_ANIM_DEF);
     if (is_uber(my_conf.badge_id)) {
@@ -290,9 +302,18 @@ void init() {
     init_adc();   // Start up the ADC for light and temp sensors.
 }
 
+void set_face(uint64_t frame); // TODO
+
 void post() {
     // test LEDs:
-    led_post();
+    if (fresh_power) {
+        led_post();
+    }
+    else {
+        set_face(0);
+        tlc_stage_blank(0);
+        tlc_set_fun();
+    }
 
     // test RFM75:
     uint8_t ret = rfm75_post();
