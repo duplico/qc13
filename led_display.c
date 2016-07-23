@@ -355,14 +355,34 @@ void tentacle_setup_transitions_and_go() {
 
 }
 
-void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient) {
+// If ambient=1, then a bit of pre-work is needed.
+void tentacle_start_anim_direct(const tentacle_animation_t *animation, uint8_t loop, uint8_t ambient) {
     // If we've been asked to do an interrupting animation, remember what our ambient anim
     //  was so we can go back to it.
     if (!ambient && tentacle_is_ambient) {
         tentacle_saved_anim_id = tentacle_anim_id;
         tentacle_saved_anim_type = tentacle_anim_type;
-    } else if (ambient && !tentacle_is_ambient) {
-        // Or if we've been asked to switch our ambient animation, but we're currently in an
+    }
+
+    tentacle_is_ambient = ambient;
+
+    tentacle_current_anim = animation;
+
+    tentacle_anim_frame = 0; // This is our frame index in the animation.
+    tentacle_animation_state = 1; // animating
+
+    leg_anim_adj_index = 0;
+    tentacle_anim_looping = loop;
+    tentacle_anim_length = tentacle_current_anim->len;
+
+    wiggle_mask = 0xff;
+
+    tentacle_setup_transitions_and_go();
+}
+
+void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient) {
+    if (ambient && !tentacle_is_ambient) {
+        // If we've been asked to switch our ambient animation, but we're currently in an
         //  interrupting animation, we need to change what we have saved so we go back to
         //  the new ambient animation.
         tentacle_saved_anim_id = anim_id;
@@ -384,19 +404,10 @@ void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8
 //        }
 //    }
 
-    tentacle_is_ambient = ambient;
+    tentacle_start_anim_direct(legs_all_anim_sets[anim_id][anim_type], loop, ambient);
+
     tentacle_anim_id = anim_id;
     tentacle_anim_type = anim_type;
-    tentacle_current_anim = legs_all_anim_sets[anim_id][anim_type];
-    tentacle_anim_frame = 0; // This is our frame index in the animation.
-    tentacle_animation_state = 1; // animating
-    leg_anim_adj_index = 0;
-    tentacle_anim_looping = loop;
-    tentacle_anim_length = tentacle_current_anim->len;
-
-    wiggle_mask = 0xff;
-
-    tentacle_setup_transitions_and_go();
 }
 
 void tentacle_next_anim_frame() {
