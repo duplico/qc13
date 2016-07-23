@@ -48,7 +48,7 @@ uint8_t deferred_new_badges = 0;
 uint64_t mate_old_ambient;
 
 void initial_animations() {
-    face_set_ambient_direct(0b1000010000100000111111111111111010000100001000001111111111111110);
+    face_set_ambient_direct(DEFAULT_EYES);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 
     if (my_conf.gilded & GILD_ON)
@@ -134,7 +134,7 @@ void face_animation_done() {
 void complete_rfbc_payload(rfbcpayload *payload) {
     payload->base_addr = NOT_A_BASE;
     payload->from_addr = my_conf.badge_id;
-    if (is_handler(my_conf.badge_id) && hat_state == HS_HANDLER)
+    if (is_handler(my_conf.badge_id) && (hat_state & HS_HANDLER))
         payload->flags |= RFBC_HANDLER_ON_DUTY;
     if (my_conf.hat_holder)
         payload->flags |= RFBC_HATHOLDER;
@@ -169,8 +169,21 @@ void send_beacon() {
     rfm75_tx();
 }
 
-void hat_change(uint8_t hat_id) {
-    // Borrowing called from elsewhere. AFTER this.
+void hat_change(uint8_t from, uint8_t to) {
+    // This function MUST rely upon its parameters, not the global state,
+    //  as the global state isn't settled yet when this function is called.
+    // The borrowing event doesn't need to be fired from here.
+    //  It's called elsewhere - after.
+
+    if (to & HS_HANDLER) {
+        // angry eyes.
+        face_set_ambient_direct(ANGRY_EYES);
+        // set the camo.
+        unlock_camo(LEG_ANIM_HANDLER);
+        tentacle_start_anim(LEG_ANIM_HANDLER, LEG_CAMO_INDEX, 1, 1);
+    } else if (from & HS_HANDLER) {
+        face_set_ambient_direct(DEFAULT_EYES);
+    }
 }
 
 void start_button_longpressed() {
@@ -325,11 +338,11 @@ void radio_transmit_done() {
 
 void mate_plug() {
     mate_old_ambient = face_ambient;
-    face_set_ambient_direct(0b1000000000000000111100000001111010000000000000001111000000011110);
+    face_set_ambient_direct(CLOSED_EYES);
 }
 
 void mate_start(uint8_t badge_id, uint8_t handler_on_duty) {
-    face_set_ambient_direct(0b1000011111110000111110000011111010000111111100001111100000111110);
+    face_set_ambient_direct(GIGGITY_EYES);
     if (badges_mated[badge_id]) {
         // We've mated before
         tentacle_start_anim(LEG_ANIM_META_SOCIAL, 1, 0, 0);

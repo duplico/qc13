@@ -68,6 +68,11 @@ void delay_millis(unsigned long);
 #define BADGE_MATED_BITS BIT5
 #define ODH_MATED_BITS BIT4
 
+#define DEFAULT_EYES 0b1000010000100000111111111111111010000100001000001111111111111110
+#define ANGRY_EYES 0b0111111000100000000001111111111001111110001000000000011111111110
+#define CLOSED_EYES 0b0000011111110000000000000000000000000111111100000000000000000000
+#define GIGGITY_EYES 0b1000011111110000111110000011111010000111111100001111100000111110
+
 /////////////////////////////////////////////////////////////////////
 // Hardware related defines /////////////////////////////////////////
 
@@ -213,11 +218,11 @@ typedef struct {
 #define HAT_HANDLER 56
 
 #define HS_NONE 0
-#define HS_WAIT 1
-#define HS_UBER 2
-#define HS_HANDLER 3
-#define HS_HUMAN 4
-#define HS_UBER_HANDLER 5
+#define HS_WAIT BIT1
+#define HS_UBER BIT2
+#define HS_HUMAN BIT3
+#define HS_HANDLER BIT4
+#define HS_UBER_HANDLER BIT4 | BIT2
 
 /////////////////////////////////////////////////////////////////////
 // Global declarations //////////////////////////////////////////////

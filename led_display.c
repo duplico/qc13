@@ -332,14 +332,6 @@ void face_set_ambient_direct(uint64_t amb) {
     }
 }
 
-void face_set_ambient(uint8_t amb_index) {
-    face_ambient = 0b1000010000100000111111111111111010000100001000001111111111111110;
-    if (face_state == FACESTATE_AMBIENT) {
-        face_curr = face_ambient;
-        set_face(face_curr);
-    }
-}
-
 void face_start_anim(uint8_t anim_index) {
     face_curr_anim_frame = 0;
     face_current_animation = anim_index;
@@ -377,6 +369,21 @@ void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8
         tentacle_saved_anim_type = anim_type;
         return;
     }
+
+//    if (ambient) {
+//        for (uint8_t at=0; at<3; at++) {
+//            for (uint16_t i=0; i< meta_mating_anim_set[at]->durations[at]; i++) {
+//                for (uint8_t j=0; j<8; j++) {
+//                    if (meta_mating_anim_set[at]->colors[i][j].red || meta_mating_anim_set[at]->colors[i][j].green || meta_mating_anim_set[at]->colors[i][j].blue) {
+//                        meta_mating_anim_set[at]->colors[i][j].red = sprays[anim_id].red;
+//                        meta_mating_anim_set[at]->colors[i][j].green = sprays[anim_id].green;
+//                        meta_mating_anim_set[at]->colors[i][j].blue = sprays[anim_id].blue;
+//                    }
+//                }
+//            }
+//        }
+//    }
+
     tentacle_is_ambient = ambient;
     tentacle_anim_id = anim_id;
     tentacle_anim_type = anim_type;
