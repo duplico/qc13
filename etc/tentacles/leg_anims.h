@@ -234,6 +234,22 @@ extern uint16_t meta_social_doubleink_fade_durs[];
 extern const tentacle_animation_t meta_social_doubleink;
 extern const tentacle_animation_t *meta_social_anim_set[3];
 // frames for camo
+extern const rgbcolor_t meta_wakeup_camo_frames[][8];
+extern uint16_t meta_wakeup_camo_durations[];
+extern uint16_t meta_wakeup_camo_fade_durs[];
+extern const tentacle_animation_t meta_wakeup_camo;
+// frames for ink
+extern const rgbcolor_t meta_wakeup_ink_frames[][8];
+extern uint16_t meta_wakeup_ink_durations[];
+extern uint16_t meta_wakeup_ink_fade_durs[];
+extern const tentacle_animation_t meta_wakeup_ink;
+// frames for doubleink
+extern const rgbcolor_t meta_wakeup_doubleink_frames[][8];
+extern uint16_t meta_wakeup_doubleink_durations[];
+extern uint16_t meta_wakeup_doubleink_fade_durs[];
+extern const tentacle_animation_t meta_wakeup_doubleink;
+extern const tentacle_animation_t *meta_wakeup_anim_set[3];
+// frames for camo
 extern const rgbcolor_t mixologist_camo_frames[][8];
 extern uint16_t mixologist_camo_durations[];
 extern uint16_t mixologist_camo_fade_durs[];
@@ -426,7 +442,7 @@ extern uint16_t wrapup_4_doubleink_fade_durs[];
 extern const tentacle_animation_t wrapup_4_doubleink;
 extern const tentacle_animation_t *wrapup_4_anim_set[3];
 #define LEG_ANIM_COUNT 25
-#define LEG_ANIM_COUNT_INCL_META 26
+#define LEG_ANIM_COUNT_INCL_META 27
 #define LEG_ANIM_BOOKWORM 0
 #define LEG_ANIM_DEF 1
 #define LEG_ANIM_DOUBLEINK 2
@@ -453,6 +469,7 @@ extern const tentacle_animation_t *wrapup_4_anim_set[3];
 #define LEG_ANIM_WRAPUP_3 23
 #define LEG_ANIM_WRAPUP_4 24
 #define LEG_ANIM_META_SOCIAL 25
+#define LEG_ANIM_META_WAKEUP 26
 #define ANIM_TYPE_SOLID 0
 #define ANIM_TYPE_FASTTWINKLE 1
 #define ANIM_TYPE_HARDTWINKLE 2

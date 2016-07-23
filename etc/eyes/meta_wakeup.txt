@@ -1,0 +1,8 @@
+blink,blink,1800
+squint,squint, 1100
+blink,blink,1400
+squint,squint,750
+open,open,700
+blink,blink,200
+open,open,200
+blink,blink,200

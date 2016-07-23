@@ -50,7 +50,9 @@ uint8_t deferred_new_badges = 0;
 
 void initial_animations() {
     face_set_ambient_direct(DEFAULT_EYES);
+    tentacle_start_anim(LEG_ANIM_META_WAKEUP, LEG_CAMO_INDEX, 0, 0);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
+    face_start_anim(FACE_ANIM_META_WAKEUP);
 
     if (my_conf.gilded & GILD_ON)
         eye_twinkle_on();
