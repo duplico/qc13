@@ -249,7 +249,7 @@ void start_button_clicked() {
 }
 
 void select_button_clicked() {
-    if (being_inked) return; // nope!
+    if (being_inked || mate_state == MS_SUPER_INK || ink_cooldown) return; // nope!
 
     static uint8_t new_camo = 0;
 
