@@ -134,23 +134,6 @@ void tlc_stage_bc(uint8_t bc) {
     fun_base[17] |= bc;
 }
 
-void tlc_start() {
-    // Start the clocks:
-
-    // A1 / GSCLK:
-    Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_UP_MODE);
-
-    // A0 / LED channel timer:
-    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
-
-    EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
-    EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
-
-    tlc_set_gs();
-    tlc_stage_blank(1);
-    tlc_set_fun();
-}
-
 void tlc_init() {
 	// Initialize all the TLC GPIO:
 	// 6x banks
@@ -158,15 +141,10 @@ void tlc_init() {
 	// LAT
 	// SCLK, tx, rx
 
-    // LED banks:
-    P3DIR |= (LED_BANK5_PIN | LED_BANK6_PIN);
-    PJDIR |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN | LED_BANK4_PIN);
-    LED_BANK1_OUT |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
-            | LED_BANK4_PIN);
-    LED_BANK5_OUT |= (LED_BANK5_PIN | LED_BANK6_PIN);
-
     P1DIR |= BIT4; // TLC_LAT
     P1OUT &= ~BIT4;
+
+    tlc_stage_blank(1);
 
     // GS_CLK:
     GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN2, GPIO_PRIMARY_MODULE_FUNCTION); // 1.2 TA1.1
@@ -239,9 +217,8 @@ void tlc_init() {
     EUSCI_A_SPI_clearInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
     EUSCI_A_SPI_enableInterrupt(EUSCI_A0_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
 
-    tlc_set_gs();
-    tlc_stage_blank(1);
     tlc_set_fun();
+    tlc_set_gs();
 }
 
 #pragma vector=USCI_A0_VECTOR

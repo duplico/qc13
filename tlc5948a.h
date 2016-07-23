@@ -38,7 +38,6 @@
 #define TLC_LATPIN  GPIO_PIN4
 
 void tlc_init();
-void tlc_start();
 
 uint8_t tlc_test_loopback(uint8_t);
 
