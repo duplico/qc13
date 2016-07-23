@@ -45,7 +45,7 @@ void delay_millis(unsigned long);
 #define HANDLER_COUNT HANDLER_MAX_INCLUSIVE + 1 - HANDLER_MIN_INCLUSIVE
 
 #define HAT_STATE_WAIT_SECS 3
-#define INK_OUT_COOLDOWN_SECS 3
+#define INK_OUT_COOLDOWN_SECS 5
 
 #define RF_RESEND_COUNT 3
 

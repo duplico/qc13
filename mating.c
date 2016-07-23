@@ -130,7 +130,7 @@ void mate_deferred_rx_interrupt() {
 
     if ((mp_in.flags & M_INK) && (my_conf.camo_id == mate_camo)) {
         // "received ink button" animation (and our camos match)
-        tentacle_send_meta_mating(1);
+        tentacle_send_meta_mating(1, 0);
     }
     switch(mate_state) {
     case MS_IDLE:

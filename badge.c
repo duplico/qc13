@@ -163,7 +163,7 @@ void send_ink() {
         return;
     ink_cooldown = INK_OUT_COOLDOWN_SECS;
     face_start_anim(FACE_ANIM_CUTESY);
-    tentacle_send_meta_mating(2);
+    tentacle_send_meta_mating(2, 13);
     eye_twinkle_on();
     face_set_ambient_temp_direct(INKING_EYES);
     out_payload.ink_id = my_conf.camo_id;
@@ -230,7 +230,7 @@ void start_button_clicked() {
         send_ink();
         break;
     case MS_INK_WAIT:
-        tentacle_send_meta_mating(0);
+        tentacle_send_meta_mating(0, 0);
         if (super_ink_waits_on_me) { // waiting on me:
             mate_send_basic(1,0,0);
             enter_super_inking();
@@ -238,7 +238,7 @@ void start_button_clicked() {
         // otherwise ignore it... we're waiting on the other badge.
         break;
     case MS_PAIRED:
-        tentacle_send_meta_mating(0);
+        tentacle_send_meta_mating(0, 0);
         mate_send_basic(1,0,0);
         maybe_enter_ink_wait(1);
         break;
@@ -266,7 +266,7 @@ void select_button_clicked() {
 void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
     if (mate_state == MS_SUPER_INK && just_sent_superink) {
-        tentacle_send_meta_mating(2);
+        tentacle_send_meta_mating(2, 13);
         send_super_ink();
         just_sent_superink = 0;
     }
