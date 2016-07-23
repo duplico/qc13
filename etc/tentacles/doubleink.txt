@@ -3,6 +3,8 @@
 2 blue
 3 orange
 
+spray blue
+
 #camo
 solid
 

@@ -3,6 +3,8 @@
 2 yellow
 3 magenta
 
+spray magenta
+
 #camo
 solid
 

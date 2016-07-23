@@ -40,6 +40,8 @@ def main():
     all_animations = []
     meta_animations = []
     all_types = []
+    all_spray_colors = []
+    meta_spray_colors = []
     
     for anim in os.listdir("."):
         if not anim[-3:] == "txt": continue
@@ -50,6 +52,8 @@ def main():
         ink_lengths = []
         super_inks = []
         super_ink_lengths = []
+        color_lookups = dict()
+        
         
         anim_name = anim[:-4]
         if anim_name.upper().startswith('META'):
@@ -69,6 +73,7 @@ def main():
             # Consume all of the colors in this
             while lines[line_no][0] in string.digits:
                 color_num, color_name = lines[line_no].split()
+                color_lookups[color_name] = int(color_num)
                 local_colors[int(color_num)] = color_corrections.get(
                     color_name,
                     webcolors.name_to_rgb(color_name) if color_name not in color_corrections else None
@@ -84,6 +89,13 @@ def main():
             doubleink_line = ""
             wiggles = []
             anim_types = []
+            
+            assert "SPRAY" in lines[line_no].upper()
+            if anim_name.upper().startswith('META'):
+                meta_spray_colors.append(local_colors[color_lookups[lines[line_no].split()[1]]])
+            else:
+                all_spray_colors.append(local_colors[color_lookups[lines[line_no].split()[1]]])
+            line_no += 1
             
             assert "CAMO" in lines[line_no].upper()
             line_no += 1
@@ -202,6 +214,7 @@ def main():
                 
                 h_lines.append("extern const tentacle_animation_t %s_%s;" % (anim_name, lname))
             c_lines.append("")
+            h_lines.append("extern const tentacle_animation_t *%s_anim_set[3];" % anim_name)
             c_lines.append("const tentacle_animation_t *%s_anim_set[3] = {%s};" % (anim_name, ', '.join(map(lambda a: "&%s" % a, local_animation_names))))
     c_lines.append("")
     h_lines.append("#define LEG_ANIM_COUNT %d" % len(all_animations))
@@ -215,6 +228,10 @@ def main():
     h_lines.append("extern const tentacle_animation_t **legs_all_anim_sets[];")
     
     h_lines.append("#endif // _H_")
+    
+    all_spray_colors += meta_spray_colors
+    h_lines.append("extern const rgbcolor_t sprays[];")
+    c_lines.append("const rgbcolor_t sprays[%d] = {%s};" % (len(all_animations+meta_animations),', '.join(map(lambda rgb: "{0x%x, 0x%x, 0x%x}" % rgb, all_spray_colors))))
         
     with open("leg_anims.c", 'w') as f:
         f.writelines(map(lambda a: a+"\n", c_lines))

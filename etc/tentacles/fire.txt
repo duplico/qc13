@@ -3,6 +3,8 @@
 3 darkorange
 4 lightyellow
 
+spray orangered
+
 # CAMO
 fasttwinkle
 1, 3, 2, 1,

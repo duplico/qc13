@@ -2,6 +2,8 @@
 1 default
 2 red
 
+spray red
+
 #camo
 hardtwinkle
 2,2,2,2,

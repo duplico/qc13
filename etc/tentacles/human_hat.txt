@@ -8,6 +8,8 @@
 7 purple
 8 pink
 
+spray default
+
 #camo
 solid
 

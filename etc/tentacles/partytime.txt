@@ -6,6 +6,8 @@
 5 blue
 6 white
 
+spray red
+
 #camo
 solid
 1,0,0,0,
