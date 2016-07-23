@@ -1,0 +1,22 @@
+0 off
+1 default
+
+spray default
+
+#camo
+# Waking up.
+solid
+0,0,0,0,
+0,0,0,0,0,6350
+
+#ink
+# Unused
+solid
+0,0,0,0,
+0,0,0,0,0,6350
+
+#doubleink
+# Unused
+solid
+0,0,0,0,
+0,0,0,0,0,6350
