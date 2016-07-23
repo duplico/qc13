@@ -4,6 +4,8 @@
 4 deeppink
 5 lightsalmon
 
+spray violet
+
 # camo
 wiggle
 solid

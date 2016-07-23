@@ -3,6 +3,8 @@
 2 green
 3 slateblue
 
+spray pink
+
 # camo
 wiggle
 solid

@@ -24,6 +24,7 @@ extern const rgbcolor_t bookworm_doubleink_frames[][8];
 extern uint16_t bookworm_doubleink_durations[];
 extern uint16_t bookworm_doubleink_fade_durs[];
 extern const tentacle_animation_t bookworm_doubleink;
+extern const tentacle_animation_t *bookworm_anim_set[3];
 // frames for camo
 extern const rgbcolor_t def_camo_frames[][8];
 extern uint16_t def_camo_durations[];
@@ -39,6 +40,7 @@ extern const rgbcolor_t def_doubleink_frames[][8];
 extern uint16_t def_doubleink_durations[];
 extern uint16_t def_doubleink_fade_durs[];
 extern const tentacle_animation_t def_doubleink;
+extern const tentacle_animation_t *def_anim_set[3];
 // frames for camo
 extern const rgbcolor_t doubleink_camo_frames[][8];
 extern uint16_t doubleink_camo_durations[];
@@ -54,6 +56,7 @@ extern const rgbcolor_t doubleink_doubleink_frames[][8];
 extern uint16_t doubleink_doubleink_durations[];
 extern uint16_t doubleink_doubleink_fade_durs[];
 extern const tentacle_animation_t doubleink_doubleink;
+extern const tentacle_animation_t *doubleink_anim_set[3];
 // frames for camo
 extern const rgbcolor_t fire_camo_frames[][8];
 extern uint16_t fire_camo_durations[];
@@ -69,6 +72,7 @@ extern const rgbcolor_t fire_doubleink_frames[][8];
 extern uint16_t fire_doubleink_durations[];
 extern uint16_t fire_doubleink_fade_durs[];
 extern const tentacle_animation_t fire_doubleink;
+extern const tentacle_animation_t *fire_anim_set[3];
 // frames for camo
 extern const rgbcolor_t found_camo_frames[][8];
 extern uint16_t found_camo_durations[];
@@ -84,6 +88,7 @@ extern const rgbcolor_t found_doubleink_frames[][8];
 extern uint16_t found_doubleink_durations[];
 extern uint16_t found_doubleink_fade_durs[];
 extern const tentacle_animation_t found_doubleink;
+extern const tentacle_animation_t *found_anim_set[3];
 // frames for camo
 extern const rgbcolor_t gamer_camo_frames[][8];
 extern uint16_t gamer_camo_durations[];
@@ -99,6 +104,7 @@ extern const rgbcolor_t gamer_doubleink_frames[][8];
 extern uint16_t gamer_doubleink_durations[];
 extern uint16_t gamer_doubleink_fade_durs[];
 extern const tentacle_animation_t gamer_doubleink;
+extern const tentacle_animation_t *gamer_anim_set[3];
 // frames for camo
 extern const rgbcolor_t geek_girl_camo_frames[][8];
 extern uint16_t geek_girl_camo_durations[];
@@ -114,6 +120,7 @@ extern const rgbcolor_t geek_girl_doubleink_frames[][8];
 extern uint16_t geek_girl_doubleink_durations[];
 extern uint16_t geek_girl_doubleink_fade_durs[];
 extern const tentacle_animation_t geek_girl_doubleink;
+extern const tentacle_animation_t *geek_girl_anim_set[3];
 // frames for camo
 extern const rgbcolor_t giver_camo_frames[][8];
 extern uint16_t giver_camo_durations[];
@@ -129,6 +136,7 @@ extern const rgbcolor_t giver_doubleink_frames[][8];
 extern uint16_t giver_doubleink_durations[];
 extern uint16_t giver_doubleink_fade_durs[];
 extern const tentacle_animation_t giver_doubleink;
+extern const tentacle_animation_t *giver_anim_set[3];
 // frames for camo
 extern const rgbcolor_t glam_camo_frames[][8];
 extern uint16_t glam_camo_durations[];
@@ -144,6 +152,7 @@ extern const rgbcolor_t glam_doubleink_frames[][8];
 extern uint16_t glam_doubleink_durations[];
 extern uint16_t glam_doubleink_fade_durs[];
 extern const tentacle_animation_t glam_doubleink;
+extern const tentacle_animation_t *glam_anim_set[3];
 // frames for camo
 extern const rgbcolor_t handler_camo_frames[][8];
 extern uint16_t handler_camo_durations[];
@@ -159,6 +168,7 @@ extern const rgbcolor_t handler_doubleink_frames[][8];
 extern uint16_t handler_doubleink_durations[];
 extern uint16_t handler_doubleink_fade_durs[];
 extern const tentacle_animation_t handler_doubleink;
+extern const tentacle_animation_t *handler_anim_set[3];
 // frames for camo
 extern const rgbcolor_t human_hat_camo_frames[][8];
 extern uint16_t human_hat_camo_durations[];
@@ -174,6 +184,7 @@ extern const rgbcolor_t human_hat_doubleink_frames[][8];
 extern uint16_t human_hat_doubleink_durations[];
 extern uint16_t human_hat_doubleink_fade_durs[];
 extern const tentacle_animation_t human_hat_doubleink;
+extern const tentacle_animation_t *human_hat_anim_set[3];
 // frames for camo
 extern const rgbcolor_t karatekid_camo_frames[][8];
 extern uint16_t karatekid_camo_durations[];
@@ -189,6 +200,7 @@ extern const rgbcolor_t karatekid_doubleink_frames[][8];
 extern uint16_t karatekid_doubleink_durations[];
 extern uint16_t karatekid_doubleink_fade_durs[];
 extern const tentacle_animation_t karatekid_doubleink;
+extern const tentacle_animation_t *karatekid_anim_set[3];
 // frames for camo
 extern const rgbcolor_t lush_camo_frames[][8];
 extern uint16_t lush_camo_durations[];
@@ -204,6 +216,7 @@ extern const rgbcolor_t lush_doubleink_frames[][8];
 extern uint16_t lush_doubleink_durations[];
 extern uint16_t lush_doubleink_fade_durs[];
 extern const tentacle_animation_t lush_doubleink;
+extern const tentacle_animation_t *lush_anim_set[3];
 // frames for camo
 extern const rgbcolor_t meta_mating_camo_frames[][8];
 extern uint16_t meta_mating_camo_durations[];
@@ -219,6 +232,7 @@ extern const rgbcolor_t meta_mating_doubleink_frames[][8];
 extern uint16_t meta_mating_doubleink_durations[];
 extern uint16_t meta_mating_doubleink_fade_durs[];
 extern const tentacle_animation_t meta_mating_doubleink;
+extern const tentacle_animation_t *meta_mating_anim_set[3];
 // frames for camo
 extern const rgbcolor_t meta_social_camo_frames[][8];
 extern uint16_t meta_social_camo_durations[];
@@ -234,6 +248,7 @@ extern const rgbcolor_t meta_social_doubleink_frames[][8];
 extern uint16_t meta_social_doubleink_durations[];
 extern uint16_t meta_social_doubleink_fade_durs[];
 extern const tentacle_animation_t meta_social_doubleink;
+extern const tentacle_animation_t *meta_social_anim_set[3];
 // frames for camo
 extern const rgbcolor_t mixologist_camo_frames[][8];
 extern uint16_t mixologist_camo_durations[];
@@ -249,6 +264,7 @@ extern const rgbcolor_t mixologist_doubleink_frames[][8];
 extern uint16_t mixologist_doubleink_durations[];
 extern uint16_t mixologist_doubleink_fade_durs[];
 extern const tentacle_animation_t mixologist_doubleink;
+extern const tentacle_animation_t *mixologist_anim_set[3];
 // frames for camo
 extern const rgbcolor_t partytime_camo_frames[][8];
 extern uint16_t partytime_camo_durations[];
@@ -264,6 +280,7 @@ extern const rgbcolor_t partytime_doubleink_frames[][8];
 extern uint16_t partytime_doubleink_durations[];
 extern uint16_t partytime_doubleink_fade_durs[];
 extern const tentacle_animation_t partytime_doubleink;
+extern const tentacle_animation_t *partytime_anim_set[3];
 // frames for camo
 extern const rgbcolor_t poolparty_camo_frames[][8];
 extern uint16_t poolparty_camo_durations[];
@@ -279,6 +296,7 @@ extern const rgbcolor_t poolparty_doubleink_frames[][8];
 extern uint16_t poolparty_doubleink_durations[];
 extern uint16_t poolparty_doubleink_fade_durs[];
 extern const tentacle_animation_t poolparty_doubleink;
+extern const tentacle_animation_t *poolparty_anim_set[3];
 // frames for camo
 extern const rgbcolor_t powerhungry_camo_frames[][8];
 extern uint16_t powerhungry_camo_durations[];
@@ -294,6 +312,7 @@ extern const rgbcolor_t powerhungry_doubleink_frames[][8];
 extern uint16_t powerhungry_doubleink_durations[];
 extern uint16_t powerhungry_doubleink_fade_durs[];
 extern const tentacle_animation_t powerhungry_doubleink;
+extern const tentacle_animation_t *powerhungry_anim_set[3];
 // frames for camo
 extern const rgbcolor_t pushover_camo_frames[][8];
 extern uint16_t pushover_camo_durations[];
@@ -309,6 +328,7 @@ extern const rgbcolor_t pushover_doubleink_frames[][8];
 extern uint16_t pushover_doubleink_durations[];
 extern uint16_t pushover_doubleink_fade_durs[];
 extern const tentacle_animation_t pushover_doubleink;
+extern const tentacle_animation_t *pushover_anim_set[3];
 // frames for camo
 extern const rgbcolor_t shutdown_camo_frames[][8];
 extern uint16_t shutdown_camo_durations[];
@@ -324,6 +344,7 @@ extern const rgbcolor_t shutdown_doubleink_frames[][8];
 extern uint16_t shutdown_doubleink_durations[];
 extern uint16_t shutdown_doubleink_fade_durs[];
 extern const tentacle_animation_t shutdown_doubleink;
+extern const tentacle_animation_t *shutdown_anim_set[3];
 // frames for camo
 extern const rgbcolor_t splish_splash_camo_frames[][8];
 extern uint16_t splish_splash_camo_durations[];
@@ -339,6 +360,7 @@ extern const rgbcolor_t splish_splash_doubleink_frames[][8];
 extern uint16_t splish_splash_doubleink_durations[];
 extern uint16_t splish_splash_doubleink_fade_durs[];
 extern const tentacle_animation_t splish_splash_doubleink;
+extern const tentacle_animation_t *splish_splash_anim_set[3];
 // frames for camo
 extern const rgbcolor_t uber_camo_frames[][8];
 extern uint16_t uber_camo_durations[];
@@ -354,6 +376,7 @@ extern const rgbcolor_t uber_doubleink_frames[][8];
 extern uint16_t uber_doubleink_durations[];
 extern uint16_t uber_doubleink_fade_durs[];
 extern const tentacle_animation_t uber_doubleink;
+extern const tentacle_animation_t *uber_anim_set[3];
 // frames for camo
 extern const rgbcolor_t wrapup_1_camo_frames[][8];
 extern uint16_t wrapup_1_camo_durations[];
@@ -369,6 +392,7 @@ extern const rgbcolor_t wrapup_1_doubleink_frames[][8];
 extern uint16_t wrapup_1_doubleink_durations[];
 extern uint16_t wrapup_1_doubleink_fade_durs[];
 extern const tentacle_animation_t wrapup_1_doubleink;
+extern const tentacle_animation_t *wrapup_1_anim_set[3];
 // frames for camo
 extern const rgbcolor_t wrapup_2_camo_frames[][8];
 extern uint16_t wrapup_2_camo_durations[];
@@ -384,6 +408,7 @@ extern const rgbcolor_t wrapup_2_doubleink_frames[][8];
 extern uint16_t wrapup_2_doubleink_durations[];
 extern uint16_t wrapup_2_doubleink_fade_durs[];
 extern const tentacle_animation_t wrapup_2_doubleink;
+extern const tentacle_animation_t *wrapup_2_anim_set[3];
 // frames for camo
 extern const rgbcolor_t wrapup_3_camo_frames[][8];
 extern uint16_t wrapup_3_camo_durations[];
@@ -399,6 +424,7 @@ extern const rgbcolor_t wrapup_3_doubleink_frames[][8];
 extern uint16_t wrapup_3_doubleink_durations[];
 extern uint16_t wrapup_3_doubleink_fade_durs[];
 extern const tentacle_animation_t wrapup_3_doubleink;
+extern const tentacle_animation_t *wrapup_3_anim_set[3];
 // frames for camo
 extern const rgbcolor_t wrapup_4_camo_frames[][8];
 extern uint16_t wrapup_4_camo_durations[];
@@ -414,6 +440,7 @@ extern const rgbcolor_t wrapup_4_doubleink_frames[][8];
 extern uint16_t wrapup_4_doubleink_durations[];
 extern uint16_t wrapup_4_doubleink_fade_durs[];
 extern const tentacle_animation_t wrapup_4_doubleink;
+extern const tentacle_animation_t *wrapup_4_anim_set[3];
 #define LEG_ANIM_COUNT 25
 #define LEG_ANIM_COUNT_INCL_META 27
 #define LEG_ANIM_BOOKWORM 0
@@ -451,3 +478,4 @@ extern const tentacle_animation_t wrapup_4_doubleink;
 #define LEG_ANIM_TYPE_COUNT 5
 extern const tentacle_animation_t **legs_all_anim_sets[];
 #endif // _H_
+extern const rgbcolor_t sprays[];

@@ -1,6 +1,8 @@
 0 off
 1 default
 
+spray default
+
 #camo
 solid
 

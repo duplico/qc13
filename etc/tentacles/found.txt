@@ -3,6 +3,8 @@
 2 deepskyblue
 3 slateblue
 
+spray deepskyblue
+
 # camo
 solid
 1,2,2,1,

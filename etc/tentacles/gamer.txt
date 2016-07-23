@@ -2,6 +2,8 @@
 1 yellow
 2 green
 
+spray green
+
 #camo
 wiggle
 solid

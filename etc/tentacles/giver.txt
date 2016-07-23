@@ -2,6 +2,8 @@
 1 default
 2 pink
 
+spray pink
+
 #camo
 wiggle
 solid

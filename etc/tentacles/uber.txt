@@ -1,6 +1,8 @@
 2 off
 1 orangered
 
+spray orangered
+
 #camo
 wiggle
 fasttwinkle

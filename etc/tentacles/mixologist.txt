@@ -2,6 +2,8 @@
 2 purple
 3 off
 
+spray purple
+
 #camo
 fasttwinkle
 2,1,1,2,

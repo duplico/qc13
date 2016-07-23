@@ -5,6 +5,8 @@
 5 blue
 6 purple
 
+spray blue
+
 #camo
 solid
 
