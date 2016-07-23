@@ -50,6 +50,9 @@ typedef struct {
 void led_post();
 
 void face_set_ambient_direct(uint64_t amb);
+void face_set_baseline_ambient_direct(uint64_t amb);
+void face_restore_ambient();
+void face_set_ambient_temp_direct(uint64_t amb);
 void face_start_anim(uint8_t anim_index);
 void tentacle_start_anim_direct(const tentacle_animation_t *animation, uint8_t loop, uint8_t ambient);
 void tentacle_start_anim(uint8_t anim_id, uint8_t anim_type, uint8_t loop, uint8_t ambient);

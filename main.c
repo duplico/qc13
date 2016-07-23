@@ -426,7 +426,6 @@ void time_loop() {
             super_ink_timeout();
         }
     }
-
 }
 
 int main(void)

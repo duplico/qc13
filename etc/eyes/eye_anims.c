@@ -128,6 +128,13 @@ uint16_t meta_inked_lengths[] = {3000, 400, 800, 1100, 200, 200, 200, 200, 200, 
 // Animation struct for meta_inked
 face_animation_t meta_inked = {meta_inked_frames, meta_inked_lengths, 12};
 
+// Frames for meta_wakeup
+uint64_t meta_wakeup_frames[] = {0b0000011111110000000000000000000000000111111100000000000000000000, 0b0000011111110000000001111100000000000111111100000000011111000000, 0b0000011111110000000000000000000000000111111100000000000000000000, 0b0000011111110000000001111100000000000111111100000000011111000000, 0b1000010000100000111111111111111010000100001000001111111111111110, 0b0000011111110000000000000000000000000111111100000000000000000000, 0b1000010000100000111111111111111010000100001000001111111111111110, 0b0000011111110000000000000000000000000111111100000000000000000000};
+uint16_t meta_wakeup_lengths[] = {1800, 1100, 1400, 750, 700, 200, 200, 200};
+
+// Animation struct for meta_wakeup
+face_animation_t meta_wakeup = {meta_wakeup_frames, meta_wakeup_lengths, 8};
+
 // Frames for punched_in_eye
 uint64_t punched_in_eye_frames[] = {0b1000010000100000111111111111111001111011110111100000000000000000, 0b1000010000100000111111111111111000000000000000000000000000000000, 0b0000011111110000000000000000000000000000000000000000000000000000, 0b1000010000100000111111111111111000000000000000000000000000000000, 0b1000010000100000111111111111111000000111111100000000011111000000, 0b1000010000100000111111111111111000000111111100000000011111000000, 0b0000011111110000000000000000000000000111111100000000011111000000, 0b1000010000100000111111111111111000000111111100000000011111000000, 0b0000011111110000000000000000000000000111111100000000000000000000};
 uint16_t punched_in_eye_lengths[] = {800, 2200, 400, 1800, 600, 1200, 400, 1100, 400};
@@ -171,4 +178,4 @@ uint16_t triple_blink_lengths[] = {300, 300, 300, 300, 300, 2300, 700, 700, 700,
 face_animation_t triple_blink = {triple_blink_frames, triple_blink_lengths, 10};
 
 // All animations here:
-face_animation_t *face_all_animations[FACE_ANIM_COUNT_INCL_META] = {&angry, &blinking, &cats_left, &cats_right, &crosseyedcat, &cutesy, &cutesy_left, &cutesy_right, &cute_lookaround, &eyeroll, &fall_asleep, &fastblinking, &konami, &left_right_squint, &look_around, &punched_in_eye, &sad, &shake, &something_in_eye, &spazz_out, &triple_blink, &meta_doubleinked, &meta_gotinked, &meta_inked};
+face_animation_t *face_all_animations[FACE_ANIM_COUNT_INCL_META] = {&angry, &blinking, &cats_left, &cats_right, &crosseyedcat, &cutesy, &cutesy_left, &cutesy_right, &cute_lookaround, &eyeroll, &fall_asleep, &fastblinking, &konami, &left_right_squint, &look_around, &punched_in_eye, &sad, &shake, &something_in_eye, &spazz_out, &triple_blink, &meta_doubleinked, &meta_gotinked, &meta_inked, &meta_wakeup};
