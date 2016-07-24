@@ -145,6 +145,8 @@ void face_animation_done() {
 // IMPORTANT: Call this last.
 //  DON'T change stuff after calling it.
 void complete_rfbc_payload(rfbcpayload *payload) {
+    // TODO: not if retx from someone else:
+    out_payload.seqnum = rfm75_seqnum;
     payload->base_addr = NOT_A_BASE;
     payload->from_addr = my_conf.badge_id;
     if (is_handler(my_conf.badge_id) && (hat_state & HS_HANDLER))

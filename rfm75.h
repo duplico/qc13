@@ -76,4 +76,6 @@ uint8_t rfm75_post();
 void rfm75_deferred_interrupt();
 void rfm75_tx();
 
+extern uint32_t rfm75_seqnum;
+
 #endif /* RFM75_H_ */

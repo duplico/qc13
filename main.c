@@ -64,7 +64,7 @@ uint8_t temp_index = 0;
 
 // hat voltage:
 uint16_t hat_potentials[ADC_WINDOW] = {0};
-volatile uint16_t hat_potential = 0; // TODO
+uint16_t hat_potential = 0;
 uint16_t hat_v_tot = 0;
 uint8_t hat_v_index = 0;
 
@@ -203,7 +203,7 @@ void term_gpio() {
 }
 
 void make_fresh_conf() {
-    // fresh_power = 1; // TODO
+     fresh_power = 1; // TODO
 
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
     unlock_camo(LEG_ANIM_DEF);
@@ -224,8 +224,6 @@ void make_fresh_conf() {
     if (my_conf.badge_id == JASON_ID) {
         unlock_camo(LEG_ANIM_SHUTDOWN);
     }
-
-    my_conf.camo_unlocks = UINT32_MAX;
 
     set_badge_seen(my_conf.badge_id, is_handler(my_conf.badge_id));
     set_badge_mated(my_conf.badge_id, is_handler(my_conf.badge_id));
