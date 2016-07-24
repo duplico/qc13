@@ -227,7 +227,7 @@ void start_button_longpressed() {
 }
 
 void start_button_clicked() {
-    if (being_inked) return; // nope!
+    if (being_inked || ink_cooldown) return; // nope!
 
     switch (mate_state) {
     case MS_IDLE:
@@ -325,7 +325,7 @@ void radio_basic_base_received(uint8_t base_id) {
 }
 
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
-    if (being_inked || mate_state != MS_IDLE)
+    if (being_inked || ink_cooldown || mate_state != MS_IDLE)
         return; // we ignore inks if we're mated, or already being inked.
     being_inked = ink_type; // 1 for regular, 2 for double.
     if (being_inked == 1)
