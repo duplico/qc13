@@ -21,6 +21,8 @@ void delay_millis(unsigned long);
 #define BADGE_TARGET 1
 #define BADGE_ID 0
 
+#define COLLINSCODE 0b011000110110111101101111011010110110100101100101
+
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
 
