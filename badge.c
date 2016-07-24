@@ -194,7 +194,7 @@ void hat_change(uint8_t from, uint8_t to) {
     // The borrowing event doesn't need to be fired from here.
     //  It's called elsewhere - after.
 
-    if (to & HS_HANDLER) {
+    if (is_handler(my_conf.badge_id && (to & HS_HANDLER)) {
         // angry eyes.
         face_set_baseline_ambient_direct(ANGRY_EYES);
         // set the camo.
@@ -285,7 +285,7 @@ void new_badge_seen(uint8_t deferred) {
     }
 
     do_brightness_correction(light_order+2, 1);
-    tentacle_start_anim(LEG_ANIM_META_SOCIAL, 0, 0, 0);
+    tentacle_start_anim(LEG_ANIM_META_SOCIAL, 0, 1, 0);
 }
 
 void new_badge_mated() {
@@ -331,7 +331,8 @@ void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
     else
         do_brightness_correction(light_order+8, 1);
     tentacle_start_anim(ink_id, ink_type, legs_all_anim_sets[ink_id][ink_type]->ink_loops, 0);
-    face_start_anim(FACE_ANIM_META_GOTINKED);
+//    face_start_anim(FACE_ANIM_META_GOTINKED);
+    face_start_anim(FACE_ANIM_META_INKED_FLASH);
 }
 
 void radio_broadcast_received(rfbcpayload *payload) {
@@ -376,5 +377,5 @@ void mate_end(uint8_t badge_id) {
 }
 
 void borrowing_hat() {
-
+    // TODO: shutdown
 }
