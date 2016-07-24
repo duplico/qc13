@@ -346,22 +346,6 @@ extern uint16_t shutdown_doubleink_fade_durs[];
 extern const tentacle_animation_t shutdown_doubleink;
 extern const tentacle_animation_t *shutdown_anim_set[3];
 // frames for camo
-extern const rgbcolor_t splish_splash_camo_frames[][8];
-extern uint16_t splish_splash_camo_durations[];
-extern uint16_t splish_splash_camo_fade_durs[];
-extern const tentacle_animation_t splish_splash_camo;
-// frames for ink
-extern const rgbcolor_t splish_splash_ink_frames[][8];
-extern uint16_t splish_splash_ink_durations[];
-extern uint16_t splish_splash_ink_fade_durs[];
-extern const tentacle_animation_t splish_splash_ink;
-// frames for doubleink
-extern const rgbcolor_t splish_splash_doubleink_frames[][8];
-extern uint16_t splish_splash_doubleink_durations[];
-extern uint16_t splish_splash_doubleink_fade_durs[];
-extern const tentacle_animation_t splish_splash_doubleink;
-extern const tentacle_animation_t *splish_splash_anim_set[3];
-// frames for camo
 extern const rgbcolor_t uber_camo_frames[][8];
 extern uint16_t uber_camo_durations[];
 extern uint16_t uber_camo_fade_durs[];
@@ -441,8 +425,8 @@ extern uint16_t wrapup_4_doubleink_durations[];
 extern uint16_t wrapup_4_doubleink_fade_durs[];
 extern const tentacle_animation_t wrapup_4_doubleink;
 extern const tentacle_animation_t *wrapup_4_anim_set[3];
-#define LEG_ANIM_COUNT 25
-#define LEG_ANIM_COUNT_INCL_META 27
+#define LEG_ANIM_COUNT 24
+#define LEG_ANIM_COUNT_INCL_META 26
 #define LEG_ANIM_BOOKWORM 0
 #define LEG_ANIM_DEF 1
 #define LEG_ANIM_DOUBLEINK 2
@@ -462,14 +446,13 @@ extern const tentacle_animation_t *wrapup_4_anim_set[3];
 #define LEG_ANIM_POWERHUNGRY 16
 #define LEG_ANIM_PUSHOVER 17
 #define LEG_ANIM_SHUTDOWN 18
-#define LEG_ANIM_SPLISH_SPLASH 19
-#define LEG_ANIM_UBER 20
-#define LEG_ANIM_WRAPUP_1 21
-#define LEG_ANIM_WRAPUP_2 22
-#define LEG_ANIM_WRAPUP_3 23
-#define LEG_ANIM_WRAPUP_4 24
-#define LEG_ANIM_META_SOCIAL 25
-#define LEG_ANIM_META_WAKEUP 26
+#define LEG_ANIM_UBER 19
+#define LEG_ANIM_WRAPUP_1 20
+#define LEG_ANIM_WRAPUP_2 21
+#define LEG_ANIM_WRAPUP_3 22
+#define LEG_ANIM_WRAPUP_4 23
+#define LEG_ANIM_META_SOCIAL 24
+#define LEG_ANIM_META_WAKEUP 25
 #define ANIM_TYPE_SOLID 0
 #define ANIM_TYPE_FASTTWINKLE 1
 #define ANIM_TYPE_HARDTWINKLE 2
