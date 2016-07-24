@@ -26,6 +26,9 @@ uint8_t ink_cooldown = 0;
 
 qc13conf my_conf = {0};
 
+uint64_t button_press_window = 0;
+uint8_t buttons_pressed = 0;
+
 const qc13conf default_conf = {
         BADGE_ID,
         0, 0, 0, // seen counts
@@ -227,6 +230,12 @@ void start_button_longpressed() {
 }
 
 void start_button_clicked() {
+    button_press_window = button_press_window << 1;
+    // start is 1.
+    button_press_window |= 0x0000000000000001;
+    if (buttons_pressed < 64) buttons_pressed++;
+    check_button_presses();
+
     if (being_inked || ink_cooldown) return; // nope!
 
     switch (mate_state) {
@@ -253,6 +262,12 @@ void start_button_clicked() {
 }
 
 void select_button_clicked() {
+    button_press_window = button_press_window << 1;
+    // select is 0.
+    button_press_window |= 0x0000000000000001;
+    if (buttons_pressed < 64) buttons_pressed++;
+    check_button_presses();
+
     if (being_inked || mate_state == MS_SUPER_INK || ink_cooldown) return; // nope!
 
     static uint8_t new_camo = 0;

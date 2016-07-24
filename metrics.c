@@ -117,3 +117,7 @@ void unlock_camo(uint8_t camo_id) {
     // TODO: CRC
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
+
+void check_button_presses() {
+    // Be sure to check buttons_pressed, and to reset it after accepting the code.
+}
