@@ -10,22 +10,6 @@
 #define LEG_ANIM_NONE 211
 
 // frames for camo
-extern const rgbcolor_t bookworm_camo_frames[][8];
-extern uint16_t bookworm_camo_durations[];
-extern uint16_t bookworm_camo_fade_durs[];
-extern const tentacle_animation_t bookworm_camo;
-// frames for ink
-extern const rgbcolor_t bookworm_ink_frames[][8];
-extern uint16_t bookworm_ink_durations[];
-extern uint16_t bookworm_ink_fade_durs[];
-extern const tentacle_animation_t bookworm_ink;
-// frames for doubleink
-extern const rgbcolor_t bookworm_doubleink_frames[][8];
-extern uint16_t bookworm_doubleink_durations[];
-extern uint16_t bookworm_doubleink_fade_durs[];
-extern const tentacle_animation_t bookworm_doubleink;
-extern const tentacle_animation_t *bookworm_anim_set[3];
-// frames for camo
 extern const rgbcolor_t def_camo_frames[][8];
 extern uint16_t def_camo_durations[];
 extern uint16_t def_camo_fade_durs[];
@@ -201,6 +185,22 @@ extern uint16_t karatekid_doubleink_durations[];
 extern uint16_t karatekid_doubleink_fade_durs[];
 extern const tentacle_animation_t karatekid_doubleink;
 extern const tentacle_animation_t *karatekid_anim_set[3];
+// frames for camo
+extern const rgbcolor_t learned_camo_frames[][8];
+extern uint16_t learned_camo_durations[];
+extern uint16_t learned_camo_fade_durs[];
+extern const tentacle_animation_t learned_camo;
+// frames for ink
+extern const rgbcolor_t learned_ink_frames[][8];
+extern uint16_t learned_ink_durations[];
+extern uint16_t learned_ink_fade_durs[];
+extern const tentacle_animation_t learned_ink;
+// frames for doubleink
+extern const rgbcolor_t learned_doubleink_frames[][8];
+extern uint16_t learned_doubleink_durations[];
+extern uint16_t learned_doubleink_fade_durs[];
+extern const tentacle_animation_t learned_doubleink;
+extern const tentacle_animation_t *learned_anim_set[3];
 // frames for camo
 extern const rgbcolor_t lush_camo_frames[][8];
 extern uint16_t lush_camo_durations[];
@@ -427,18 +427,18 @@ extern const tentacle_animation_t wrapup_4_doubleink;
 extern const tentacle_animation_t *wrapup_4_anim_set[3];
 #define LEG_ANIM_COUNT 24
 #define LEG_ANIM_COUNT_INCL_META 26
-#define LEG_ANIM_BOOKWORM 0
-#define LEG_ANIM_DEF 1
-#define LEG_ANIM_DOUBLEINK 2
-#define LEG_ANIM_FIRE 3
-#define LEG_ANIM_FOUND 4
-#define LEG_ANIM_GAMER 5
-#define LEG_ANIM_GEEK_GIRL 6
-#define LEG_ANIM_GIVER 7
-#define LEG_ANIM_GLAM 8
-#define LEG_ANIM_HANDLER 9
-#define LEG_ANIM_HUMAN_HAT 10
-#define LEG_ANIM_KARATEKID 11
+#define LEG_ANIM_DEF 0
+#define LEG_ANIM_DOUBLEINK 1
+#define LEG_ANIM_FIRE 2
+#define LEG_ANIM_FOUND 3
+#define LEG_ANIM_GAMER 4
+#define LEG_ANIM_GEEK_GIRL 5
+#define LEG_ANIM_GIVER 6
+#define LEG_ANIM_GLAM 7
+#define LEG_ANIM_HANDLER 8
+#define LEG_ANIM_HUMAN_HAT 9
+#define LEG_ANIM_KARATEKID 10
+#define LEG_ANIM_LEARNED 11
 #define LEG_ANIM_LUSH 12
 #define LEG_ANIM_MIXOLOGIST 13
 #define LEG_ANIM_PARTYTIME 14

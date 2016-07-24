@@ -34,7 +34,7 @@ const qc13conf default_conf = {
         0, 0, 0, // seen counts
         0, 0, 0, // mate counts
         0, 0, 0, // hats!
-        0, // event check-ins
+        {0}, // event check-ins
         0, // camo_unlocks bitfield
         LEG_ANIM_DEF, // camo_id
         0, // Uber hat not given out
@@ -336,7 +336,9 @@ void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
 }
 
 void radio_basic_base_received(uint8_t base_id) {
-
+    if (base_id == 0xff) { // TODO: check for the event bases.
+        achievement_get(base_id);
+    }
 }
 
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
