@@ -57,6 +57,9 @@ extern face_animation_t meta_gotinked;
 extern uint64_t meta_inked_frames[];
 extern uint16_t meta_inked_lengths[];
 extern face_animation_t meta_inked;
+extern uint64_t meta_inked_flash_frames[];
+extern uint16_t meta_inked_flash_lengths[];
+extern face_animation_t meta_inked_flash;
 extern uint64_t meta_wakeup_frames[];
 extern uint16_t meta_wakeup_lengths[];
 extern face_animation_t meta_wakeup;
@@ -79,7 +82,7 @@ extern uint64_t triple_blink_frames[];
 extern uint16_t triple_blink_lengths[];
 extern face_animation_t triple_blink;
 #define FACE_ANIM_COUNT 21
-#define FACE_ANIM_COUNT_INCL_META 25
+#define FACE_ANIM_COUNT_INCL_META 26
 #define FACE_ANIM_ANGRY 0
 #define FACE_ANIM_BLINKING 1
 #define FACE_ANIM_CATS_LEFT 2
@@ -104,7 +107,8 @@ extern face_animation_t triple_blink;
 #define FACE_ANIM_META_DOUBLEINKED 21
 #define FACE_ANIM_META_GOTINKED 22
 #define FACE_ANIM_META_INKED 23
-#define FACE_ANIM_META_WAKEUP 24
+#define FACE_ANIM_META_INKED_FLASH 24
+#define FACE_ANIM_META_WAKEUP 25
 
 extern face_animation_t *face_all_animations[FACE_ANIM_COUNT_INCL_META];
 #endif // _H_

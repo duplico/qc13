@@ -225,6 +225,8 @@ void make_fresh_conf() {
         unlock_camo(LEG_ANIM_SHUTDOWN);
     }
 
+    my_conf.camo_unlocks = UINT32_MAX;
+
     set_badge_seen(my_conf.badge_id, is_handler(my_conf.badge_id));
     set_badge_mated(my_conf.badge_id, is_handler(my_conf.badge_id));
 }
