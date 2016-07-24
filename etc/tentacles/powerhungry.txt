@@ -1,6 +1,7 @@
 0 off
 1 default
 2 maroon
+3 blue
 
 spray maroon
 
@@ -8,7 +9,7 @@ spray maroon
 wiggle
 solid
 1,1,1,1,
-2,2,2,2,500,0
+2,3,3,2,500,0
 
 #ink
 solid

@@ -194,13 +194,13 @@ void hat_change(uint8_t from, uint8_t to) {
     // The borrowing event doesn't need to be fired from here.
     //  It's called elsewhere - after.
 
-    if (is_handler(my_conf.badge_id && (to & HS_HANDLER)) {
+    if (is_handler(my_conf.badge_id) && (to & HS_HANDLER)) {
         // angry eyes.
         face_set_baseline_ambient_direct(ANGRY_EYES);
         // set the camo.
         unlock_camo(LEG_ANIM_HANDLER);
         tentacle_start_anim(LEG_ANIM_HANDLER, LEG_CAMO_INDEX, 1, 1);
-    } else if (from & HS_HANDLER) {
+    } else if (from & HS_HANDLER && !(to & HS_HANDLER)) {
         face_set_baseline_ambient_direct(DEFAULT_EYES);
     }
 }
