@@ -5,7 +5,7 @@
  *      Author: George
  */
 
-#include "qc13.h"
+#include <qc13.h>
 #include "mating.h"
 #include "led_display.h"
 #include "leg_anims.h"
@@ -304,59 +304,59 @@ void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild) {
 
 volatile uint8_t uart_in_byte = 0;
 
-// ISR for pairing:
-#pragma vector=USCI_A1_VECTOR
-__interrupt void EUSCI_A1_ISR(void)
-{
-    switch (__even_in_range(UCA1IV, 4)) {
-    //Vector 2 - RXIFG
-    case 2:
-        uart_in_byte = EUSCI_A_UART_receiveData(EUSCI_A1_BASE);
-        if (uart_in_ignore)
-            return;
-        // If we're not synced, we need to be checking against sync bytes.
-        if (!uart_in_synced) {
-            if (uart_in_byte == mate_sync_bytes[uart_in_index]) { // matchy:
-                uart_in_index++;
-                // If we're incremented past the end of the sync bytes:
-                if (uart_in_index >= MATE_NUM_SYNC_BYTES) {
-                    uart_in_synced = 1; // we're synced.
-                    uart_in_index = 0;
-                }
-            } else { // no matchy:
-                uart_in_index = 0;
-            }
-        } else { // If we are, let's add it to the payload.
-            mate_payload_in[uart_in_index] = uart_in_byte;
-            if (uart_in_index == 0) { // the protocol one:
-                uart_in_len = sizeof(matepayload);
-            } else {
-                // broken
-                // ???? TODO ????
-                //  CLEAN SWEEP
-            }
-            uart_in_index++;
-            if (uart_in_index >= uart_in_len) {
-                // Payload received.
-                uart_in_ignore = 1; // Don't clobber good stuff with new stuff.
-                f_mate_interrupt = 1;
-                uart_in_synced = 0;
-                uart_in_index = 0;
-                __bic_SR_register_on_exit(SLEEP_BITS);
-            }
-        }
-        break; // End of RXIFG ///////////////////////////////////////////////////////
-    case 4: // Vector 4 - TXIFG : I just sent a byte.
-        if (uart_sending) { // just finished sending uart_out_index.
-            uart_out_index++;
-            if (uart_out_index >= uart_out_len) { // done
-                uart_sending = 0;
-            } else { // more to send
-                EUSCI_A_UART_transmitData(EUSCI_A1_BASE, mate_payload_out[uart_out_index]);
-            }
-        }
-        break; // End of TXIFG /////////////////////////////////////////////////////
-
-    default: break;
-    } // End of ISR flag switch ////////////////////////////////////////////////////
-}
+//// ISR for pairing:
+//#pragma vector=USCI_A1_VECTOR
+//__interrupt void EUSCI_A1_ISR(void)
+//{
+//    switch (__even_in_range(UCA1IV, 4)) {
+//    //Vector 2 - RXIFG
+//    case 2:
+//        uart_in_byte = EUSCI_A_UART_receiveData(EUSCI_A1_BASE);
+//        if (uart_in_ignore)
+//            return;
+//        // If we're not synced, we need to be checking against sync bytes.
+//        if (!uart_in_synced) {
+//            if (uart_in_byte == mate_sync_bytes[uart_in_index]) { // matchy:
+//                uart_in_index++;
+//                // If we're incremented past the end of the sync bytes:
+//                if (uart_in_index >= MATE_NUM_SYNC_BYTES) {
+//                    uart_in_synced = 1; // we're synced.
+//                    uart_in_index = 0;
+//                }
+//            } else { // no matchy:
+//                uart_in_index = 0;
+//            }
+//        } else { // If we are, let's add it to the payload.
+//            mate_payload_in[uart_in_index] = uart_in_byte;
+//            if (uart_in_index == 0) { // the protocol one:
+//                uart_in_len = sizeof(matepayload);
+//            } else {
+//                // broken
+//                // ???? TODO ????
+//                //  CLEAN SWEEP
+//            }
+//            uart_in_index++;
+//            if (uart_in_index >= uart_in_len) {
+//                // Payload received.
+//                uart_in_ignore = 1; // Don't clobber good stuff with new stuff.
+//                f_mate_interrupt = 1;
+//                uart_in_synced = 0;
+//                uart_in_index = 0;
+//                __bic_SR_register_on_exit(SLEEP_BITS);
+//            }
+//        }
+//        break; // End of RXIFG ///////////////////////////////////////////////////////
+//    case 4: // Vector 4 - TXIFG : I just sent a byte.
+//        if (uart_sending) { // just finished sending uart_out_index.
+//            uart_out_index++;
+//            if (uart_out_index >= uart_out_len) { // done
+//                uart_sending = 0;
+//            } else { // more to send
+//                EUSCI_A_UART_transmitData(EUSCI_A1_BASE, mate_payload_out[uart_out_index]);
+//            }
+//        }
+//        break; // End of TXIFG /////////////////////////////////////////////////////
+//
+//    default: break;
+//    } // End of ISR flag switch ////////////////////////////////////////////////////
+//}

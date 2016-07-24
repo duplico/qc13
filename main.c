@@ -15,6 +15,9 @@
 #include "mating.h"
 #include "metrics.h"
 
+// TODO: base.
+#include "oled.h"
+
 /*
  *
  * Peripherals
@@ -300,6 +303,8 @@ void init() {
     rfm75_init(); // Initialize our radio (including GPIO)
     init_mating();// Initialize mating port (GPIO is above)
     init_adc();   // Start up the ADC for light and temp sensors.
+
+    init_oled();
 }
 
 void set_face(uint64_t frame); // TODO
