@@ -46,6 +46,14 @@ void claim_hat(uint8_t id) {
     // TODO
 }
 
+uint8_t has_achievement(uint8_t id) {
+    return 0;
+}
+
+uint8_t achievement_get(uint8_t id) {
+    return 1;
+}
+
 void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
     // Have we seen it at all? If not, increment count and maybe uber count.
     // Is it ODH, and have we seen it as ODH? If not, increment.

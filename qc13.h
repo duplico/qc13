@@ -105,7 +105,7 @@ void delay_millis(unsigned long);
 
 typedef struct {
     uint8_t proto_version;
-    uint8_t from_addr, base_addr;
+    uint8_t from_addr, base_addr; // base_addr is event_id, basically.
     uint8_t ttl;
     uint8_t ink_id;
     uint8_t flags;
@@ -160,7 +160,7 @@ typedef struct {
     uint8_t seen_count, uber_seen_count, odh_seen_count;
     uint8_t mate_count, uber_mate_count, odh_mate_count;
     uint8_t hat_holder, hat_claimed, hat_id;
-    uint16_t event_checkins;
+    uint8_t event_checkins[9];
     uint32_t camo_unlocks;
     uint8_t camo_id;
     uint8_t uber_hat_given;
