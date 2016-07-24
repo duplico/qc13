@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 100
+#define BADGE_ID 0
 
 /////////////////////////////////////////////////////////////////////
 // Badge & system configuration /////////////////////////////////////
@@ -107,6 +107,7 @@ typedef struct {
     uint8_t ttl;
     uint8_t ink_id;
     uint8_t flags;
+    uint32_t seqnum;
     uint16_t crc16;
 } rfbcpayload;
 

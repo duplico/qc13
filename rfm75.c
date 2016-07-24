@@ -42,6 +42,10 @@ uint8_t rx_addr_p0[3] = {0xff, 0xff, 0xff};
 uint8_t rx_addr_p1[3] = {0xff, 0xff, 0x00};
 uint8_t tx_addr[3] = {0xff, 0xff, 0xff};
 
+uint8_t rfm75_retransmit_num = 0;
+uint32_t rfm75_seqnum = 0;
+uint32_t rfm75_prev_seqnum = 0xFFFFFFFF;
+
 // State values:
 #define RFM75_BOOT 0
 #define RFM75_RX_INIT 1
@@ -192,10 +196,8 @@ void rfm75_enter_prx() {
     rfm75_state = RFM75_RX_LISTEN;
 }
 
-uint8_t rfm75_retran_seq_num = 0;
-
 void rfm75_tx() {
-    rfm75_retran_seq_num = 0;
+    rfm75_retransmit_num = 0;
 
     // Fill'er up:
     memcpy(payload_out, &out_payload, RFM75_PAYLOAD_SIZE);
@@ -233,6 +235,9 @@ void rfm75_init()
     EUSCI_B_SPI_initMaster(EUSCI_B0_BASE, &ini);
     EUSCI_B_SPI_enable(EUSCI_B0_BASE);
 
+    rfm75_seqnum = 0;
+    rfm75_seqnum |= ((uint32_t) my_conf.badge_id) << 24;
+    rfm75_prev_seqnum = 0xFFFFFFFF;
 
     // We're going totally synchronous on this; no interrupts at all.
 
@@ -371,6 +376,10 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
+    // Same one we last saw:
+    if (payload->seqnum == rfm75_prev_seqnum) {
+//        return 0;
+    }
 
     // CRC it.
     CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
@@ -383,6 +392,7 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
+    rfm75_prev_seqnum = payload->seqnum;
     // CRC checks out.
     return 1;
 }
@@ -434,15 +444,18 @@ void rfm75_deferred_interrupt() {
         rfm75_write_reg(STATUS, BIT5);
         rfm75_state = RFM75_TX_DONE;
 
-        if (rfm75_retran_seq_num == RF_RESEND_COUNT) {
+        if (rfm75_retransmit_num == RF_RESEND_COUNT) {
             // Raise the I-just-sent-a-thing event
             radio_transmit_done();
+
+            rfm75_seqnum++;
+
             // Go back to listening.
             rfm75_enter_prx();
         } else {
-            uint8_t seqnum = rfm75_retran_seq_num + 1;
+            uint8_t seqnum = rfm75_retransmit_num + 1;
             rfm75_tx();
-            rfm75_retran_seq_num = seqnum;
+            rfm75_retransmit_num = seqnum;
         }
     }
 }
