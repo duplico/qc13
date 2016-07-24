@@ -31,5 +31,7 @@ void borrowing_hat();
 
 extern uint8_t just_sent_superink;
 extern uint8_t being_inked;
+extern uint64_t button_press_window;
+extern uint8_t buttons_pressed;
 
 #endif /* BADGE_H_ */

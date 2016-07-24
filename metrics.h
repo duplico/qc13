@@ -17,3 +17,4 @@ uint8_t is_donor(uint8_t badge_id);
 uint8_t is_gilder(uint8_t badge_id);
 uint8_t is_camo_avail(uint8_t camo_id);
 void unlock_camo(uint8_t camo_id);
+void check_button_presses();
