@@ -194,10 +194,6 @@ void tlc_init() {
     Timer_A_setCompareValue(TIMER_A1_BASE, TIMER_A_CAPTURECOMPARE_REGISTER_1, 1);
     Timer_A_startCounter(TIMER_A1_BASE, TIMER_A_UP_MODE);
 
-    // A0 / LED channel timer:
-    Timer_A_initUpMode(TIMER_A0_BASE, &next_channel_timer_init);
-    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
-
     UCA0CTLW0 |= UCSWRST;  // Shut down USCI_A0,
 
     // And USCI_A0 peripheral:
@@ -316,11 +312,3 @@ __interrupt void EUSCI_A0_ISR(void)
     } // End of ISR flag switch ////////////////////////////////////////////////////
 }
 
-// Dedicated ISR for CCR0. Vector is cleared on service.
-#pragma vector=TIMER0_A0_VECTOR
-__interrupt void TIMER0_A0_ISR_HOOK(void)
-{
-    f_time_loop = 1;
-    tlc_set_gs();
-    __bic_SR_register_on_exit(LPM0_bits);
-}
