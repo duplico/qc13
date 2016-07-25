@@ -166,6 +166,8 @@ typedef struct {
     uint8_t uber_hat_given;
     uint64_t achievements;
     uint8_t gilded;
+    uint8_t locked;
+    uint8_t base_id;
     uint16_t crc16;
 } qc13conf;
 

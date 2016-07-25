@@ -36,6 +36,8 @@ const qc13conf default_conf = {
         0, // Uber hat not given out
         0, // No achievements
         0, // Not gilded.
+        1, // Locked
+        NOT_A_BASE, // Base ID.
         0 // blank CRC.
 };
 
