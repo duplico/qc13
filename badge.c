@@ -7,11 +7,7 @@
 
 #include "qc13.h"
 #include <stdlib.h>
-#include "leg_anims.h"
-#include "led_display.h"
-#include "eye_anims.h"
 #include "rfm75.h"
-#include "mating.h"
 #include "metrics.h"
 #include "badge.h"
 
@@ -36,7 +32,7 @@ const qc13conf default_conf = {
         0, 0, 0, // hats!
         {0}, // event check-ins
         0, // camo_unlocks bitfield
-        LEG_ANIM_DEF, // camo_id
+        0, // camo_id
         0, // Uber hat not given out
         0, // No achievements
         0, // Not gilded.
@@ -45,104 +41,14 @@ const qc13conf default_conf = {
 
 rfbcpayload in_payload, out_payload;
 
-uint8_t being_inked = 0;
-uint8_t mated = 0;
-uint8_t just_sent_superink = 0;
-uint8_t seconds_to_next_face = 0;
-uint8_t deferred_new_badges = 0;
-
-void initial_animations() {
-    face_set_ambient_direct(DEFAULT_EYES);
-    tentacle_start_anim(LEG_ANIM_META_WAKEUP, LEG_CAMO_INDEX, 0, 0);
-    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
-    face_start_anim(FACE_ANIM_META_WAKEUP);
-
-    if (my_conf.gilded & GILD_ON)
-        eye_twinkle_on();
-    else
-        eye_twinkle_off();
-}
-
-void blink_or_make_face() {
-    if (seconds_to_next_face) {
-        seconds_to_next_face--;
-        return;
-    }
-    if (face_state != FACESTATE_AMBIENT)
-        return;
-
-    uint8_t to_blink = mate_state || ink_cooldown || (rand() % 5);
-    uint8_t thing_to_do = 0;
-
-    if (!to_blink) {
-        thing_to_do = rand() % FACE_ANIM_COUNT;
-
-        if (thing_to_do == FACE_ANIM_SAD && neighbor_count > 0) {
-            thing_to_do = FACE_ANIM_CUTESY;
-        } else if (thing_to_do == FACE_ANIM_CUTESY && neighbor_count == 0) {
-            thing_to_do = FACE_ANIM_SAD;
-        }
-
-        if (thing_to_do == FACE_ANIM_FASTBLINKING || thing_to_do == FACE_ANIM_BLINKING)
-            to_blink = 1;
-        else
-            face_start_anim(thing_to_do);
-    }
-
-    if (to_blink) {
-        if (neighbor_count >= 10)
-            blink_repeat_count = 3;
-        else if (neighbor_count >= 5)
-            blink_repeat_count = 2;
-        else if (neighbor_count)
-            blink_repeat_count = 1;
-        else
-            blink_repeat_count = 0;
-
-        face_start_anim(blink_repeat_count? FACE_ANIM_FASTBLINKING : FACE_ANIM_BLINKING);
-    }
-
-    seconds_to_next_face = 255;
-}
-
 void second() {
-    blink_or_make_face();
-    tentacle_wiggle();
 
-    if (mate_state == MS_PLUG) {
-        mate_send_basic(0, 1, 0);
-    }
-
-    if (deferred_new_badges) {
-        deferred_new_badges--;
-        new_badge_seen(1);
-    }
-
-    do_light_step();
-    do_brightness_correction(light_order, 0);
-
-    if (ink_cooldown) {
-        ink_cooldown--;
-        if (!ink_cooldown) {
-            // something something something
-            face_restore_ambient();
-            if (!(my_conf.gilded & GILD_ON))
-                eye_twinkle_off();
-        }
-    }
 }
 
 void two_seconds() {
 }
 
 void face_animation_done() {
-    do_brightness_correction(light_order, 0);
-    if (blink_repeat_count) {
-        blink_repeat_count--;
-        face_start_anim(FACE_ANIM_FASTBLINKING);
-    } else {
-        seconds_to_next_face = rand() % 5;
-    }
 }
 
 // IMPORTANT: Call this last.
@@ -169,10 +75,6 @@ void send_ink() {
     if (ink_cooldown)
         return;
     ink_cooldown = INK_OUT_COOLDOWN_SECS;
-    face_start_anim(FACE_ANIM_CUTESY);
-    tentacle_send_meta_mating(2, 13);
-    eye_twinkle_on();
-    face_set_ambient_temp_direct(INKING_EYES);
     out_payload.ink_id = my_conf.camo_id;
     out_payload.flags = RFBC_INK;
     complete_rfbc_payload(&out_payload);
@@ -187,122 +89,16 @@ void send_super_ink() {
 }
 
 void send_beacon() {
-    out_payload.ink_id = LEG_ANIM_NONE;
+    out_payload.ink_id = 211;
     out_payload.flags = RFBC_BEACON;
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
-}
-
-void hat_change(uint8_t from, uint8_t to) {
-    // This function MUST rely upon its parameters, not the global state,
-    //  as the global state isn't settled yet when this function is called.
-    // The borrowing event doesn't need to be fired from here.
-    //  It's called elsewhere - after.
-
-    if (is_handler(my_conf.badge_id) && (to & HS_HANDLER)) {
-        // angry eyes.
-        face_set_baseline_ambient_direct(ANGRY_EYES);
-        // set the camo.
-        unlock_camo(LEG_ANIM_HANDLER);
-        tentacle_start_anim(LEG_ANIM_HANDLER, LEG_CAMO_INDEX, 1, 1);
-    } else if (from & HS_HANDLER && !(to & HS_HANDLER)) {
-        face_set_baseline_ambient_direct(DEFAULT_EYES);
-    }
-}
-
-void start_button_longpressed() {
-    if (being_inked || !my_conf.gilded) return; // nope!
-
-    if (mate_state == MS_IDLE && (my_conf.gilded & GILD_AVAIL)) {
-        // gild on for ourselves
-        my_conf.gilded ^= GILD_ON;
-        if (my_conf.gilded & GILD_ON)
-            eye_twinkle_on();
-        else
-            eye_twinkle_off();
-    } else if (mate_state == MS_PAIRED && is_uber(my_conf.badge_id) && !my_conf.uber_hat_given) {
-        mate_send_uber_hat_bestow();
-    } else if (mate_state == MS_PAIRED && (is_gilder(my_conf.badge_id))) {
-        mate_send_basic(0, 0, 1);
-    } else if (mate_state == MS_PIPE_PAIRED && my_conf.hat_holder) {
-        mate_send_flags(M_REPRINT_HAT);
-    }
-}
-
-void start_button_clicked() {
-    button_press_window = button_press_window << 1;
-    // start is 1.
-    button_press_window |= 0x0000000000000001;
-    if (buttons_pressed < 64) buttons_pressed++;
-    check_button_presses();
-
-    if (being_inked || ink_cooldown) return; // nope!
-
-    switch (mate_state) {
-    case MS_IDLE:
-        send_ink();
-        break;
-    case MS_INK_WAIT:
-        tentacle_send_meta_mating(0, 0);
-        if (super_ink_waits_on_me) { // waiting on me:
-            mate_send_basic(1,0,0);
-            enter_super_inking();
-        }
-        // otherwise ignore it... we're waiting on the other badge.
-        break;
-    case MS_PAIRED:
-        tentacle_send_meta_mating(0, 0);
-        mate_send_basic(1,0,0);
-        maybe_enter_ink_wait(1);
-        break;
-    default:
-        // ignore it.
-        __no_operation();
-    }
-}
-
-void select_button_clicked() {
-    button_press_window = button_press_window << 1;
-    // select is 0.
-    button_press_window |= 0x0000000000000001;
-    if (buttons_pressed < 64) buttons_pressed++;
-    check_button_presses();
-
-    if (being_inked || mate_state == MS_SUPER_INK || ink_cooldown) return; // nope!
-
-    static uint8_t new_camo = 0;
-
-    new_camo = my_conf.camo_id;
-
-    do {
-        new_camo = (new_camo+1) % LEG_ANIM_COUNT;
-    } while (!is_camo_avail(new_camo));
-
-    my_conf.camo_id = new_camo;
-    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
-}
-
-void leg_anim_done(uint8_t tentacle_anim_id) {
-    being_inked = 0;
-    if (mate_state == MS_SUPER_INK && just_sent_superink) {
-        tentacle_send_meta_mating(2, 13);
-        send_super_ink();
-        just_sent_superink = 0;
-    }
 }
 
 void not_lonely() {
 }
 
 void new_badge_seen(uint8_t deferred) {
-    // I think I skip this if I'm paired or being inked...
-    if (mate_state || being_inked || !tentacle_is_ambient) {
-        if (!deferred) deferred_new_badges++;
-        return;
-    }
-
-    do_brightness_correction(light_order+2, 1);
-    tentacle_start_anim(LEG_ANIM_META_SOCIAL, 0, 1, 0);
 }
 
 void new_badge_mated() {
@@ -342,16 +138,7 @@ void radio_basic_base_received(uint8_t base_id) {
 }
 
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
-    if (being_inked || ink_cooldown || mate_state != MS_IDLE)
-        return; // we ignore inks if we're mated, or already being inked.
-    being_inked = ink_type; // 1 for regular, 2 for double.
-    if (being_inked == 1)
-        do_brightness_correction(light_order+2, 1);
-    else
-        do_brightness_correction(light_order+8, 1);
-    tentacle_start_anim(ink_id, ink_type, legs_all_anim_sets[ink_id][ink_type]->ink_loops, 0);
-//    face_start_anim(FACE_ANIM_META_GOTINKED);
-    face_start_anim(FACE_ANIM_META_INKED_FLASH);
+    // ignore.
 }
 
 void radio_broadcast_received(rfbcpayload *payload) {
@@ -375,25 +162,6 @@ void radio_broadcast_received(rfbcpayload *payload) {
 void radio_transmit_done() {
 }
 
-void mate_plug() {
-    face_set_ambient_temp_direct(CLOSED_EYES);
-}
-
-void mate_start(uint8_t badge_id, uint8_t handler_on_duty) {
-    face_set_ambient_temp_direct(GIGGITY_EYES);
-    if (badges_mated[badge_id]) {
-        // We've mated before
-        tentacle_start_anim(LEG_ANIM_META_SOCIAL, 1, 0, 0);
-    } else {
-        tentacle_start_anim(LEG_ANIM_META_SOCIAL, 2, 0, 0);
-    }
-    set_badge_mated(badge_id, handler_on_duty);
-}
-
-void mate_end(uint8_t badge_id) {
-    face_restore_ambient();
-    mate_over_cleanup();
-}
 
 void borrowing_hat() {
     // TODO: shutdown

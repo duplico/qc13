@@ -8,11 +8,7 @@
 #include <stdlib.h>
 #include "qc13.h"
 #include "rfm75.h"
-#include "led_display.h"
-#include "tlc5948a.h"
-#include "etc/tentacles/leg_anims.h"
 #include "badge.h"
-#include "mating.h"
 #include "metrics.h"
 
 // TODO: base.
@@ -71,107 +67,23 @@ uint16_t hat_potential = 0;
 uint16_t hat_v_tot = 0;
 uint8_t hat_v_index = 0;
 
+// Base related:
+
+// In the "modal" sense:
+uint8_t op_mode = OP_MODE_IDLE;
+uint8_t suppress_softkey = 0;
+uint16_t softkey_en = 0x3FE; // TODO: deal with lock.
+uint8_t idle_mode_softkey_sel = 0;
+uint8_t idle_mode_softkey_dis = 0;
+volatile uint8_t f_bl = 0;
+volatile uint8_t f_br = 0;
+volatile uint8_t f_bs = 0; // TODO: nonvolatile.
+uint8_t s_oled_needs_redrawn_idle = 0;
+uint8_t s_new_pane = 1;
+
+
 // Initialization functions
 ///////////////////////////
-
-void init_adc() {
-    // Set 1.0 and 1.1 to ternary module function (A0 and A1 respectively)
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN0, GPIO_TERNARY_MODULE_FUNCTION);
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN1, GPIO_TERNARY_MODULE_FUNCTION);
-
-    // Set 3.3 to ternary (A15)
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P3, GPIO_PIN3, GPIO_TERNARY_MODULE_FUNCTION);
-
-    /* Struct to pass to ADC12_B_init */
-    ADC12_B_initParam initParam = {0};
-
-    /* Initializes ADC12_B */
-    initParam.sampleHoldSignalSourceSelect = ADC12_B_SAMPLEHOLDSOURCE_SC;
-    initParam.clockSourceSelect = ADC12_B_CLOCKSOURCE_ADC12OSC;
-    initParam.clockSourceDivider = ADC12_B_CLOCKDIVIDER_1;
-    initParam.clockSourcePredivider = ADC12_B_CLOCKPREDIVIDER__32;
-    initParam.internalChannelMap = 0;
-    ADC12_B_init(ADC12_B_BASE, &initParam);
-
-    /* Enables ADC12_B */
-    ADC12_B_enable(ADC12_B_BASE);
-
-    /* Sets up and enables the Sampling Timer Pulse Mode */
-    ADC12_B_setupSamplingTimer(ADC12_B_BASE, ADC12_B_CYCLEHOLD_8_CYCLES, ADC12_B_CYCLEHOLD_8_CYCLES, ADC12_B_MULTIPLESAMPLESENABLE);
-
-    /* Struct to pass to ADC12_B_configureMemory */
-    ADC12_B_configureMemoryParam configureMemoryParam = {0};
-
-    // Buffer 0
-    configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_0;
-    configureMemoryParam.inputSourceSelect = ADC12_B_INPUT_A0;
-    configureMemoryParam.refVoltageSourceSelect = ADC12_B_VREFPOS_AVCC_VREFNEG_VSS;
-    configureMemoryParam.endOfSequence = ADC12_B_NOTENDOFSEQUENCE;
-    configureMemoryParam.windowComparatorSelect = ADC12_B_WINDOW_COMPARATOR_DISABLE;
-    configureMemoryParam.differentialModeSelect = ADC12_B_DIFFERENTIAL_MODE_DISABLE;
-    ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
-
-    // Buffer 1
-    configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_1;
-    configureMemoryParam.inputSourceSelect = ADC12_B_INPUT_A1;
-    configureMemoryParam.refVoltageSourceSelect = ADC12_B_VREFPOS_AVCC_VREFNEG_VSS;
-    configureMemoryParam.endOfSequence = ADC12_B_NOTENDOFSEQUENCE;
-    configureMemoryParam.windowComparatorSelect = ADC12_B_WINDOW_COMPARATOR_DISABLE;
-    configureMemoryParam.differentialModeSelect = ADC12_B_DIFFERENTIAL_MODE_DISABLE;
-    ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
-
-    // Buffer 3
-    configureMemoryParam.memoryBufferControlIndex = ADC12_B_MEMORY_2;
-    configureMemoryParam.inputSourceSelect = ADC12_B_INPUT_A15;
-    configureMemoryParam.refVoltageSourceSelect = ADC12_B_VREFPOS_AVCC_VREFNEG_VSS;
-    configureMemoryParam.endOfSequence = ADC12_B_ENDOFSEQUENCE;
-    configureMemoryParam.windowComparatorSelect = ADC12_B_WINDOW_COMPARATOR_DISABLE;
-    configureMemoryParam.differentialModeSelect = ADC12_B_DIFFERENTIAL_MODE_DISABLE;
-    ADC12_B_configureMemory(ADC12_B_BASE, &configureMemoryParam);
-
-    /* Inverts/Uninverts the sample/hold signal */
-    ADC12_B_setSampleHoldSignalInversion(ADC12_B_BASE, ADC12_B_NONINVERTEDSIGNAL);
-
-    /* Sets the read-back format of the converted data */
-    ADC12_B_setDataReadBackFormat(ADC12_B_BASE, ADC12_B_UNSIGNED_BINARY);
-
-    ADC12_B_startConversion(ADC12_B_BASE, ADC12_B_START_AT_ADC12MEM0, ADC12_B_REPEATED_SEQOFCHANNELS);
-}
-
-void poll_adc() {
-
-    if (!being_inked) {
-        // Light:
-        light_tot -= lights[light_index];
-        lights[light_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_0) >> 1;
-        if (lights[light_index] < 3) lights[light_index] = 3;
-        light_tot += lights[light_index];
-        light_index++;
-        if (light_index == ADC_WINDOW) light_index = 0;
-    }
-
-    // Temp:
-    temp_tot -= temps[temp_index];
-    temps[temp_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_1);
-    temp_tot += temps[temp_index];
-    temp_index++;
-    if (temp_index == ADC_WINDOW) temp_index = 0;
-    temp = temp_tot / ADC_WINDOW;
-
-    // Temp has 3 bands: COLD < NORMAL < HOT
-
-    // Hat:
-    hat_v_tot -= hat_potentials[hat_v_index];
-    hat_potentials[hat_v_index] = ADC12_B_getResults(ADC12_B_BASE, ADC12_B_MEMORY_2);
-    hat_v_tot += hat_potentials[hat_v_index];
-    hat_v_index++;
-    if (hat_v_index == ADC_WINDOW) {
-        hat_v_index = 0;
-        if (hat_check_this_cycle)
-            s_hat_check = 1;
-        hat_check_this_cycle = !hat_check_this_cycle;
-    }
-}
 
 void term_gpio() {
     P1SEL0 = 0;
@@ -196,40 +108,12 @@ void term_gpio() {
     PJDIR = 0xFF;
     PJOUT = 0x00;
 
-    // LED banks:
-    P3DIR |= (LED_BANK5_PIN | LED_BANK6_PIN);
-    PJDIR |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN | LED_BANK4_PIN);
-    LED_BANK1_OUT |= (LED_BANK1_PIN | LED_BANK2_PIN | LED_BANK3_PIN
-            | LED_BANK4_PIN);
-    LED_BANK5_OUT |= (LED_BANK5_PIN | LED_BANK6_PIN);
-
 }
 
 void make_fresh_conf() {
      fresh_power = 1; // TODO
 
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
-    unlock_camo(LEG_ANIM_DEF);
-    if (is_uber(my_conf.badge_id)) {
-        unlock_camo(LEG_ANIM_UBER);
-        my_conf.uber_hat_given = 0;
-        award_hat(HAT_UBER);
-        my_conf.gilded = GILD_AVAIL;
-    }
-    if (is_handler(my_conf.badge_id)) {
-        // We'll unlock the camo when we go on duty.
-        award_hat(HAT_HANDLER);
-    }
-    if (is_donor(my_conf.badge_id)) {
-        // Unlock the hat...
-        award_hat(my_conf.badge_id);
-    }
-    if (my_conf.badge_id == JASON_ID) {
-        unlock_camo(LEG_ANIM_SHUTDOWN);
-    }
-
-    set_badge_seen(my_conf.badge_id, is_handler(my_conf.badge_id));
-    set_badge_mated(my_conf.badge_id, is_handler(my_conf.badge_id));
 }
 
 void setup_my_conf() {
@@ -274,8 +158,8 @@ int _system_pre_init(void)
 void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
 
-    volatile uint16_t rsv = 0;
-    rsv = SYSRSTIV;
+//    volatile uint16_t rsv = 0;
+//    rsv = SYSRSTIV;
     __no_operation();
 
     // No waiting at all, because we're running <= 8MHz:
@@ -284,53 +168,54 @@ void init() {
     init_clocks();
 
     // Buttons and mating port:
-    P3DIR &= ~BIT4;
-    P3REN |= BIT4;
-    P3OUT |= BIT4;
-
-    P3DIR &= ~BIT0;
-    P3REN |= BIT0;
-    P3OUT |= BIT0;
-
-    P2DIR &= ~BIT7;
-    P2REN |= BIT7;
-    P2OUT |= BIT7;
+//    P3DIR &= ~BIT4;
+//    P3REN |= BIT4;
+//    P3OUT |= BIT4;
+//
+//    P3DIR &= ~BIT0;
+//    P3REN |= BIT0;
+//    P3OUT |= BIT0;
+//
+//    P2DIR &= ~BIT7;
+//    P2REN |= BIT7;
+//    P2OUT |= BIT7;
 
     setup_my_conf();
-
     __bis_SR_register(GIE);
-    tlc_init();   // Initialize our LED system (including GPIO)
-    rfm75_init(); // Initialize our radio (including GPIO)
-    init_mating();// Initialize mating port (GPIO is above)
-    init_adc();   // Start up the ADC for light and temp sensors.
 
+//    rfm75_init(); // Initialize our radio (including GPIO)
     init_oled();
+
+
+    // A0 / LED channel timer:    // Next we configure the clock that tells us when it's time to select the
+    //  next LED channel bank.
+    // We'll run this off of ACLK, which is driven by our internal 39K clock.
+    //  THIS IS OUR TIME LOOP!!!! :-D
+
+    Timer_A_initUpModeParam next_channel_timer_init = {};
+    next_channel_timer_init.clockSource = TIMER_A_CLOCKSOURCE_ACLK;
+    next_channel_timer_init.clockSourceDivider = TIMER_A_CLOCKSOURCE_DIVIDER_28;
+    next_channel_timer_init.timerPeriod = 2;
+    next_channel_timer_init.timerInterruptEnable_TAIE = TIMER_A_TAIE_INTERRUPT_DISABLE;
+    next_channel_timer_init.captureCompareInterruptEnable_CCR0_CCIE = TIMER_A_CCIE_CCR0_INTERRUPT_ENABLE;
+    next_channel_timer_init.timerClear = TIMER_A_SKIP_CLEAR;
+    next_channel_timer_init.startTimer = false;
+    Timer_A_initUpMode(TIMER_A0_BASE, &next_channel_timer_init);
+    Timer_A_startCounter(TIMER_A0_BASE, TIMER_A_UP_MODE);
 }
 
-void set_face(uint64_t frame); // TODO
-
 void post() {
-    // test LEDs:
-    if (fresh_power) {
-        led_post();
-    }
-    else {
-        set_face(0);
-        tlc_stage_blank(0);
-        tlc_set_fun();
-    }
-
     // test RFM75:
     uint8_t ret = rfm75_post();
     if (!ret) { // bad radio:
-        face_set_ambient_direct(0xffffffff00000000);
+        // TODO
         delay_millis(3000);
     }
 
     // test clocks:
     ret = clocks_post_errors();
     if (ret) { // bad clock flag:
-        face_set_ambient_direct(0x00000000ffffffff);
+        // TODO
         delay_millis(3000);
     }
 
@@ -343,72 +228,75 @@ void delay_millis(unsigned long mils) {
     }
 }
 
-uint8_t start_seconds_pressed = 0;
-uint8_t start_pressed = 0;
+const char sk_labels[SK_SEL_MAX+1][12] = {
+        "Unlock",
+        "Lock",
+        "B: Off",
+        "B: Suite", // base ID 1, so we send sk_label index - 2
+        "B: Pool",
+        "B: Kickoff",
+        "B: Mixer",
+        "B: Talk",
+        "Flag",
+};
+
+const char base_labels[][12] = { // so we send label index + 1
+        "qcsuite",
+        "pool",
+        "kickoff",
+        "mixer",
+        "badgetalk"
+};
 
 void poll_buttons() {
-    static uint8_t b_start_read_prev = 1;
-    static uint8_t b_start_read = 1;
-    static uint8_t b_start_state = 1;
 
-    static uint8_t b_select_read_prev = 1;
-    static uint8_t b_select_read = 1;
-    static uint8_t b_select_state = 1;
+    static uint8_t bl_read_prev = 1;
+    static uint8_t bl_read = 1;
+    static uint8_t bl_state = 1;
 
-    static uint8_t b_ohai_read_prev = 1;
-    static uint8_t b_ohai_read = 1;
-    static uint8_t b_ohai_state = 1;
+    static uint8_t br_read_prev = 1;
+    static uint8_t br_read = 1;
+    static uint8_t br_state = 1;
+
+    static uint8_t bs_read_prev = 1;
+    static uint8_t bs_read = 1;
+    static uint8_t bs_state = 1;
 
     // Poll the buttons two time loops in a row to debounce and
     // if there's a change, raise a flag.
-    b_select_read = GPIO_getInputPinValue(GPIO_PORT_P2, GPIO_PIN7);
-    b_start_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN4);
-
-    if (b_start_read == b_start_read_prev && b_start_read != b_start_state) {
-        s_b_start = b_start_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
-        b_start_state = b_start_read;
+    // Left button:
+    bl_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN6);
+    if (bl_read == bl_read_prev && bl_read != bl_state) {
+        f_bl = bl_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
+        bl_state = bl_read;
     }
-    b_start_read_prev = b_start_read;
+    bl_read_prev = bl_read;
 
-    if (b_select_read == b_select_read_prev && b_select_read != b_select_state) {
-        s_b_select = b_select_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
-        b_select_state = b_select_read;
+    // Softkey button:
+    bs_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN5);
+    if (bs_read == bs_read_prev && bs_read != bs_state) {
+        if (suppress_softkey) {
+            // suppress_softkey means we don't generate a flag for the next
+            // release (or press, I guess, but we mostly care about releases.)
+            suppress_softkey = 0;
+        } else {
+            f_bs = bs_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
+        }
+        bs_state = bs_read;
     }
-    b_select_read_prev = b_select_read;
+    bs_read_prev = bs_read;
 
-    b_ohai_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN0);
-    if (b_ohai_read == b_ohai_read_prev && b_ohai_read != b_ohai_state) {
-        s_b_ohai = b_ohai_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
-        b_ohai_state = b_ohai_read;
+    // Right button:
+    br_read = GPIO_getInputPinValue(GPIO_PORT_P3, GPIO_PIN4);
+    if (br_read == br_read_prev && br_read != br_state) {
+        f_br = br_read? BUTTON_RELEASE : BUTTON_PRESS; // active low
+        br_state = br_read;
     }
-    b_ohai_read_prev = b_ohai_read;
-
+    br_read_prev = br_read;
 } // poll_buttons
 
-void do_hat_check() {
-    hat_potential = hat_v_tot / ADC_WINDOW;
-
-    uint8_t hat_type_detected = HS_NONE;
-    if (1750 < hat_potential && hat_potential < 1950) { // 1.5 V
-        hat_type_detected = HS_HANDLER;
-    } else if (hat_potential > 3950) {
-        hat_type_detected = HS_HUMAN;
-    } else if (3000 < hat_potential && hat_potential < 3200) { // 2.5 V
-        hat_type_detected = HS_UBER;
-    }
-
-    if (hat_type_detected != hat_state) {
-        // switching hats
-        hat_change(hat_state, hat_type_detected);
-        hat_state = hat_type_detected;
-
-        if ((!my_conf.hat_holder && hat_state) ||
-                (!is_uber(my_conf.badge_id) && (hat_state & HS_UBER)) ||
-                (!is_handler(my_conf.badge_id) && (hat_state & HS_HANDLER))) {
-            borrowing_hat();
-        }
-
-    }
+uint8_t softkey_enabled(uint8_t index) {
+    return ((1<<index) & softkey_en)? 1 : 0;
 }
 
 void time_loop() {
@@ -429,51 +317,259 @@ void time_loop() {
             radio_beacon_interval();
             interval_seconds_remaining = BEACON_INTERVAL_SECS;
         }
+    }
+    oled_timestep();
 
-        if (start_pressed) {
-            start_seconds_pressed++;
-            if (start_seconds_pressed >= LONG_PRESS_THRESH) {
-                start_button_longpressed();
+    if (idle_mode_softkey_dis) {
+        f_br = f_bl = f_bs = 0;
+    }
+
+    if (f_br == BUTTON_PRESS) {
+        // Left button
+        do {
+            idle_mode_softkey_sel = (idle_mode_softkey_sel+1) % (SK_SEL_MAX+1);
+        } while (!softkey_enabled(idle_mode_softkey_sel));
+        s_new_pane = 1;
+    }
+    f_br = 0;
+
+    if (f_bl == BUTTON_PRESS) {
+        do {
+            idle_mode_softkey_sel = (idle_mode_softkey_sel+SK_SEL_MAX) % (SK_SEL_MAX+1);
+        } while (!softkey_enabled(idle_mode_softkey_sel));
+        s_new_pane = 1;
+    }
+    f_bl = 0;
+
+    if (f_bs == BUTTON_RELEASE) {
+        f_bs = 0;
+        // Select button
+        switch (idle_mode_softkey_sel) {
+        case SK_SEL_UNLOCK:
+//            unlock(); // TODO
+            s_new_pane = 1;
+            idle_mode_softkey_sel = SK_SEL_LOCK;
+            oled_draw_pane_and_flush(idle_mode_softkey_sel);
+            break;
+        case SK_SEL_LOCK:
+//            my_conf.locked = 1; // TODO
+//            my_conf_write_crc(); // TODO
+            idle_mode_softkey_sel = SK_SEL_UNLOCK;
+            s_new_pane = 1;
+            break;
+        case SK_SEL_SETFLAG:
+            op_mode = OP_MODE_SETFLAG;
+            break;
+        case SK_SEL_BOFF:
+//            my_conf.base_id = NOT_A_BASE; // TODO
+//            my_conf_write_crc();
+            s_new_pane = 1;
+            oled_draw_pane_and_flush(idle_mode_softkey_sel);
+            break;
+        default:
+            if (idle_mode_softkey_sel > SK_SEL_MAX) {
+                break;
             }
-        }
-
-    }
-
-    if (mate_state == MS_INK_WAIT) {
-        mate_ink_wait++;
-        if (mate_ink_wait == SUPER_INK_WINDOW_SECS * LOOPS_PER_SECOND) {
-            ink_wait_timeout();
-        }
-    }
-
-    if (mate_state == MS_SUPER_INK) {
-        mate_ink_wait++;
-        if (mate_ink_wait == SUPER_INK_DECAY_SECS * LOOPS_PER_SECOND) {
-            super_ink_timeout();
+            // I need to SEND:  3 for pool
+            //                  4 for kickoff
+            //                  5 for mixer
+            //                  6 for talk
+//            my_conf.base_id = idle_mode_softkey_sel - 1;
+//            my_conf_write_crc(); // TODO
+            op_mode = OP_MODE_IDLE;
         }
     }
+
+    if (s_new_pane) {
+        // Title or softkey or something changed:
+        s_new_pane = 0;
+        oled_draw_pane_and_flush(idle_mode_softkey_sel);
+    }
+
+}
+
+
+//// Read the badgeholder's name if appropriate:
+//uint8_t unlock() {
+//    // Clear the screen and display the instructions.
+//    static tRectangle name_erase_rect = {0, NAME_Y_OFFSET, 63, NAME_Y_OFFSET + NAME_FONT_HEIGHT + SYS_FONT_HEIGHT};
+//    static uint8_t update_disp;
+//    update_disp = 1;
+//
+//    GrClearDisplay(&g_sContext);
+//    GrContextFontSet(&g_sContext, &SYS_FONT);
+//    oled_print(0, 5, "Password please.", 1, 0);
+//    GrFlush(&g_sContext);
+//
+//    // Switch to the NAME font so it's the expected width.
+//    GrContextFontSet(&g_sContext, &NAME_FONT);
+//
+//    // Temporary buffer to hold the selected name.
+//    // (In the event of a power cycle we don't wand to be messing around
+//    //  with the actual config's handle)
+//    char name[NAME_MAX_LEN+1] = {' ', 0};
+//    uint8_t char_entry_index = 0;
+//    uint8_t curr_char = ' ';
+//
+//    // String to display under the name; it's just the selection character,
+//    // configured in qc12.h
+//    const char undername[2] = {NAME_SEL_CHAR, 0};
+//
+//    // For figuring out where to put the underline & selection character:
+//    uint8_t underchar_x = 0;
+//    uint8_t text_width = 0;
+//    uint8_t last_char_index = 0;
+//
+//    // For determining whether name entry is complete:
+//    uint8_t bs_down_loops = 0;
+//    text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
+//
+//    while (1) {
+//
+//        if (f_time_loop) {
+//            f_time_loop = 0;
+//            // Check for left/right buttons to change character slot
+//            if (f_bl == BUTTON_RELEASE) {
+//                if (char_entry_index > 0) {
+//                    // check for deletion:
+//                    if (char_entry_index == last_char_index) { // was: && curr_char == ' ')
+//                        name[char_entry_index] = ' ';
+//                        last_char_index--;
+//                    }
+//                    char_entry_index--;
+//                    curr_char = name[char_entry_index];
+//                    update_disp = 1;
+//                    text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
+//                }
+//                f_bl = 0;
+//            }
+//            if (f_br == BUTTON_RELEASE) {
+//                if (char_entry_index < NAME_MAX_LEN && curr_char != ' ' && text_width < 58) {
+//                    char_entry_index++;
+//                    if (!name[char_entry_index])
+//                        name[char_entry_index] = ' ';
+//                    curr_char = name[char_entry_index];
+//                    if (char_entry_index > last_char_index)
+//                        last_char_index = char_entry_index;
+//                    update_disp = 1;
+//                    text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
+//                }
+//                f_br = 0;
+//            }
+//            if (f_bs == BUTTON_RELEASE) {
+//                // Softkey button cycles the current character.
+//                // This is a massive PITA for the person entering their name,
+//                // but they only have to do it once so whatever.
+//                if (curr_char == 'Z') // First comes capital letters
+//                    curr_char = 'a';
+//                else if (curr_char == 'z') // Then lower case
+//                    curr_char = '0';
+//                else if (curr_char == '9') // Then numbers
+//                    curr_char = ' ';
+//                else if (curr_char == ' ') // Then a space, and then we cycle.
+//                    curr_char = 'A';
+//                else
+//                    curr_char++;
+//                name[char_entry_index] = curr_char;
+//                update_disp = 1;
+//                f_bs = 0;
+//                // Since it's released, clear the depressed loop count.
+//                bs_down_loops = 0;
+//            } else if ((last_char_index || name[0] != ' ') && f_bs == BUTTON_PRESS) {
+//                // If we're in a valid state to complete the name entry, and
+//                // the softkey button is depressed, then it's time to start
+//                // counting the number of time loops for which it is depressed.
+//                bs_down_loops = 1;
+//                f_bs = 0;
+//            }
+//
+//            // If we're counting the number of loops for which the softkey is
+//            // depressed, go ahead and increment it. This is going to do one
+//            // double-count at the beginning, but I don't care.
+//            if (bs_down_loops && bs_down_loops < NAME_COMMIT_LOOPS) {
+//                bs_down_loops++;
+//            } else if (bs_down_loops) {
+//                break;
+//            }
+//
+//            if (update_disp) {
+//                update_disp = 0;
+//                underchar_x = GrStringWidthGet(&g_sContext, name, char_entry_index);
+//
+//                // Clear the area:
+//                GrContextForegroundSet(&g_sContext, ClrBlack);
+//                GrRectFill(&g_sContext, &name_erase_rect);
+//                GrContextForegroundSet(&g_sContext, ClrWhite);
+//
+//                // Rewrite it:
+//                GrStringDraw(&g_sContext, name, -1, 0, NAME_Y_OFFSET, 1);
+//                GrLineDrawH(&g_sContext, 0, text_width, NAME_Y_OFFSET+12);
+//                GrStringDraw(&g_sContext, undername, -1, underchar_x, NAME_Y_OFFSET+13, 1);
+//                GrFlush(&g_sContext);
+//            }
+//        } // end if (f_time_loop)
+//
+//        try_to_sleep();
+//
+//    } // end while (1)
+//
+//    // Commit the name with a correctly placed null termination character..
+//    uint8_t name_len = 0;
+//    while (name[name_len] && name[name_len] != ' ')
+//        name_len++;
+//    name[name_len] = 0; // null terminate.
+//
+//    GrClearDisplay(&g_sContext);
+//    GrFlush(&g_sContext);
+//
+//    suppress_softkey = 1;
+//
+//    if (!strcmp(name, "OKHOMOr")) {
+//        // unlock with rainbows
+//        my_conf.locked = 0;
+//        my_conf.flag_unlocks = 0xFF;
+//        my_conf_write_crc();
+//        return 1;
+//    } else if (!strcmp(name, "OKHOMOn")) {
+//        // unlock
+//        my_conf.locked = 0;
+//        my_conf.flag_unlocks = 0;
+//        my_conf_write_crc();
+//        return 1;
+//    } else if (!strcmp(name, "OKHOMO")) {
+//        // unlock
+//        my_conf.locked = 0;
+//        my_conf_write_crc();
+//        return 1;
+//    } else {
+//        return 0; // fail
+//    }
+//} // handle_mode_name
+
+void intro() {
+    GrStringDrawCentered(&g_sContext, "qc13event", -1, 31, 10, 0);
+    GrImageDraw(&g_sContext, &fingerprint_1BPP_UNCOMP, 0, 18);
+    GrStringDrawCentered(&g_sContext, "* 2016 *", -1, 31, 125 - SYS_FONT_HEIGHT/2, 0);
+    GrFlush(&g_sContext);
+}
+
+void delay(unsigned int i) {
+    delay_millis(i);
 }
 
 int main(void)
 {
     init();
-    post();
-
-    initial_animations();
+//    post();
+    intro();
+    delay(1000);
 
     while (1)
     {
         if (f_time_loop) {
             poll_buttons();
-            poll_adc();
-            leds_timestep();
             time_loop();
             f_time_loop = 0;
-        }
-
-        if (f_mate_interrupt) {
-            mate_deferred_rx_interrupt();
-            f_mate_interrupt = 0;
         }
 
         if (f_rfm75_interrupt) {
@@ -481,53 +577,18 @@ int main(void)
             f_rfm75_interrupt = 0;
         }
 
-        if (s_hat_check) {
-            do_hat_check();
-            s_hat_check = 0;
-        }
-
-        if (s_b_start == BUTTON_PRESS) {
-            s_b_start = 0;
-            start_seconds_pressed = 0;
-            start_pressed = 1;
-        }
-
-        if (s_b_start == BUTTON_RELEASE) {
-            s_b_start = 0;
-            start_pressed = 0;
-            if (start_seconds_pressed < LONG_PRESS_THRESH) {
-                start_button_clicked();
-            }
-        }
-
-        if (s_b_select == BUTTON_PRESS) {
-            s_b_select = 0;
-        }
-
-        if (s_b_select == BUTTON_RELEASE) {
-            select_button_clicked();
-            s_b_select = 0;
-        }
-
-        if (s_b_ohai == BUTTON_PRESS) { // badges connected.
-            mate_state = MS_PLUG;
-            mate_plug();
-            s_b_ohai = 0;
-        }
-
-        if (s_b_ohai == BUTTON_RELEASE) { // badges disconnected.
-            mate_end(0); // clean up.
-            s_b_ohai = 0;
-        }
-
-        if (s_face_anim_done) {
-            s_face_anim_done = 0;
-            face_animation_done();
-        }
-
         // If no more interrupt flags are set, go to sleep.
         if (!f_time_loop && !f_rfm75_interrupt)
             __bis_SR_register(SLEEP_BITS);
     }
 
+}
+
+
+// Dedicated ISR for CCR0. Vector is cleared on service.
+#pragma vector=TIMER0_A0_VECTOR
+__interrupt void TIMER0_A0_ISR_HOOK(void)
+{
+    f_time_loop = 1;
+    __bic_SR_register_on_exit(LPM0_bits);
 }

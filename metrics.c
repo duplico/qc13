@@ -8,7 +8,6 @@
 #include "qc13.h"
 #include "metrics.h"
 #include "badge.h"
-#include "leg_anims.h"
 
 uint8_t is_uber(uint8_t badge_id) {
     return badge_id >= UBER_MIN_INCLUSIVE && badge_id <= UBER_MAX_INCLUSIVE;
@@ -118,12 +117,7 @@ uint8_t is_camo_avail(uint8_t camo_id) {
 }
 
 void unlock_camo(uint8_t camo_id) {
-    if (is_camo_avail(camo_id))
-        return;
-    my_conf.camo_unlocks |= (uint32_t)1 << camo_id;
-    my_conf.camo_id = camo_id;
-    // TODO: CRC
-    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
+    // irrelevant
 }
 
 void check_button_presses() {

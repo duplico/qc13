@@ -77,6 +77,7 @@
 //
 //*****************************************************************************
 #include <msp430fr5949.h>
+#include <qc12.h>
 #include <grlib.h>
 #include "qc12_oled.h"
 #include <driverlib.h>
@@ -204,18 +205,14 @@ qc12_oledInit(uint8_t invert)
     } else {
         SSD1306_init[21] = 0xA6;
     }
-
-    EUSCI_A_SPI_clearInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
-    EUSCI_A_SPI_enableInterrupt(EUSCI_A1_BASE, EUSCI_A_SPI_TRANSMIT_INTERRUPT);
-
     THISISCMD;
     //	OLED_RES_LOW;
     GPIO_setOutputLowOnPin(RESPORT, RESPIN);
     //	// Delay for 200ms at 16Mhz
-    __delay_cycles(1000);
+    delay(200);
     //	OLED_RES_HIGH;
     GPIO_setOutputHighOnPin(RESPORT, RESPIN);
-    __delay_cycles(1000);
+    delay(200);
     THISISDATA;
 
     for (uint8_t i=0; i<sizeof SSD1306_init; i++) {
