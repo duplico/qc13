@@ -6,6 +6,7 @@
 // Project includes:
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "qc13.h"
 #include "rfm75.h"
 #include "badge.h"
@@ -33,8 +34,6 @@
 volatile uint8_t f_time_loop = 0;
 volatile uint8_t f_rfm75_interrupt = 0;
 volatile uint8_t f_mate_interrupt = 0;
-
-uint8_t fresh_power = 0; // Turned on for the first time.
 
 uint8_t hat_check_this_cycle = 0;
 
@@ -69,10 +68,28 @@ uint8_t hat_v_index = 0;
 
 // Base related:
 
-// In the "modal" sense:
-uint8_t op_mode = OP_MODE_IDLE;
+const char sk_labels[SK_SEL_MAX+1][12] = {
+        "Unlock",
+        "Lock",
+        "B: Off",
+        "B: Suite", // base ID 1, so we send sk_label index - 2
+        "B: Pool",
+        "B: Kickoff",
+        "B: Mixer",
+        "B: Talk",
+};
+
+const char base_labels[][12] = { // so we send label index + 1
+        "qcsuite",
+        "pool",
+        "kickoff",
+        "mixer",
+        "badgetalk"
+};
+
+uint8_t op_mode = OP_MODE_IDLE; // In the "modal" sense:
 uint8_t suppress_softkey = 0;
-uint16_t softkey_en = 0x3FE; // TODO: deal with lock.
+uint16_t softkey_en = SK_BIT_UNLOCK; // UNLOCK only.
 uint8_t idle_mode_softkey_sel = 0;
 uint8_t idle_mode_softkey_dis = 0;
 volatile uint8_t f_bl = 0;
@@ -81,6 +98,8 @@ volatile uint8_t f_bs = 0; // TODO: nonvolatile.
 uint8_t s_oled_needs_redrawn_idle = 0;
 uint8_t s_new_pane = 1;
 
+void disp_mode_unlock();
+void enter_unlock();
 
 // Initialization functions
 ///////////////////////////
@@ -110,15 +129,43 @@ void term_gpio() {
 
 }
 
-void make_fresh_conf() {
-     fresh_power = 1; // TODO
+void my_conf_write_crc() {
+    if (my_conf.locked) {
+        softkey_en = BIT0;
+    } else {
+        softkey_en = 0x3FE; // TODO
+    }
 
+    CRC_setSeed(CRC_BASE, 0xc13c);
+    for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) &default_conf)[i]);
+    }
+    my_conf.crc16 = CRC_getResult(CRC_BASE);
+}
+
+uint8_t my_conf_is_valid() {
+    // TODO: Additional validation?
+
+    CRC_setSeed(CRC_BASE, 0xc13c);
+    for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) &default_conf)[i]);
+    }
+
+    return my_conf.crc16 == CRC_getResult(CRC_BASE);
+}
+
+void make_fresh_conf() {
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
+    my_conf_write_crc();
 }
 
 void setup_my_conf() {
-    // TODO: If we don't have a valid conf:
-    make_fresh_conf();
+    if (!my_conf_is_valid()) {
+        make_fresh_conf();
+    } else {
+        my_conf.locked = 1;
+        my_conf_write_crc();
+    }
 
     srand(my_conf.badge_id);
 }
@@ -158,27 +205,10 @@ int _system_pre_init(void)
 void init() {
     PM5CTL0 &= ~LOCKLPM5; // Unlock pins.
 
-//    volatile uint16_t rsv = 0;
-//    rsv = SYSRSTIV;
-    __no_operation();
-
     // No waiting at all, because we're running <= 8MHz:
     FRAMCtl_configureWaitStateControl(FRAMCTL_ACCESS_TIME_CYCLES_0);
     term_gpio(); // Terminate all GPIO.
     init_clocks();
-
-    // Buttons and mating port:
-//    P3DIR &= ~BIT4;
-//    P3REN |= BIT4;
-//    P3OUT |= BIT4;
-//
-//    P3DIR &= ~BIT0;
-//    P3REN |= BIT0;
-//    P3OUT |= BIT0;
-//
-//    P2DIR &= ~BIT7;
-//    P2REN |= BIT7;
-//    P2OUT |= BIT7;
 
     setup_my_conf();
     __bis_SR_register(GIE);
@@ -227,26 +257,6 @@ void delay_millis(unsigned long mils) {
         mils--;
     }
 }
-
-const char sk_labels[SK_SEL_MAX+1][12] = {
-        "Unlock",
-        "Lock",
-        "B: Off",
-        "B: Suite", // base ID 1, so we send sk_label index - 2
-        "B: Pool",
-        "B: Kickoff",
-        "B: Mixer",
-        "B: Talk",
-        "Flag",
-};
-
-const char base_labels[][12] = { // so we send label index + 1
-        "qcsuite",
-        "pool",
-        "kickoff",
-        "mixer",
-        "badgetalk"
-};
 
 void poll_buttons() {
 
@@ -299,27 +309,9 @@ uint8_t softkey_enabled(uint8_t index) {
     return ((1<<index) & softkey_en)? 1 : 0;
 }
 
-void time_loop() {
-    static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
-    static uint16_t second_loops = LOOPS_PER_SECOND;
-    static uint8_t loops = 0;
-    if (second_loops) {
-        second_loops--;
-    } else {
-        loops += 1;
-        if (loops & 0x01)
-            two_seconds();
-        second_loops = LOOPS_PER_SECOND;
-        second();
-        if (interval_seconds_remaining) {
-            interval_seconds_remaining--;
-        } else {
-            radio_beacon_interval();
-            interval_seconds_remaining = BEACON_INTERVAL_SECS;
-        }
-    }
-    oled_timestep();
-
+// unlocked:
+void disp_mode_idle() {
+    // TODO: locked
     if (idle_mode_softkey_dis) {
         f_br = f_bl = f_bs = 0;
     }
@@ -346,23 +338,20 @@ void time_loop() {
         // Select button
         switch (idle_mode_softkey_sel) {
         case SK_SEL_UNLOCK:
-//            unlock(); // TODO
+            enter_unlock();
             s_new_pane = 1;
             idle_mode_softkey_sel = SK_SEL_LOCK;
             oled_draw_pane_and_flush(idle_mode_softkey_sel);
             break;
         case SK_SEL_LOCK:
-//            my_conf.locked = 1; // TODO
-//            my_conf_write_crc(); // TODO
+            my_conf.locked = 1;
+            my_conf_write_crc();
             idle_mode_softkey_sel = SK_SEL_UNLOCK;
             s_new_pane = 1;
             break;
-        case SK_SEL_SETFLAG:
-            op_mode = OP_MODE_SETFLAG;
-            break;
         case SK_SEL_BOFF:
-//            my_conf.base_id = NOT_A_BASE; // TODO
-//            my_conf_write_crc();
+            my_conf.base_id = NOT_A_BASE;
+            my_conf_write_crc();
             s_new_pane = 1;
             oled_draw_pane_and_flush(idle_mode_softkey_sel);
             break;
@@ -370,14 +359,25 @@ void time_loop() {
             if (idle_mode_softkey_sel > SK_SEL_MAX) {
                 break;
             }
-            // I need to SEND:  3 for pool
-            //                  4 for kickoff
-            //                  5 for mixer
-            //                  6 for talk
-//            my_conf.base_id = idle_mode_softkey_sel - 1;
-//            my_conf_write_crc(); // TODO
+            // Base selected, setup for base.
+            my_conf.base_id = idle_mode_softkey_sel - 1;
+            my_conf_write_crc();
             op_mode = OP_MODE_IDLE;
         }
+    }
+}
+
+void handle_display() {
+    switch(op_mode) {
+    case OP_MODE_IDLE:
+        disp_mode_idle();
+        break;
+    case OP_MODE_UNLOCK:
+        disp_mode_unlock();
+        break;
+    case OP_MODE_TXT:
+//        disp_mode_txt();
+        break;
     }
 
     if (s_new_pane) {
@@ -385,166 +385,175 @@ void time_loop() {
         s_new_pane = 0;
         oled_draw_pane_and_flush(idle_mode_softkey_sel);
     }
+}
+
+void time_loop() {
+    static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
+    static uint16_t second_loops = LOOPS_PER_SECOND;
+    static uint8_t loops = 0;
+    if (second_loops) {
+        second_loops--;
+    } else {
+        loops += 1;
+        if (loops & 0x01)
+            two_seconds();
+        second_loops = LOOPS_PER_SECOND;
+        second();
+        if (interval_seconds_remaining) {
+            interval_seconds_remaining--;
+        } else {
+            radio_beacon_interval();
+            interval_seconds_remaining = BEACON_INTERVAL_SECS;
+        }
+    }
+
+    handle_display();
 
 }
 
+tRectangle name_erase_rect = {0, NAME_Y_OFFSET, 63, NAME_Y_OFFSET + NAME_FONT_HEIGHT + SYS_FONT_HEIGHT};
+uint8_t update_disp = 0;
+uint8_t char_entry_index = 0;
+uint8_t curr_char = ' ';
+uint8_t underchar_x = 0;
+uint8_t text_width = 0;
+uint8_t last_char_index = 0;
+uint8_t bs_down_loops = 0;
+const char undername[2] = {NAME_SEL_CHAR, 0};
+char name[NAME_MAX_LEN+1] = {' ', 0};
 
-//// Read the badgeholder's name if appropriate:
-//uint8_t unlock() {
-//    // Clear the screen and display the instructions.
-//    static tRectangle name_erase_rect = {0, NAME_Y_OFFSET, 63, NAME_Y_OFFSET + NAME_FONT_HEIGHT + SYS_FONT_HEIGHT};
-//    static uint8_t update_disp;
-//    update_disp = 1;
-//
-//    GrClearDisplay(&g_sContext);
-//    GrContextFontSet(&g_sContext, &SYS_FONT);
-//    oled_print(0, 5, "Password please.", 1, 0);
-//    GrFlush(&g_sContext);
-//
-//    // Switch to the NAME font so it's the expected width.
-//    GrContextFontSet(&g_sContext, &NAME_FONT);
-//
-//    // Temporary buffer to hold the selected name.
-//    // (In the event of a power cycle we don't wand to be messing around
-//    //  with the actual config's handle)
-//    char name[NAME_MAX_LEN+1] = {' ', 0};
-//    uint8_t char_entry_index = 0;
-//    uint8_t curr_char = ' ';
-//
-//    // String to display under the name; it's just the selection character,
-//    // configured in qc12.h
-//    const char undername[2] = {NAME_SEL_CHAR, 0};
-//
-//    // For figuring out where to put the underline & selection character:
-//    uint8_t underchar_x = 0;
-//    uint8_t text_width = 0;
-//    uint8_t last_char_index = 0;
-//
-//    // For determining whether name entry is complete:
-//    uint8_t bs_down_loops = 0;
-//    text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
-//
-//    while (1) {
-//
-//        if (f_time_loop) {
-//            f_time_loop = 0;
-//            // Check for left/right buttons to change character slot
-//            if (f_bl == BUTTON_RELEASE) {
-//                if (char_entry_index > 0) {
-//                    // check for deletion:
-//                    if (char_entry_index == last_char_index) { // was: && curr_char == ' ')
-//                        name[char_entry_index] = ' ';
-//                        last_char_index--;
-//                    }
-//                    char_entry_index--;
-//                    curr_char = name[char_entry_index];
-//                    update_disp = 1;
-//                    text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
-//                }
-//                f_bl = 0;
-//            }
-//            if (f_br == BUTTON_RELEASE) {
-//                if (char_entry_index < NAME_MAX_LEN && curr_char != ' ' && text_width < 58) {
-//                    char_entry_index++;
-//                    if (!name[char_entry_index])
-//                        name[char_entry_index] = ' ';
-//                    curr_char = name[char_entry_index];
-//                    if (char_entry_index > last_char_index)
-//                        last_char_index = char_entry_index;
-//                    update_disp = 1;
-//                    text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
-//                }
-//                f_br = 0;
-//            }
-//            if (f_bs == BUTTON_RELEASE) {
-//                // Softkey button cycles the current character.
-//                // This is a massive PITA for the person entering their name,
-//                // but they only have to do it once so whatever.
-//                if (curr_char == 'Z') // First comes capital letters
-//                    curr_char = 'a';
-//                else if (curr_char == 'z') // Then lower case
-//                    curr_char = '0';
-//                else if (curr_char == '9') // Then numbers
-//                    curr_char = ' ';
-//                else if (curr_char == ' ') // Then a space, and then we cycle.
-//                    curr_char = 'A';
-//                else
-//                    curr_char++;
-//                name[char_entry_index] = curr_char;
-//                update_disp = 1;
-//                f_bs = 0;
-//                // Since it's released, clear the depressed loop count.
-//                bs_down_loops = 0;
-//            } else if ((last_char_index || name[0] != ' ') && f_bs == BUTTON_PRESS) {
-//                // If we're in a valid state to complete the name entry, and
-//                // the softkey button is depressed, then it's time to start
-//                // counting the number of time loops for which it is depressed.
-//                bs_down_loops = 1;
-//                f_bs = 0;
-//            }
-//
-//            // If we're counting the number of loops for which the softkey is
-//            // depressed, go ahead and increment it. This is going to do one
-//            // double-count at the beginning, but I don't care.
-//            if (bs_down_loops && bs_down_loops < NAME_COMMIT_LOOPS) {
-//                bs_down_loops++;
-//            } else if (bs_down_loops) {
-//                break;
-//            }
-//
-//            if (update_disp) {
-//                update_disp = 0;
-//                underchar_x = GrStringWidthGet(&g_sContext, name, char_entry_index);
-//
-//                // Clear the area:
-//                GrContextForegroundSet(&g_sContext, ClrBlack);
-//                GrRectFill(&g_sContext, &name_erase_rect);
-//                GrContextForegroundSet(&g_sContext, ClrWhite);
-//
-//                // Rewrite it:
-//                GrStringDraw(&g_sContext, name, -1, 0, NAME_Y_OFFSET, 1);
-//                GrLineDrawH(&g_sContext, 0, text_width, NAME_Y_OFFSET+12);
-//                GrStringDraw(&g_sContext, undername, -1, underchar_x, NAME_Y_OFFSET+13, 1);
-//                GrFlush(&g_sContext);
-//            }
-//        } // end if (f_time_loop)
-//
-//        try_to_sleep();
-//
-//    } // end while (1)
-//
-//    // Commit the name with a correctly placed null termination character..
-//    uint8_t name_len = 0;
-//    while (name[name_len] && name[name_len] != ' ')
-//        name_len++;
-//    name[name_len] = 0; // null terminate.
-//
-//    GrClearDisplay(&g_sContext);
-//    GrFlush(&g_sContext);
-//
-//    suppress_softkey = 1;
-//
-//    if (!strcmp(name, "OKHOMOr")) {
-//        // unlock with rainbows
-//        my_conf.locked = 0;
-//        my_conf.flag_unlocks = 0xFF;
-//        my_conf_write_crc();
-//        return 1;
-//    } else if (!strcmp(name, "OKHOMOn")) {
-//        // unlock
-//        my_conf.locked = 0;
-//        my_conf.flag_unlocks = 0;
-//        my_conf_write_crc();
-//        return 1;
-//    } else if (!strcmp(name, "OKHOMO")) {
-//        // unlock
-//        my_conf.locked = 0;
-//        my_conf_write_crc();
-//        return 1;
-//    } else {
-//        return 0; // fail
-//    }
-//} // handle_mode_name
+void enter_unlock() {
+    op_mode = OP_MODE_UNLOCK;
+    update_disp = 1;
+
+    GrClearDisplay(&g_sContext);
+    GrContextFontSet(&g_sContext, &SYS_FONT);
+    oled_print(0, 5, "Password please.", 1, 0);
+    GrFlush(&g_sContext);
+
+    // Switch to the NAME font so it's the expected width.
+    GrContextFontSet(&g_sContext, &NAME_FONT);
+
+    // Temporary buffer to hold the selected name.
+    // (In the event of a power cycle we don't wand to be messing around
+    //  with the actual config's handle)
+    memset(name, 0, NAME_MAX_LEN+1);
+    name[0] = ' ';
+    char_entry_index = 0;
+    curr_char = ' ';
+
+    // String to display under the name; it's just the selection character,
+    // configured in qc12.h
+
+    // For figuring out where to put the underline & selection character:
+    underchar_x = 0;
+    text_width = 0;
+    last_char_index = 0;
+    bs_down_loops = 0;
+
+    // For determining whether name entry is complete:
+    text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
+}
+
+void disp_mode_unlock() {
+    // Clear the screen and display the instructions.
+
+    // Check for left/right buttons to change character slot
+    if (f_bl == BUTTON_RELEASE) {
+        if (char_entry_index > 0) {
+            // check for deletion:
+            if (char_entry_index == last_char_index) { // was: && curr_char == ' ')
+                name[char_entry_index] = ' ';
+                last_char_index--;
+            }
+            char_entry_index--;
+            curr_char = name[char_entry_index];
+            update_disp = 1;
+            text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
+        }
+        f_bl = 0;
+    }
+    if (f_br == BUTTON_RELEASE) {
+        if (char_entry_index < NAME_MAX_LEN && curr_char != ' ' && text_width < 58) {
+            char_entry_index++;
+            if (!name[char_entry_index])
+                name[char_entry_index] = ' ';
+            curr_char = name[char_entry_index];
+            if (char_entry_index > last_char_index)
+                last_char_index = char_entry_index;
+            update_disp = 1;
+            text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
+        }
+        f_br = 0;
+    }
+    if (f_bs == BUTTON_RELEASE) {
+        // Softkey button cycles the current character.
+        // This is a massive PITA for the person entering their name,
+        // but they only have to do it once so whatever.
+        if (curr_char == 'Z') // First comes capital letters
+            curr_char = 'a';
+        else if (curr_char == 'z') // Then lower case
+            curr_char = '0';
+        else if (curr_char == '9') // Then numbers
+            curr_char = ' ';
+        else if (curr_char == ' ') // Then a space, and then we cycle.
+            curr_char = 'A';
+        else
+            curr_char++;
+        name[char_entry_index] = curr_char;
+        update_disp = 1;
+        f_bs = 0;
+        // Since it's released, clear the depressed loop count.
+        bs_down_loops = 0;
+    } else if ((last_char_index || name[0] != ' ') && f_bs == BUTTON_PRESS) {
+        // If we're in a valid state to complete the name entry, and
+        // the softkey button is depressed, then it's time to start
+        // counting the number of time loops for which it is depressed.
+        bs_down_loops = 1;
+        f_bs = 0;
+    }
+
+    if (update_disp) { // (was below the counter thingy below:
+        update_disp = 0;
+        underchar_x = GrStringWidthGet(&g_sContext, name, char_entry_index);
+
+        // Clear the area:
+        GrContextForegroundSet(&g_sContext, ClrBlack);
+        GrRectFill(&g_sContext, &name_erase_rect);
+        GrContextForegroundSet(&g_sContext, ClrWhite);
+
+        // Rewrite it:
+        GrStringDraw(&g_sContext, name, -1, 0, NAME_Y_OFFSET, 1);
+        GrLineDrawH(&g_sContext, 0, text_width, NAME_Y_OFFSET+12);
+        GrStringDraw(&g_sContext, undername, -1, underchar_x, NAME_Y_OFFSET+13, 1);
+        GrFlush(&g_sContext);
+    }
+
+    // If we're counting the number of loops for which the softkey is
+    // depressed, go ahead and increment it. This is going to do one
+    // double-count at the beginning, but I don't care.
+    if (bs_down_loops && bs_down_loops < NAME_COMMIT_LOOPS) {
+        bs_down_loops++;
+    } else if (bs_down_loops) {
+        // Commit the name with a correctly placed null termination character..
+        uint8_t name_len = 0;
+        while (name[name_len] && name[name_len] != ' ')
+            name_len++;
+        name[name_len] = 0; // null terminate.
+
+        GrClearDisplay(&g_sContext);
+        GrFlush(&g_sContext);
+
+        suppress_softkey = 1;
+
+        if (!strcmp(name, "OKHOMO")) {
+            // unlock
+            my_conf.locked = 0;
+            my_conf_write_crc();
+            // TODO: return to MODE_IDLE
+        }
+    }
+} // handle_mode_name
 
 void intro() {
     GrStringDrawCentered(&g_sContext, "qc13event", -1, 31, 10, 0);
