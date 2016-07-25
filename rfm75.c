@@ -14,6 +14,9 @@
 #include "leg_anims.h"
 #include "metrics.h"
 
+// ON THE RUPEE, THIS IS A0.
+// (as opposed to b0 on the badge)
+
 // Radio (RFM75):
 // CE   P3.2 (or 1.2 for launchpad)
 // CSN  P1.3
