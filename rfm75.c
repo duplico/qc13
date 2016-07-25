@@ -401,6 +401,36 @@ void rfm75_deferred_interrupt() {
     // RFM75 interrupt:
     uint8_t iv = rfm75_get_status();
     __no_operation();
+
+    if (iv & BIT5) { // TX interrupt
+        if (rfm75_state != RFM75_TX_SEND) {
+            return; // TODO: reset?
+        }
+
+        // We sent a thing.
+
+        // Go back to standby:
+        CE_DEACTIVATE;
+        // Clear interrupt
+        rfm75_write_reg(STATUS, BIT5);
+        rfm75_state = RFM75_TX_DONE;
+
+        if (rfm75_retransmit_num == RF_RESEND_COUNT) {
+            // Raise the I-just-sent-a-thing event
+            radio_transmit_done();
+
+            rfm75_seqnum++;
+
+            // Go back to listening.
+            rfm75_enter_prx();
+        } else {
+            uint8_t seqnum = rfm75_retransmit_num + 1;
+            rfm75_tx();
+            rfm75_retransmit_num = seqnum;
+        }
+        return;
+    }
+
     if (iv & BIT6) { // RX interrupt
         if (rfm75_state != RFM75_RX_LISTEN) {
             return; // TODO: reset?
@@ -429,34 +459,7 @@ void rfm75_deferred_interrupt() {
         // Assert CE: listen more.
         CE_ACTIVATE;
         rfm75_state = RFM75_RX_LISTEN;
-    }
-
-    if (iv & BIT5) { // TX interrupt
-        if (rfm75_state != RFM75_TX_SEND) {
-            return; // TODO: reset?
-        }
-
-        // We sent a thing.
-
-        // Go back to standby:
-        CE_DEACTIVATE;
-        // Clear interrupt
-        rfm75_write_reg(STATUS, BIT5);
-        rfm75_state = RFM75_TX_DONE;
-
-        if (rfm75_retransmit_num == RF_RESEND_COUNT) {
-            // Raise the I-just-sent-a-thing event
-            radio_transmit_done();
-
-            rfm75_seqnum++;
-
-            // Go back to listening.
-            rfm75_enter_prx();
-        } else {
-            uint8_t seqnum = rfm75_retransmit_num + 1;
-            rfm75_tx();
-            rfm75_retransmit_num = seqnum;
-        }
+        return;
     }
 }
 
