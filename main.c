@@ -234,17 +234,16 @@ void make_fresh_conf() {
     if (is_uber(my_conf.badge_id)) {
         unlock_camo(LEG_ANIM_UBER);
         my_conf.uber_hat_given = 0;
-        award_hat(HAT_UBER);
-//        my_conf.gilded = GILD_AVAIL; // TODO
+        award_push_hat(HAT_UBER);
         my_conf_write_crc();
     }
     if (is_handler(my_conf.badge_id)) {
         // We'll unlock the camo when we go on duty.
-        award_hat(HAT_HANDLER);
+        award_push_hat(HAT_HANDLER);
     }
     if (is_donor(my_conf.badge_id)) {
         // Unlock the hat...
-        award_hat(my_conf.badge_id);
+        award_push_hat(my_conf.badge_id);
     }
     if (my_conf.badge_id == JASON_ID) {
         unlock_camo(LEG_ANIM_SHUTDOWN);

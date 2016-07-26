@@ -34,7 +34,7 @@ void mate_send_basic(uint8_t click, uint8_t rst, uint8_t gild);
 void mate_send_hat_response(uint8_t ack);
 void mate_send_uber_hat_bestow();
 void mate_send_flags(uint16_t flags);
-uint8_t award_hat(uint8_t id);
+uint8_t award_push_hat(uint8_t id);
 void mate_deferred_rx_interrupt();
 void maybe_enter_ink_wait(uint8_t local);
 void mate_over_cleanup();
