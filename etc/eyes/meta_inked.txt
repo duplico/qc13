@@ -1,6 +1,6 @@
 off,off,3000
 blink,blink,400
-open,open,800
+cutein,cutein,800
 cutein,cutein,1100
 blink,blink,200
 cutein,cutein,200
