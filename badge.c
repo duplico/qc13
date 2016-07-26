@@ -71,7 +71,6 @@ void face_animation_done() {
 // IMPORTANT: Call this last.
 //  DON'T change stuff after calling it.
 void complete_rfbc_payload(rfbcpayload *payload) {
-    // TODO: not if retx from someone else:
     payload->seqnum = rfm75_seqnum;
     payload->base_addr = my_conf.base_id;
 
@@ -82,8 +81,6 @@ void complete_rfbc_payload(rfbcpayload *payload) {
     }
     payload->crc16 = CRC_getResult(CRC_BASE);
 }
-
-// TODO: enter hat awarding state machine:
 
 void award_hat(uint8_t hat_id) {
     if (hat_award_state != HAS_IDLE) return; // reject!
