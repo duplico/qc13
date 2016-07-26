@@ -336,7 +336,7 @@ void rfm75_init()
 
 uint8_t radio_payload_validate(rfbcpayload *payload) {
     // bad src ID
-    if (!(payload->from_addr < BADGES_IN_SYSTEM || payload->from_addr == DEDICATED_BASE_ID)) {
+    if (!(payload->badge_addr < BADGES_IN_SYSTEM || payload->badge_addr == DEDICATED_BASE_ID)) {
         return 0;
     }
 
@@ -372,7 +372,7 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
     //    }
 
     // handler on duty but source isn't a handler
-    if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->from_addr)) {
+    if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->badge_addr)) {
         return 0;
     }
 
