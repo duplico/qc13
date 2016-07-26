@@ -254,14 +254,15 @@ void make_fresh_conf() {
 }
 
 void setup_my_conf() {
-    if (!conf_is_valid(&my_conf)) {
+    if (conf_is_valid(&my_conf)) {
+        lock_camo(LEG_ANIM_HANDLER);
+        my_conf_write_crc();
+    } else {
         if (conf_is_valid(&backup_conf)) {
             memcpy(&my_conf, &backup_conf, sizeof(qc13conf));
         } else {
             make_fresh_conf();
         }
-    } else {
-        my_conf_write_crc();
     }
 
     srand(my_conf.badge_id);
