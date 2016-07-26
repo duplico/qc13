@@ -197,6 +197,22 @@ void unlock_camo(uint8_t camo_id) {
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
+void lock_camo(uint8_t camo_id) {
+    if (!is_camo_avail(camo_id))
+        return;
+    my_conf.camo_unlocks &= ~((uint32_t)1 << camo_id);
+
+    uint8_t new_camo = my_conf.camo_id;
+
+    do {
+        new_camo = (new_camo+LEG_ANIM_COUNT-1) % LEG_ANIM_COUNT;
+    } while (!is_camo_avail(new_camo));
+
+    my_conf.camo_id = new_camo;
+    my_conf_write_crc();
+    tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
+}
+
 void check_button_presses() {
     // Be sure to check buttons_pressed, and to reset it after accepting the code.
     if (buttons_pressed >= 48 && ((button_press_window & 0x0000ffffffffffff) == COLLINSCODE)) {
