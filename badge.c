@@ -22,6 +22,8 @@ uint8_t blink_repeat_count = 0;
 
 uint8_t ink_cooldown = 0;
 
+uint8_t inks_available = 3; // TODO: config
+
 #pragma DATA_SECTION (my_conf, ".infoA"); // A is .noinit
 qc13conf my_conf = {0};
 
@@ -142,7 +144,8 @@ void second() {
     }
 }
 
-void two_seconds() {
+void minute() {
+    inks_available = 3; // TODO
 }
 
 void face_animation_done() {
@@ -176,8 +179,9 @@ void complete_rfbc_payload(rfbcpayload *payload) {
 }
 
 void send_ink() {
-    if (ink_cooldown)
+    if (ink_cooldown || !inks_available)
         return;
+    inks_available--;
     ink_cooldown = INK_OUT_COOLDOWN_SECS;
     face_start_anim(FACE_ANIM_CUTESY);
     tentacle_send_meta_mating(2, 13);

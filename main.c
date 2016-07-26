@@ -448,13 +448,15 @@ void do_hat_check() {
 void time_loop() {
     static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
     static uint16_t second_loops = LOOPS_PER_SECOND;
-    static uint8_t loops = 0;
+    static uint8_t second_minute_loops = 0;
     if (second_loops) {
         second_loops--;
     } else {
-        loops += 1;
-        if (loops & 0x01)
-            two_seconds();
+        second_minute_loops ++;
+        if (second_minute_loops >= 60) {
+            second_minute_loops = 0;
+            minute();
+        }
         second_loops = LOOPS_PER_SECOND;
         second();
         if (interval_seconds_remaining) {
