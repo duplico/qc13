@@ -69,24 +69,29 @@
 #define SK_SEL_UNLOCK 0
 #define SK_SEL_LOCK 1
 #define SK_SEL_BOFF 2
-#define SK_SEL_BSUITE 3
-#define SK_SEL_BPOOL 4
-#define SK_SEL_BKICKOFF 5
-#define SK_SEL_BMIXER 6
-#define SK_SEL_BTALK 7
-#define SK_SEL_MAX 7
+#define SK_SEL_BTRANS 3
+#define SK_SEL_BTHUMIX 4
+#define SK_SEL_BTALK 5
+#define SK_SEL_BFRIMIX 6
+#define SK_SEL_BPOOL 7
+#define SK_SEL_BWOMEN 8
+#define SK_SEL_BSATMIX 9
+#define SK_SEL_BKARAOKE 10
+#define SK_SEL_BSUNMIX 11
+#define SK_SEL_TRIGGER_START 12
+#define SK_SEL_TRIGGER_END 13
+
+#define SK_MASK_STARTABLE 0x0FFF
+#define SK_MASK_ENDABLE   0x17FF
+#define SK_MASK_NOPUSH    0x07FF
+
+#define SK_SEL_MAX SK_SEL_TRIGGER_END
 
 #define SK_BIT_UNLOCK BIT0
 #define SK_BIT_LOCK BIT1
 #define SK_BIT_BOFF BIT2
-#define SK_BIT_BSUITE BIT3
-#define SK_BIT_BPOOL BIT4
-#define SK_BIT_BKICKOFF BIT5
-#define SK_BIT_BMIXER BIT6
-#define SK_BIT_BTALK BIT7
-#define SK_BIT_FLAG BIT8
-#define SK_BIT_SETFLAG BIT9
-#define SK_BIT_MAX BITA
+
+#define SK_BIT_MAX BITD
 
 extern const char sk_labels[SK_SEL_MAX+1][12];
 extern uint16_t softkey_en;

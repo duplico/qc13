@@ -10,7 +10,7 @@
 
 void initial_animations(); // Called when it's time to start the first ambients
 void time_loop(); // Called every time_loop_interval
-void send_super_ink(); // Called when time to do a double ink.
+void send_hat_award(uint8_t to_id, uint8_t hat_id);
 void radio_beacon_interval(); // Called when it's time for the radio to beacon.
 void new_badge_seen(uint8_t deferred); // Called when we've seen a new badge
 void new_badge_mated(); // Called when we've mated to a new badge.

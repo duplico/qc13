@@ -57,13 +57,8 @@ void face_animation_done() {
 //  DON'T change stuff after calling it.
 void complete_rfbc_payload(rfbcpayload *payload) {
     // TODO: not if retx from someone else:
-    out_payload.seqnum = rfm75_seqnum;
-    payload->base_addr = NOT_A_BASE;
-    payload->from_addr = my_conf.badge_id;
-    if (is_handler(my_conf.badge_id) && (hat_state & HS_HANDLER))
-        payload->flags |= RFBC_HANDLER_ON_DUTY;
-    if (my_conf.hat_holder)
-        payload->flags |= RFBC_HATHOLDER;
+    payload->seqnum = rfm75_seqnum;
+    payload->base_addr = my_conf.base_id;
 
     // CRC it.
     CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
@@ -73,26 +68,21 @@ void complete_rfbc_payload(rfbcpayload *payload) {
     payload->crc16 = CRC_getResult(CRC_BASE);
 }
 
-void send_ink() {
-    if (ink_cooldown)
-        return;
-    ink_cooldown = INK_OUT_COOLDOWN_SECS;
-    out_payload.ink_id = my_conf.camo_id;
-    out_payload.flags = RFBC_INK;
-    complete_rfbc_payload(&out_payload);
-    rfm75_tx();
-}
+// TODO: enter hat awarding state machine:
 
-void send_super_ink() {
-    out_payload.ink_id = my_conf.camo_id;
-    out_payload.flags = RFBC_INK | RFBC_DINK;
+void send_hat_award(uint8_t to_id, uint8_t hat_id) {
+    out_payload.badge_addr = to_id;
+    out_payload.ink_id = hat_id;
+    out_payload.flags = RFBC_HATOFFER;
+
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
 }
 
 void send_beacon() {
-    out_payload.ink_id = 211;
-    out_payload.flags = RFBC_BEACON;
+    out_payload.badge_addr = DEDICATED_BASE_ID;
+    out_payload.ink_id = 211; // NOT_AN_INK
+    out_payload.flags = RFBC_EVENT;
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
 }
@@ -133,32 +123,15 @@ void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
     tick_badge_seen(from_id, on_duty);
 }
 
-void radio_basic_base_received(uint8_t base_id) {
-    if (base_id == 0xff) { // TODO: check for the event bases.
-        achievement_get(base_id);
-    }
-}
-
-void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
-    // ignore.
-}
-
 void radio_broadcast_received(rfbcpayload *payload) {
-    // There are three possibilities for a broadcast.
-    // They're NOT mutually exclusive.
     //     ==Broadcast==
     //  # Beacon: Just the normal gaydar beacon
-    if (payload->flags & RFBC_BEACON) {
-        radio_beacon_received(payload->from_addr, payload->flags & RFBC_HANDLER_ON_DUTY);
+    //    We only care if they aren't a hatholder:
+    if (payload->flags & RFBC_BEACON && !(payload->flags & RFBC_HATHOLDER)) {
+        radio_beacon_received(payload->badge_addr, payload->flags & RFBC_HANDLER_ON_DUTY);
     }
-    //  # Basic event: A basic check-in broadcast from the base station
-    if (payload->flags & RFBC_EVENT) {
-        radio_basic_base_received(payload->base_addr);
-    }
-    //  # Ink or super ink
-    if (payload->flags & RFBC_INK) {
-        radio_ink_received(payload->ink_id, ((payload->flags & RFBC_DINK) ? 2 : 1), payload->from_addr);
-    }
+
+//    if (payload->flags & RFBC_HATACK) // TODO: state machine
 }
 
 void radio_transmit_done() {
@@ -166,5 +139,4 @@ void radio_transmit_done() {
 
 
 void borrowing_hat() {
-    // TODO: shutdown
 }
