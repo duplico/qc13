@@ -50,11 +50,13 @@ void init_mating() {
     GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN5, GPIO_SECONDARY_MODULE_FUNCTION); // TX
     GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN6, GPIO_SECONDARY_MODULE_FUNCTION); // RX
 
+    //       N = clockfreq  / baudrate
+    // ratio N = 16,000,000 / 9600 = 1666.67
     EUSCI_A_UART_initParam ini = {};
     ini.selectClockSource = EUSCI_A_UART_CLOCKSOURCE_SMCLK;
-    ini.clockPrescalar = 104;
-    ini.firstModReg = 2;
-    ini.secondModReg = 182;
+    ini.clockPrescalar = 104; //  N/16
+    ini.firstModReg = 2;      //  N - (104*16)
+    ini.secondModReg = 0xD6;   //  fractional part of N: 0.6667. Use lookup table.
     ini.parity = EUSCI_A_UART_NO_PARITY;
     ini.msborLsbFirst = EUSCI_A_UART_LSB_FIRST;
     ini.numberofStopBits = EUSCI_A_UART_ONE_STOP_BIT;

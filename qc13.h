@@ -129,13 +129,6 @@ typedef struct {
 
 typedef struct {
     uint8_t proto_version;
-    uint8_t to_addr; // redundant
-    uint8_t hat_id;
-    uint16_t crc16;
-} rfucpayload;
-
-typedef struct {
-    uint8_t proto_version;
     uint8_t from_addr;
     uint8_t hat_award_id;
     uint8_t camo_id;
