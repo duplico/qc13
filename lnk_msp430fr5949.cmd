@@ -191,10 +191,10 @@ SECTIONS
     .TI.noinit  : {} > RAM                  /* For #pragma noinit                */
     .stack      : {} > RAM (HIGH)           /* Software system stack             */
 
-    .infoA     : {} > INFOA              /* MSP430 INFO FRAM  Memory segments */
+    .infoA     : {} > INFOA type=NOINIT     /* MSP430 INFO FRAM  Memory segments */
     .infoB     : {} > INFOB
-    .infoC     : {} > INFOC
-    .infoD     : {} > INFOD
+    .infoC     : {} > INFOC	type=NOINIT
+    .infoD     : {} > INFOD type=NOINIT
 
     /* MSP430 Interrupt vectors          */
     .int00       : {}               > INT00
