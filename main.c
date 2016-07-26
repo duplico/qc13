@@ -498,12 +498,18 @@ int main(void)
 
     initial_animations();
 
+    static uint8_t led_loops = 0;
+
     while (1)
     {
         if (f_time_loop) {
             poll_buttons();
             poll_adc();
-            leds_timestep();
+            if (!led_loops) {
+                leds_timestep();
+                led_loops = LED_DUR_LOOPS;
+            }
+            led_loops--;
             time_loop();
             f_time_loop = 0;
         }
