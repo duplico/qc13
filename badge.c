@@ -406,9 +406,6 @@ void radio_broadcast_received(rfbcpayload *payload) {
 
     // # PUSH hat award:
     if (payload->flags & RFBC_HATOFFER) {
-        // TODO: validate ink_id here as a push hat.
-        // TODO: validate it's from a base
-        // TODO: validate it's to me.
         award_push_hat(payload->ink_id);
         if (my_conf.hat_id == payload->ink_id && my_conf.hat_holder) {
             // reply with a HATACK.
