@@ -12,7 +12,9 @@
 #include "metrics.h"
 #include "badge.h"
 
+#pragma PERSISTENT (badges_seen)
 uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
+#pragma PERSISTENT (badges_mated)
 uint8_t badges_mated[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_count = 0;
@@ -21,6 +23,7 @@ uint8_t blink_repeat_count = 0;
 
 uint8_t ink_cooldown = 0;
 
+#pragma DATA_SECTION (my_conf, ".infoA");
 qc13conf my_conf = {0};
 
 uint64_t button_press_window = 0;
@@ -41,7 +44,7 @@ uint8_t hat_award_tries = 10;
     uint16_t crc16;
 } qc13conf;
  */
-
+#pragma DATA_SECTION (default_conf, ".infoB");
 const qc13conf default_conf = {
         DEDICATED_BASE_ID, // badge_id
         0, 0, 0, // seen_count, uber_seen_count, odh_seen_count;
