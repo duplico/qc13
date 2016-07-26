@@ -86,8 +86,19 @@ void award_hat(uint8_t hat_id) {
     if (hat_award_state != HAS_IDLE) return; // reject!
     hat_award_state = HAS_OFFER;
     hat_award_offered = hat_id;
-    // TODO: choose a badge...
-    hat_award_to = 0;
+
+    if (!neighbor_count) { // If nobody's around...
+        hat_award_state = HAS_FAIL;
+        return; // no neighbor badges.
+    }
+
+    // If we do have neighbors, give it to one of them.
+    uint8_t target_badge = rand() % BADGES_IN_SYSTEM;
+    while (!neighbor_badges[target_badge]) {
+        target_badge = (target_badge+1) % BADGES_IN_SYSTEM;
+    }
+
+    hat_award_to = target_badge;
     hat_award_tries = 10; // TODO
     send_hat_award();
 }
