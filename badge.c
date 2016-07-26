@@ -300,6 +300,7 @@ void select_button_clicked() {
 
     my_conf.camo_id = new_camo;
     my_conf_write_crc();
+    tentacle_start_anim(LEG_ANIM_META_WAKEUP, 1, 0, 0); // interrupt with a blinky.
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
