@@ -58,12 +58,14 @@ uint8_t mated = 0;
 uint8_t just_sent_superink = 0;
 uint8_t seconds_to_next_face = 0;
 uint8_t deferred_new_badges = 0;
+uint8_t waking_up = 0;
 
 void initial_animations() {
     face_set_ambient_direct(DEFAULT_EYES);
     tentacle_start_anim(LEG_ANIM_META_WAKEUP, LEG_CAMO_INDEX, 0, 0);
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
     face_start_anim(FACE_ANIM_META_WAKEUP);
+    waking_up = 1;
 
     if (my_conf.gilded & GILD_ON)
         eye_twinkle_on();
@@ -221,7 +223,7 @@ void hat_change(uint8_t from, uint8_t to) {
 }
 
 void start_button_longpressed() {
-    if (being_inked || !my_conf.gilded) return; // nope!
+    if (being_inked || waking_up || !my_conf.gilded) return; // nope!
 
     if (mate_state == MS_IDLE && (my_conf.gilded & GILD_AVAIL)) {
         // gild on for ourselves
@@ -256,7 +258,7 @@ void start_button_clicked() {
     if (buttons_pressed < 64) buttons_pressed++;
     check_button_presses();
 
-    if (being_inked || ink_cooldown) return; // nope!
+    if (being_inked || waking_up || ink_cooldown) return; // nope!
 
     switch (mate_state) {
     case MS_IDLE:
@@ -288,7 +290,7 @@ void select_button_clicked() {
     if (buttons_pressed < 64) buttons_pressed++;
     check_button_presses();
 
-    if (being_inked || mate_state == MS_SUPER_INK || ink_cooldown) return; // nope!
+    if (being_inked || waking_up || mate_state == MS_SUPER_INK || ink_cooldown) return; // nope!
 
     static uint8_t new_camo = 0;
 
@@ -305,6 +307,8 @@ void select_button_clicked() {
 }
 
 void leg_anim_done(uint8_t tentacle_anim_id) {
+    if (waking_up) waking_up = 0;
+
     being_inked = 0;
     if (mate_state == MS_SUPER_INK && just_sent_superink) {
         tentacle_send_meta_mating(2, 13); // 2 is the pewpew
@@ -323,7 +327,7 @@ void not_lonely() {
 
 void new_badge_seen(uint8_t deferred) {
     // I think I skip this if I'm paired or being inked...
-    if (mate_state || being_inked || !tentacle_is_ambient) {
+    if (mate_state || waking_up || being_inked || !tentacle_is_ambient) {
         if (!deferred) deferred_new_badges++;
         return;
     }
@@ -369,7 +373,7 @@ void radio_basic_base_received(uint8_t base_id) {
 }
 
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
-    if (being_inked || ink_cooldown || mate_state != MS_IDLE)
+    if (being_inked || waking_up || ink_cooldown || mate_state != MS_IDLE)
         return; // we ignore inks if we're mated, or already being inked.
     being_inked = ink_type; // 1 for regular, 2 for double.
     if (being_inked == 1)
