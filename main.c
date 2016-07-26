@@ -71,20 +71,32 @@ uint8_t hat_v_index = 0;
 const char sk_labels[SK_SEL_MAX+1][12] = {
         "Unlock",
         "Lock",
-        "B: Off",
-        "B: Suite", // base ID 1, so we send sk_label index - 2
-        "B: Pool",
-        "B: Kickoff",
-        "B: Mixer",
-        "B: Talk",
+        "E: Off",
+        "E: trans", // base ID 0, so we send sk_label index - 3
+        "E: thu mix",
+        "E: talk",
+        "E: fri mix",
+        "E: pool",
+        "E: women",
+        "E: sat mix",
+        "E: karaoke",
+        "E: sun mix",
+        "POOLstart",
+        "POOLend",
+        "SATstart",
+        "SATend",
 };
 
-const char base_labels[][12] = { // so we send label index + 1
-        "qcsuite",
+const char base_labels[][12] = {
+        "trans",
+        "thu mix",
+        "talk",
+        "fri mix",
         "pool",
-        "kickoff",
-        "mixer",
-        "badgetalk"
+        "women",
+        "sat mix",
+        "karaoke",
+        "sun mix",
 };
 
 uint8_t op_mode = OP_MODE_IDLE; // In the "modal" sense:
@@ -133,7 +145,7 @@ void my_conf_write_crc() {
     if (my_conf.locked) {
         softkey_en = BIT0;
     } else {
-        softkey_en = 0x3FE; // TODO
+        softkey_en = 0xFFFE; // TODO
     }
 
     CRC_setSeed(CRC_BASE, 0xc13c);
@@ -163,7 +175,7 @@ void setup_my_conf() {
     if (!my_conf_is_valid()) {
         make_fresh_conf();
     } else {
-        my_conf.locked = 1;
+//        my_conf.locked = 1;
         my_conf_write_crc();
     }
 
@@ -355,12 +367,15 @@ void disp_mode_idle() {
             my_conf_write_crc();
             s_new_pane = 1;
             break;
+        case SK_SEL_TRIGGER_START:
+        case SK_SEL_TRIGGER_END:
+            break;
         default:
             if (idle_mode_softkey_sel > SK_SEL_MAX) {
                 break;
             }
             // Base selected, setup for base.
-            my_conf.base_id = idle_mode_softkey_sel - 1;
+            my_conf.base_id = idle_mode_softkey_sel - 3;
             my_conf_write_crc();
             s_new_pane = 1;
         }
@@ -555,7 +570,7 @@ void disp_mode_unlock() {
 
         suppress_softkey = 1;
 
-        if (!strcmp(name, "OKHOMO")) {
+        if (!strcmp(name, "AA")) {
             // unlock
             my_conf.locked = 0;
             idle_mode_softkey_sel = SK_SEL_LOCK;

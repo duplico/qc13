@@ -82,7 +82,7 @@ void oled_draw_pane_and_flush(uint8_t softkey_sel) {
     GrContextFontSet(&g_sContext, &NAME_FONT);
     GrStringDrawCentered(&g_sContext, "qc13event", -1, 32, 6, 0);
     if (my_conf.base_id != NOT_A_BASE) {
-        GrStringDrawCentered(&g_sContext, base_labels[my_conf.base_id-1], -1, 32, 16, 0);
+        GrStringDrawCentered(&g_sContext, base_labels[my_conf.base_id], -1, 32, 16, 0);
     }
     GrImageDraw(&g_sContext, &fingerprint_1BPP_UNCOMP, 0, 21);
 

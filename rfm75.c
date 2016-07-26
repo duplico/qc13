@@ -339,7 +339,7 @@ void rfm75_init()
 
 uint8_t radio_payload_validate(rfbcpayload *payload) {
     // bad src ID
-    if (!(payload->from_addr < BADGES_IN_SYSTEM || payload->from_addr == DEDICATED_BASE_ID)) {
+    if (!(payload->badge_addr < BADGES_IN_SYSTEM || payload->badge_addr == DEDICATED_BASE_ID)) {
         return 0;
     }
 
@@ -363,21 +363,11 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
-    // event flag when base_addr overflows
-    if (payload->flags & RFBC_EVENT && payload->base_addr > EVENTS_IN_SYSTEM) {
-        return 0;
-    }
-
     // TODO:
     // incoming ID is same as local ID
-    //    if (payload.from_addr == my_conf.badge_id) {
+    //    if (payload.badge_addr == my_conf.badge_id) {
     //    	return 0;
     //    }
-
-    // handler on duty but source isn't a handler
-    if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->from_addr)) {
-        return 0;
-    }
 
     // Same one we last saw:
     if (payload->seqnum == rfm75_prev_seqnum) {

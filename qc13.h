@@ -56,7 +56,7 @@ void delay_millis(unsigned long);
 #define TIME_LOOP_PERIOD 50
 #define LOOPS_PER_SECOND 697
 
-#define RECEIVE_WINDOW 10
+#define RECEIVE_WINDOW 2
 #define BEACON_INTERVAL_SECS 10 // TODO
 
 #define LONG_PRESS_THRESH 2
@@ -105,7 +105,7 @@ void delay_millis(unsigned long);
 
 typedef struct {
     uint8_t proto_version;
-    uint8_t from_addr, base_addr; // base_addr is event_id, basically.
+    uint8_t badge_addr, base_addr; // base_addr is event_id, basically.
     uint8_t ttl;
     uint8_t ink_id;
     uint8_t flags;
@@ -117,7 +117,9 @@ typedef struct {
 #define RFBC_EVENT BIT1
 #define RFBC_INK BIT2
 #define RFBC_DINK BIT3
+#define RFBC_HATACK BIT4
 #define RFBC_HATHOLDER BIT5
+#define RFBC_HATOFFER BIT5
 #define RFBC_HANDLER_ON_DUTY BIT7
 
 typedef struct {
@@ -129,7 +131,7 @@ typedef struct {
 
 typedef struct {
     uint8_t proto_version;
-    uint8_t from_addr;
+    uint8_t badge_addr;
     uint8_t hat_award_id;
     uint8_t camo_id;
     uint16_t flags;
@@ -158,14 +160,7 @@ typedef struct {
 typedef struct {
     uint8_t badge_id;
     uint8_t seen_count, uber_seen_count, odh_seen_count;
-    uint8_t mate_count, uber_mate_count, odh_mate_count;
-    uint8_t hat_holder, hat_claimed, hat_id;
-    uint8_t event_checkins[9];
-    uint32_t camo_unlocks;
-    uint8_t camo_id;
-    uint8_t uber_hat_given;
-    uint64_t achievements;
-    uint8_t gilded;
+    uint8_t hat_sent_talk, hat_sent_pool_start, hat_sent_pool_end, hat_sent_sat_start, hat_sent_sat_end;
     uint8_t locked;
     uint8_t base_id;
     uint16_t crc16;
