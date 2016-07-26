@@ -20,13 +20,10 @@
  * Peripherals
  * ===========
  *
- * TLC:    USCI_A0
  * RFM:    USCI_B0
- * Pair:   USCI_A1
+ * OLED:   USCI_A1
  * Light:  P1.0
  * Temp:   P1.1
- * B1:     P3.4
- * B2:     P2.7
  *
  */
 
@@ -81,10 +78,8 @@ const char sk_labels[SK_SEL_MAX+1][12] = {
         "E: sat mix",
         "E: karaoke",
         "E: sun mix",
-        "POOLstart",
-        "POOLend",
-        "SATstart",
-        "SATend",
+        "psh F hat",
+        "psh L hat",
 };
 
 const char base_labels[][12] = {
@@ -112,6 +107,7 @@ uint8_t s_new_pane = 1;
 
 void disp_mode_unlock();
 void enter_unlock();
+uint8_t softkey_enabled(uint8_t index);
 
 // Initialization functions
 ///////////////////////////
@@ -141,12 +137,30 @@ void term_gpio() {
 
 }
 
-void my_conf_write_crc() {
+void enable_correct_softkeys() {
     if (my_conf.locked) {
         softkey_en = BIT0;
+    } else if ((my_conf.base_id == BASE_BPOOL && !my_conf.hat_sent_pool_start) ||
+               (my_conf.base_id == BASE_BKARAOKE && !my_conf.hat_sent_sat_start) ||
+               (my_conf.base_id == BASE_BTALK && !my_conf.hat_sent_talk)) {
+        softkey_en = SK_MASK_STARTABLE;
+    } else if ((my_conf.base_id == BASE_BPOOL && !my_conf.hat_sent_pool_end) ||
+               (my_conf.base_id == BASE_BKARAOKE && !my_conf.hat_sent_sat_end)) {
+        softkey_en = SK_MASK_ENDABLE;
     } else {
-        softkey_en = 0xFFFE; // TODO
+        softkey_en = SK_MASK_NOPUSH;
     }
+
+    while (!softkey_enabled(idle_mode_softkey_sel)) {
+        idle_mode_softkey_sel = (idle_mode_softkey_sel+1) % (SK_SEL_MAX+1);
+    }
+
+    s_new_pane = 1;
+
+}
+
+void my_conf_write_crc() {
+    enable_correct_softkeys();
 
     CRC_setSeed(CRC_BASE, 0xc13c);
     for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
@@ -253,18 +267,24 @@ void init() {
 
 void post() {
     // test RFM75:
-    uint8_t ret = rfm75_post();
-    if (!ret) { // bad radio:
-        // TODO
-        delay_millis(3000);
+    uint8_t bad_radio = !rfm75_post();
+    uint8_t bad_clocks = clocks_post_errors();
+    if (!(bad_radio || bad_clocks)) {
+        return;
     }
 
-    // test clocks:
-    ret = clocks_post_errors();
-    if (ret) { // bad clock flag:
-        // TODO
-        delay_millis(3000);
+    GrClearDisplay(&g_sContext);
+    GrContextFontSet(&g_sContext, &SYS_FONT);
+    oled_print(0, 5, "- POST -", 1, 1);
+
+    if (bad_radio) {
+        oled_print(0, 10 + SYS_FONT_HEIGHT, "rfm75 err", 1, 1);
     }
+    if (bad_clocks) { // bad clock flag:
+        oled_print(0, 15 + 2*SYS_FONT_HEIGHT, "clock err", 1, 1);
+    }
+    GrFlush(&g_sContext);
+    delay_millis(5000);
 
 }
 
@@ -368,13 +388,28 @@ void disp_mode_idle() {
             s_new_pane = 1;
             break;
         case SK_SEL_TRIGGER_START:
+            if (my_conf.base_id == BASE_BPOOL) {
+                my_conf.hat_sent_pool_start = 1;
+            } else if (my_conf.base_id == BASE_BKARAOKE) {
+                my_conf.hat_sent_sat_start = 1;
+            } else if (my_conf.base_id == BASE_BTALK) {
+                my_conf.hat_sent_talk = 1;
+            }
+            my_conf_write_crc();
+            break;
         case SK_SEL_TRIGGER_END:
+            // TODO: enter state machine.
+            if (my_conf.base_id == BASE_BPOOL) {
+                my_conf.hat_sent_pool_end = 1;
+            } else if (my_conf.base_id == BASE_BKARAOKE) {
+                my_conf.hat_sent_sat_end = 1;
+            }
+            my_conf_write_crc();
             break;
         default:
             if (idle_mode_softkey_sel > SK_SEL_MAX) {
                 break;
             }
-            // Base selected, setup for base.
             my_conf.base_id = idle_mode_softkey_sel - 3;
             my_conf_write_crc();
             s_new_pane = 1;
@@ -597,7 +632,7 @@ void delay(unsigned int i) {
 int main(void)
 {
     init();
-//    post();
+    post();
     intro();
     delay(1000);
 

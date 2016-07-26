@@ -81,9 +81,19 @@
 #define SK_SEL_TRIGGER_START 12
 #define SK_SEL_TRIGGER_END 13
 
-#define SK_MASK_STARTABLE 0x0FFF
-#define SK_MASK_ENDABLE   0x17FF
-#define SK_MASK_NOPUSH    0x07FF
+#define BASE_TRANS 0
+#define BASE_BTHUMIX 1
+#define BASE_BTALK 2
+#define BASE_BFRIMIX 3
+#define BASE_BPOOL 4
+#define BASE_BWOMEN 5
+#define BASE_BSATMIX 6
+#define BASE_BKARAOKE 7
+#define BASE_BSUNMIX 8
+
+#define SK_MASK_STARTABLE 0x1FFE
+#define SK_MASK_ENDABLE   0x2FFE
+#define SK_MASK_NOPUSH    0x0FFE
 
 #define SK_SEL_MAX SK_SEL_TRIGGER_END
 
@@ -97,12 +107,6 @@ extern const char sk_labels[SK_SEL_MAX+1][12];
 extern uint16_t softkey_en;
 
 // Radio bidness:
-#define BASE_SUITE 0
-#define BASE_POOL  1
-#define BASE_KICKOFF 2
-#define BASE_MIXER 3
-#define BASE_TALK  4
-
 extern uint8_t idle_mode_softkey_sel;
 extern uint8_t idle_mode_softkey_dis;
 extern uint8_t op_mode;
