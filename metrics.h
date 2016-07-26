@@ -5,7 +5,7 @@
  *      Author: George
  */
 
-uint8_t award_hat(uint8_t id);
+void award_hat(uint8_t hat_id);
 void claim_hat(uint8_t id);
 uint8_t has_achievement(uint8_t id);
 uint8_t achievement_get(uint8_t id);

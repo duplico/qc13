@@ -119,7 +119,7 @@ typedef struct {
 #define RFBC_DINK BIT3
 #define RFBC_HATACK BIT4
 #define RFBC_HATHOLDER BIT5
-#define RFBC_HATOFFER BIT5
+#define RFBC_HATOFFER BIT6
 #define RFBC_HANDLER_ON_DUTY BIT7
 
 typedef struct {
@@ -231,14 +231,7 @@ typedef struct {
 
 extern volatile uint8_t f_time_loop;
 extern volatile uint8_t f_rfm75_interrupt;
-extern volatile uint8_t f_mate_interrupt;
 
-extern uint8_t s_face_anim_done;
-
-extern uint16_t light;
-extern uint16_t light_tot;
-extern uint8_t light_order;
-extern uint16_t temp;
 extern qc13conf my_conf;
 extern const qc13conf default_conf;
 extern rfbcpayload in_payload, out_payload;
@@ -247,7 +240,5 @@ extern uint8_t badges_seen[BADGES_IN_SYSTEM];
 extern uint8_t badges_mated[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_badges[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_count;
-
-extern uint8_t hat_state;
 
 #endif /* QC13_H_ */
