@@ -366,10 +366,10 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
     }
 
     // TODO:
-    // incoming ID is same as local ID
-    //    if (payload.from_addr == my_conf.badge_id) {
-    //    	return 0;
-    //    }
+    // incoming ID is same as local ID, and it's not from a base.
+//    if (payload->from_addr == my_conf.badge_id && payload->base_addr != NOT_A_BASE) {
+//        return 0;
+//    }
 
     // handler on duty but source isn't a handler
     if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->badge_addr)) {
@@ -378,7 +378,7 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
 
     // Same one we last saw:
     if (payload->seqnum == rfm75_prev_seqnum) {
-//        return 0;
+        return 0;
     }
 
     // CRC it.
