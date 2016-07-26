@@ -12,6 +12,7 @@
 #include <driverlib/MSP430FR5xx_6xx/driverlib.h>
 #include <msp430fr5949.h>
 #include <grlib.h>
+#include "qc13.h"
 
 // CONFIGURATION SETTINGS ///////////////////////////////////////////
 
