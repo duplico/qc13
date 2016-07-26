@@ -394,6 +394,22 @@ void radio_broadcast_received(rfbcpayload *payload) {
     if (payload->flags & RFBC_INK) {
         radio_ink_received(payload->ink_id, ((payload->flags & RFBC_DINK) ? 2 : 1), payload->badge_addr);
     }
+
+    // # PUSH hat award:
+    if (payload->flags & RFBC_HATOFFER) {
+        // TODO: validate ink_id here as a push hat.
+        // TODO: validate it's from a base
+        // TODO: validate it's to me.
+        award_push_hat(payload->ink_id);
+        if (my_conf.hat_id == payload->ink_id && my_conf.hat_holder) {
+            // reply with a HATACK.
+            // Otherwise let it time out.
+            out_payload.ink_id = my_conf.hat_id;
+            out_payload.flags = RFBC_HATACK;
+            complete_rfbc_payload(&out_payload);
+            rfm75_tx();
+        }
+    }
 }
 
 void radio_transmit_done() {
