@@ -285,6 +285,9 @@ void init_clocks() {
     CS_disableClockRequest(CS_MCLK);
     CS_disableClockRequest(CS_SMCLK);
     CS_disableClockRequest(CS_ACLK);
+
+    // Configure watchdog:
+    WDT_A_initWatchdogTimer(WDT_A_BASE, WDT_A_CLOCKSOURCE_ACLK, WDT_A_CLOCKDIVIDER_32K); // Just under 1 second.
 }
 
 // 0: OK; nonzero: problems
@@ -489,6 +492,7 @@ void time_loop() {
             super_ink_timeout();
         }
     }
+    WDT_A_resetTimer(WDT_A_BASE);
 }
 
 int main(void)
@@ -497,6 +501,8 @@ int main(void)
     post();
 
     initial_animations();
+
+    WDT_A_start(WDT_A_BASE);
 
     static uint8_t led_loops = 0;
 
