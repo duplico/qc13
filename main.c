@@ -265,6 +265,8 @@ void setup_my_conf() {
         }
     }
 
+    eyes_spinning = my_conf.hat_holder && !my_conf.hat_claimed;
+
     srand(my_conf.badge_id);
 }
 
