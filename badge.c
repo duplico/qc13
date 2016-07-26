@@ -190,6 +190,7 @@ void send_ink() {
 void send_super_ink() {
     out_payload.ink_id = my_conf.camo_id;
     out_payload.flags = RFBC_INK | RFBC_DINK;
+    eye_twinkle_on();
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
 }
@@ -304,9 +305,14 @@ void select_button_clicked() {
 void leg_anim_done(uint8_t tentacle_anim_id) {
     being_inked = 0;
     if (mate_state == MS_SUPER_INK && just_sent_superink) {
-        tentacle_send_meta_mating(2, 13);
+        tentacle_send_meta_mating(2, 13); // 2 is the pewpew
         send_super_ink();
         just_sent_superink = 0;
+    } else if (mate_state == MS_SUPER_INK) {
+        // just finished the pewpew.
+        // Stop twinkling if need be.
+        if (!(my_conf.gilded & GILD_ON))
+            eye_twinkle_off();
     }
 }
 
@@ -355,8 +361,8 @@ void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
 }
 
 void radio_basic_base_received(uint8_t base_id) {
-    if (base_id == 0xff) { // TODO: check for the event bases.
-        achievement_get(base_id);
+    if (base_id == 0xff) {
+        event_checkin(base_id);
     }
 }
 
