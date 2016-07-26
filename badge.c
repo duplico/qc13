@@ -371,9 +371,8 @@ void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
 }
 
 void radio_basic_base_received(uint8_t base_id) {
-    if (base_id == 0xff) {
-        event_checkin(base_id);
-    }
+    // base_id is validated by our main routine.
+    event_checkin(base_id);
 }
 
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {

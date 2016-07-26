@@ -361,7 +361,7 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
     }
 
     // event flag when base_addr overflows
-    if (payload->flags & RFBC_EVENT && payload->base_addr > EVENTS_IN_SYSTEM) {
+    if (payload->flags & RFBC_EVENT && payload->base_addr >= EVENTS_IN_SYSTEM) {
         return 0;
     }
 
