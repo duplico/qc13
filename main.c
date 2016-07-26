@@ -30,38 +30,6 @@
 // Flags to main loop raised by interrupts (so must be volatile):
 volatile uint8_t f_time_loop = 0;
 volatile uint8_t f_rfm75_interrupt = 0;
-volatile uint8_t f_mate_interrupt = 0;
-
-uint8_t hat_check_this_cycle = 0;
-
-uint8_t hat_state = HS_NONE;
-
-// Signals to the main loop (not caused by interrupts):
-uint8_t s_b_start = 0;
-uint8_t s_b_select = 0;
-uint8_t s_b_ohai = 0;
-uint8_t s_face_anim_done = 0;
-uint8_t s_hat_check = 0;
-
-// ADC related:
-//  light:
-uint16_t lights[ADC_WINDOW] = {0};
-uint16_t light = 0;
-uint8_t light_order = 0;
-uint16_t light_tot = 0;
-uint8_t light_index = 0;
-
-//  temp:
-uint16_t temps[ADC_WINDOW] = {0};
-uint16_t temp = 0;
-uint16_t temp_tot = 0;
-uint8_t temp_index = 0;
-
-// hat voltage:
-uint16_t hat_potentials[ADC_WINDOW] = {0};
-uint16_t hat_potential = 0;
-uint16_t hat_v_tot = 0;
-uint8_t hat_v_index = 0;
 
 // Base related:
 
@@ -105,9 +73,21 @@ volatile uint8_t f_bs = 0; // TODO: nonvolatile.
 uint8_t s_oled_needs_redrawn_idle = 0;
 uint8_t s_new_pane = 1;
 
+tRectangle name_erase_rect = {0, NAME_Y_OFFSET, 63, NAME_Y_OFFSET + NAME_FONT_HEIGHT + SYS_FONT_HEIGHT};
+uint8_t update_disp = 0;
+uint8_t char_entry_index = 0;
+uint8_t curr_char = ' ';
+uint8_t underchar_x = 0;
+uint8_t text_width = 0;
+uint8_t last_char_index = 0;
+uint16_t bs_down_loops = 0;
+const char undername[2] = {NAME_SEL_CHAR, 0};
+char name[NAME_MAX_LEN+1] = {' ', 0};
+
 void disp_mode_unlock();
 void enter_unlock();
 uint8_t softkey_enabled(uint8_t index);
+void disp_mode_txt();
 
 // Initialization functions
 ///////////////////////////
@@ -389,22 +369,23 @@ void disp_mode_idle() {
             break;
         case SK_SEL_TRIGGER_START:
             if (my_conf.base_id == BASE_BPOOL) {
-                my_conf.hat_sent_pool_start = 1;
+                award_hat(HAT_POOL_FIRST);
             } else if (my_conf.base_id == BASE_BKARAOKE) {
-                my_conf.hat_sent_sat_start = 1;
+                award_hat(HAT_KARAOKE_FIRST);
             } else if (my_conf.base_id == BASE_BTALK) {
-                my_conf.hat_sent_talk = 1;
+                award_hat(HAT_BADGE_TALK);
             }
-            my_conf_write_crc();
+            update_disp = 1;
+            op_mode = OP_MODE_TXT;
             break;
         case SK_SEL_TRIGGER_END:
-            // TODO: enter state machine.
             if (my_conf.base_id == BASE_BPOOL) {
-                my_conf.hat_sent_pool_end = 1;
+                award_hat(HAT_POOL_LAST);
             } else if (my_conf.base_id == BASE_BKARAOKE) {
-                my_conf.hat_sent_sat_end = 1;
+                award_hat(HAT_KARAOKE_LAST);
             }
-            my_conf_write_crc();
+            update_disp = 1;
+            op_mode = OP_MODE_TXT;
             break;
         default:
             if (idle_mode_softkey_sel > SK_SEL_MAX) {
@@ -426,7 +407,7 @@ void handle_display() {
         disp_mode_unlock();
         break;
     case OP_MODE_TXT:
-//        disp_mode_txt();
+        disp_mode_txt();
         break;
     }
 
@@ -470,17 +451,6 @@ void time_loop() {
 
 }
 
-tRectangle name_erase_rect = {0, NAME_Y_OFFSET, 63, NAME_Y_OFFSET + NAME_FONT_HEIGHT + SYS_FONT_HEIGHT};
-uint8_t update_disp = 0;
-uint8_t char_entry_index = 0;
-uint8_t curr_char = ' ';
-uint8_t underchar_x = 0;
-uint8_t text_width = 0;
-uint8_t last_char_index = 0;
-uint16_t bs_down_loops = 0;
-const char undername[2] = {NAME_SEL_CHAR, 0};
-char name[NAME_MAX_LEN+1] = {' ', 0};
-
 void enter_unlock() {
     op_mode = OP_MODE_UNLOCK;
     update_disp = 1;
@@ -512,6 +482,63 @@ void enter_unlock() {
 
     // For determining whether name entry is complete:
     text_width = GrStringWidthGet(&g_sContext, name, last_char_index+1);
+}
+
+void disp_mode_txt() {
+    if (hat_award_state != HAS_IDLE || idle_mode_softkey_dis) {
+        f_br = f_bl = f_bs = 0;
+    }
+
+    if (f_bs == BUTTON_RELEASE || f_bl == BUTTON_RELEASE || f_br == BUTTON_RELEASE) {
+        f_bs = f_br = f_bl = 0;
+        if (hat_award_state == HAS_IDLE) { // unnecessary.
+            op_mode = OP_MODE_IDLE;
+            s_new_pane = 1;
+            return;
+        }
+        // clear...
+    }
+
+    if (hat_award_state == HAS_SUCCEED || hat_award_state == HAS_FAIL || update_disp) {
+        update_disp = 0;
+
+        GrClearDisplay(&g_sContext);
+        GrContextForegroundSet(&g_sContext, ClrWhite);
+
+        if (hat_award_state == HAS_OFFER) {
+            oled_print(0,5,"Trying to award...", 0, 0);
+        } else if (hat_award_state == HAS_FAIL) {
+            oled_print(0,5,"Award failed. Press to close.", 0, 0);
+            hat_award_state = HAS_IDLE;
+        } else if (hat_award_state == HAS_SUCCEED) {
+            oled_print(0,5,"Award success. Press to close.", 0, 0);
+            hat_award_state = HAS_IDLE;
+
+            switch(hat_award_offered) {
+            case HAT_BADGE_TALK:
+                my_conf.hat_sent_talk = 1;
+                break;
+            case HAT_POOL_FIRST:
+                my_conf.hat_sent_pool_start = 1;
+                break;
+            case HAT_POOL_LAST:
+                my_conf.hat_sent_pool_end = 1;
+                break;
+            case HAT_KARAOKE_FIRST:
+                my_conf.hat_sent_sat_start = 1;
+                break;
+            case HAT_KARAOKE_LAST:
+                my_conf.hat_sent_sat_end = 1;
+                break;
+            }
+            my_conf_write_crc();
+
+        }
+
+        GrFlush(&g_sContext);
+
+    }
+
 }
 
 void disp_mode_unlock() {

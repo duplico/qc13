@@ -6,6 +6,7 @@
  */
 
 #include "qc13.h"
+#include "qc12.h"
 #include <stdlib.h>
 #include "rfm75.h"
 #include "metrics.h"
@@ -24,6 +25,11 @@ qc13conf my_conf = {0};
 
 uint64_t button_press_window = 0;
 uint8_t buttons_pressed = 0;
+
+uint8_t hat_award_state = 0;
+uint8_t hat_award_offered = 0;
+uint8_t hat_award_to = DEDICATED_BASE_ID;
+uint8_t hat_award_tries = 10;
 
 /*
  * typedef struct {
@@ -48,7 +54,9 @@ const qc13conf default_conf = {
 rfbcpayload in_payload, out_payload;
 
 void second() {
-
+    if (hat_award_state == HAS_OFFER) {
+        send_hat_award();
+    }
 }
 
 void two_seconds() {
@@ -74,11 +82,27 @@ void complete_rfbc_payload(rfbcpayload *payload) {
 
 // TODO: enter hat awarding state machine:
 
-void send_hat_award(uint8_t to_id, uint8_t hat_id) {
-    out_payload.badge_addr = to_id;
-    out_payload.ink_id = hat_id;
-    out_payload.flags = RFBC_HATOFFER;
+void award_hat(uint8_t hat_id) {
+    if (hat_award_state != HAS_IDLE) return; // reject!
+    hat_award_state = HAS_OFFER;
+    hat_award_offered = hat_id;
+    // TODO: choose a badge...
+    hat_award_to = 0;
+    hat_award_tries = 10; // TODO
+    send_hat_award();
+}
 
+void send_hat_award() {
+    if (!hat_award_tries || hat_award_state != HAS_OFFER) {
+        // give up.
+        hat_award_state = HAS_FAIL;
+        return;
+    }
+
+    hat_award_tries--;
+    out_payload.badge_addr = hat_award_to;
+    out_payload.ink_id = hat_award_offered;
+    out_payload.flags = RFBC_HATOFFER;
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
 }
@@ -135,7 +159,12 @@ void radio_broadcast_received(rfbcpayload *payload) {
         radio_beacon_received(payload->badge_addr, payload->flags & RFBC_HANDLER_ON_DUTY);
     }
 
-//    if (payload->flags & RFBC_HATACK) // TODO: state machine
+    // TODO: there is a possible race condition here. It's not likely, though.
+    //  only really happens if an uber gives one at the same time...
+    if (hat_award_state == HAS_OFFER && (payload->flags & RFBC_HATACK || payload->flags & RFBC_HATHOLDER) && payload->badge_addr == hat_award_to) {
+        // We had an offer out, and it was ACKed or we saw that the person we offered it to became a hat holder:
+        hat_award_state = HAS_SUCCEED;
+    }
 }
 
 void radio_transmit_done() {
