@@ -25,20 +25,24 @@ qc13conf my_conf = {0};
 uint64_t button_press_window = 0;
 uint8_t buttons_pressed = 0;
 
+/*
+ * typedef struct {
+    uint8_t badge_id;
+    uint8_t seen_count, uber_seen_count, odh_seen_count;
+    uint8_t hat_sent_talk, hat_sent_pool_start, hat_sent_pool_end, hat_sent_sat_start, hat_sent_sat_end;
+    uint8_t locked;
+    uint8_t base_id;
+    uint16_t crc16;
+} qc13conf;
+ */
+
 const qc13conf default_conf = {
-        BADGE_ID,
-        0, 0, 0, // seen counts
-        0, 0, 0, // mate counts
-        0, 0, 0, // hats!
-        {0}, // event check-ins
-        0, // camo_unlocks bitfield
-        0, // camo_id
-        0, // Uber hat not given out
-        0, // No achievements
-        0, // Not gilded.
-        1, // Locked
-        NOT_A_BASE, // Base ID.
-        0 // blank CRC.
+        DEDICATED_BASE_ID, // badge_id
+        0, 0, 0, // seen_count, uber_seen_count, odh_seen_count;
+        0, 0, 0, 0, 0, // hat_sent_talk, hat_sent_pool_start, hat_sent_pool_end, hat_sent_sat_start, hat_sent_sat_end;
+        1, // locked
+        NOT_A_BASE, // base_id
+        0 // crc16
 };
 
 rfbcpayload in_payload, out_payload;

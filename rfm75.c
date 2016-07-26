@@ -26,20 +26,14 @@
 // IRQ  P3.1 (or 3.0 for launchpad)
 
 #define RFM75_CSN_OUT P1OUT
-#define RFM75_CSN_PIN  GPIO_PIN3
+#define RFM75_CSN_PIN  GPIO_PIN4
 
 #define CSN_LOW_START RFM75_CSN_OUT &= ~RFM75_CSN_PIN
 #define CSN_HIGH_END  RFM75_CSN_OUT |= RFM75_CSN_PIN
 
-#if BADGE_TARGET
 // Target is the actual badge:
-#define CE_ACTIVATE P3OUT   |=  BIT2
-#define CE_DEACTIVATE P3OUT &= ~BIT2
-#else
-// Target is the Launchpad+shield:
-#define CE_ACTIVATE P1OUT   |=  BIT2
-#define CE_DEACTIVATE P1OUT &= ~BIT2
-#endif
+#define CE_ACTIVATE P1OUT   |=  BIT0
+#define CE_DEACTIVATE P1OUT &= ~BIT0
 
 uint8_t rx_addr_p0[3] = {0xff, 0xff, 0xff};
 uint8_t rx_addr_p1[3] = {0xff, 0xff, 0x00};
@@ -97,12 +91,12 @@ uint8_t payload_in[RFM75_PAYLOAD_SIZE] = {0};
 uint8_t payload_out[RFM75_PAYLOAD_SIZE] = {0};
 
 uint8_t usci_b0_recv_sync(uint8_t data) {
-    EUSCI_A_SPI_transmitData(EUSCI_B0_BASE, data);
-    while (!EUSCI_B_SPI_getInterruptStatus(EUSCI_B0_BASE,
-            EUSCI_B_SPI_TRANSMIT_INTERRUPT));
-    while (!EUSCI_B_SPI_getInterruptStatus(EUSCI_B0_BASE,
-            EUSCI_B_SPI_RECEIVE_INTERRUPT));
-    return EUSCI_B_SPI_receiveData(EUSCI_B0_BASE);
+    EUSCI_A_SPI_transmitData(EUSCI_A0_BASE, data);
+    while (!EUSCI_A_SPI_getInterruptStatus(EUSCI_A0_BASE,
+            EUSCI_A_SPI_TRANSMIT_INTERRUPT));
+    while (!EUSCI_A_SPI_getInterruptStatus(EUSCI_A0_BASE,
+            EUSCI_A_SPI_RECEIVE_INTERRUPT));
+    return EUSCI_A_SPI_receiveData(EUSCI_A0_BASE);
 }
 
 void usci_b0_send_sync(uint8_t data) {
@@ -222,21 +216,22 @@ void rfm75_tx() {
 
 void rfm75_init()
 {
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN6, GPIO_SECONDARY_MODULE_FUNCTION); // TX
-    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P1, GPIO_PIN7, GPIO_SECONDARY_MODULE_FUNCTION); // RX
-    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN2, GPIO_SECONDARY_MODULE_FUNCTION); // CLK
-    // Setup USCI_B0.
-    EUSCI_B_SPI_initMasterParam ini = {0};
-    ini.selectClockSource = EUSCI_B_SPI_CLOCKSOURCE_SMCLK;
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P2, GPIO_PIN0, GPIO_SECONDARY_MODULE_FUNCTION); // TX
+    GPIO_setAsPeripheralModuleFunctionInputPin(GPIO_PORT_P2, GPIO_PIN1, GPIO_SECONDARY_MODULE_FUNCTION); // RX
+    GPIO_setAsPeripheralModuleFunctionOutputPin(GPIO_PORT_P1, GPIO_PIN5, GPIO_SECONDARY_MODULE_FUNCTION); // CLK
+
+    // Setup USCI_A0.
+    EUSCI_A_SPI_initMasterParam ini = {0};
+    ini.selectClockSource = EUSCI_A_SPI_CLOCKSOURCE_SMCLK;
     ini.clockSourceFrequency = SMCLK_RATE_HZ;
     ini.desiredSpiClock = 4000000;
-    ini.msbFirst = EUSCI_B_SPI_MSB_FIRST;
-    ini.clockPhase = EUSCI_B_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
-    ini.clockPolarity = EUSCI_B_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
-    ini.spiMode = EUSCI_B_SPI_3PIN;
+    ini.msbFirst = EUSCI_A_SPI_MSB_FIRST;
+    ini.clockPhase = EUSCI_A_SPI_PHASE_DATA_CAPTURED_ONFIRST_CHANGED_ON_NEXT;
+    ini.clockPolarity = EUSCI_A_SPI_CLOCKPOLARITY_INACTIVITY_LOW;
+    ini.spiMode = EUSCI_A_SPI_3PIN;
 
-    EUSCI_B_SPI_initMaster(EUSCI_B0_BASE, &ini);
-    EUSCI_B_SPI_enable(EUSCI_B0_BASE);
+    EUSCI_A_SPI_initMaster(EUSCI_A0_BASE, &ini);
+    EUSCI_A_SPI_enable(EUSCI_A0_BASE);
 
     rfm75_seqnum = 0;
     rfm75_seqnum |= ((uint32_t) my_conf.badge_id) << 24;
@@ -247,14 +242,26 @@ void rfm75_init()
     delay_millis(150); // Delay more than 50ms.
 
     // Setup GPIO:
-    P1DIR |= BIT3; // CSN
-    P1OUT |= BIT3; // init high.
-    P3DIR |= BIT2;
-    P3OUT &= ~BIT2;
-    P3DIR &= ~BIT1;
-    P3REN &= ~BIT1;
-    P3SEL0 &= ~BIT1;
-    P3SEL1 &= ~BIT1;
+    // rupee:
+    P1DIR |= BIT4; // CSN
+    P1OUT |= BIT4; // init high
+    P1DIR |= BIT0; // CE
+    P1OUT &= ~BIT0; // init low
+    P1DIR &= ~BIT1; // IRQ
+    P1REN &= ~BIT1; // no resistor
+    P1SEL0 &= ~BIT1;
+    P1SEL1 &= ~BIT1;
+
+
+    // badge:
+//    P1DIR |= BIT3; // CSN
+//    P1OUT |= BIT3; // init high.
+//    P3DIR |= BIT2;
+//    P3OUT &= ~BIT2;
+//    P3DIR &= ~BIT1;
+//    P3REN &= ~BIT1;
+//    P3SEL0 &= ~BIT1;
+//    P3SEL1 &= ~BIT1;
     // We'll wait on the interrupt enables though...
 
     // Let's start with bank 0:
@@ -320,9 +327,15 @@ void rfm75_init()
     rfm75_select_bank(0);
 
     // Enable our interrupts:
-    P3IES |= BIT1;
+    // rupee:
+    P1IES |= BIT1;
     P3IFG &= ~BIT1;
-    P3IE |= BIT1;
+    P1IE |= BIT1;
+
+    // badge:
+//    P3IES |= BIT1;
+//    P3IFG &= ~BIT1;
+//    P3IE |= BIT1;
 
     // And we're off to see the wizard!
 
@@ -453,10 +466,10 @@ void rfm75_deferred_interrupt() {
     }
 }
 
-#pragma vector=PORT3_VECTOR
+#pragma vector=PORT1_VECTOR
 __interrupt void RFM_ISR(void)
 {
-    if (P3IV != 0x04) {
+    if (!P1IV) {
         return;
     }
     f_rfm75_interrupt = 1;
