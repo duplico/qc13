@@ -10,10 +10,9 @@ solid
 0,0,0,0,0,3600
 
 #ink
-# Unused
 solid
 0,0,0,0,
-0,0,0,0,0,6350
+0,0,0,0,300,0
 
 #doubleink
 # Unused
