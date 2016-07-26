@@ -15,8 +15,6 @@
 #include "metrics.h"
 #include "badge.h"
 
-uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
-uint8_t badges_mated[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_count = 0;
 
@@ -24,11 +22,21 @@ uint8_t blink_repeat_count = 0;
 
 uint8_t ink_cooldown = 0;
 
+#pragma DATA_SECTION (my_conf, ".infoA"); // A is .noinit
 qc13conf my_conf = {0};
+
+#pragma DATA_SECTION (backup_conf, ".infoC"); // C is .noinit
+qc13conf backup_conf = {0};
+
+#pragma PERSISTENT (badges_seen)
+uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
+#pragma PERSISTENT (badges_mated)
+uint8_t badges_mated[BADGES_IN_SYSTEM] = {0};
 
 uint64_t button_press_window = 0;
 uint8_t buttons_pressed = 0;
 
+#pragma DATA_SECTION (default_conf, ".infoB"); // B is initialized on bootstrap
 const qc13conf default_conf = {
         BADGE_ID,
         0, 0, 0, // seen counts
@@ -216,6 +224,7 @@ void start_button_longpressed() {
     if (mate_state == MS_IDLE && (my_conf.gilded & GILD_AVAIL)) {
         // gild on for ourselves
         my_conf.gilded ^= GILD_ON;
+        my_conf_write_crc();
         if (my_conf.gilded & GILD_ON)
             eye_twinkle_on();
         else
@@ -279,6 +288,7 @@ void select_button_clicked() {
     } while (!is_camo_avail(new_camo));
 
     my_conf.camo_id = new_camo;
+    my_conf_write_crc();
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
@@ -350,8 +360,7 @@ void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
     else
         do_brightness_correction(light_order+8, 1);
     tentacle_start_anim(ink_id, ink_type, legs_all_anim_sets[ink_id][ink_type]->ink_loops, 0);
-//    face_start_anim(FACE_ANIM_META_GOTINKED);
-    face_start_anim(FACE_ANIM_META_INKED_FLASH);
+    face_start_anim(FACE_ANIM_META_INKED);
 }
 
 void radio_broadcast_received(rfbcpayload *payload) {

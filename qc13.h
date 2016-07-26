@@ -245,6 +245,7 @@ extern uint16_t light_tot;
 extern uint8_t light_order;
 extern uint16_t temp;
 extern qc13conf my_conf;
+extern qc13conf backup_conf;
 extern const qc13conf default_conf;
 extern rfbcpayload in_payload, out_payload;
 
@@ -254,5 +255,7 @@ extern uint8_t neighbor_badges[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_count;
 
 extern uint8_t hat_state;
+
+void my_conf_write_crc();
 
 #endif /* QC13_H_ */

@@ -189,6 +189,7 @@ void mate_deferred_rx_interrupt() {
         //  gild message
         if ((mp_in.flags & M_BESTOW_GILD) && !(my_conf.gilded & GILD_AVAIL)) {
             my_conf.gilded = GILD_AVAIL | GILD_ON;
+            my_conf_write_crc();
             eye_twinkle_on();
         }
         //  or a regular old message that's just updating
@@ -221,6 +222,7 @@ void mate_deferred_rx_interrupt() {
         if (mp_in.flags & M_HAT_AWARD_ACK) {
             // our hat offer was accepted.
             my_conf.uber_hat_given = 1;
+            my_conf_write_crc();
             mate_state = MS_PAIRED;
             // TODO: save
         } else if (mp_in.flags & M_HAT_AWARD_NACK) {

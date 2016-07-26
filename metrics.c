@@ -36,14 +36,14 @@ uint8_t award_hat(uint8_t id) {
     my_conf.achievements |= ((uint16_t) 0x01 << id);
     my_conf.hat_holder = 1;
     my_conf.hat_id = id;
-    // TODO: save
+    my_conf_write_crc();
     return 1;
 }
 
 void claim_hat(uint8_t id) {
     // TODO: validation?
     my_conf.hat_claimed = 1;
-    // TODO
+    my_conf_write_crc();
 }
 
 uint8_t has_achievement(uint8_t id) {
@@ -80,6 +80,7 @@ void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
     }
 
     // TODO: Check for achievements.
+    my_conf_write_crc();
 }
 
 void tick_badge_seen(uint8_t id, uint8_t handler_on_duty) {
@@ -111,6 +112,7 @@ void set_badge_mated(uint8_t id, uint8_t handler_on_duty) {
         badges_mated[id] |= ODH_MATED_BITS;
     }
     // TODO: Check for achievements.
+    my_conf_write_crc();
 }
 
 uint8_t is_camo_avail(uint8_t camo_id) {
@@ -122,7 +124,7 @@ void unlock_camo(uint8_t camo_id) {
         return;
     my_conf.camo_unlocks |= (uint32_t)1 << camo_id;
     my_conf.camo_id = camo_id;
-    // TODO: CRC
+    my_conf_write_crc();
     tentacle_start_anim(my_conf.camo_id, LEG_CAMO_INDEX, 1, 1);
 }
 
