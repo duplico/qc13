@@ -202,8 +202,28 @@ void term_gpio() {
 
 }
 
+void my_conf_write_crc() {
+
+    CRC_setSeed(CRC_BASE, 0xc13c);
+    for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) &default_conf)[i]);
+    }
+    my_conf.crc16 = CRC_getResult(CRC_BASE);
+}
+
+uint8_t my_conf_is_valid() {
+    // TODO: Additional validation?
+
+    CRC_setSeed(CRC_BASE, 0xc13c);
+    for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) &default_conf)[i]);
+    }
+
+    return my_conf.crc16 == CRC_getResult(CRC_BASE);
+}
+
 void make_fresh_conf() {
-     fresh_power = 1; // TODO
+    fresh_power = 1;
 
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
     unlock_camo(LEG_ANIM_DEF);
@@ -230,8 +250,11 @@ void make_fresh_conf() {
 }
 
 void setup_my_conf() {
-    // TODO: If we don't have a valid conf:
-    make_fresh_conf();
+    if (!my_conf_is_valid()) {
+        make_fresh_conf();
+    } else {
+        my_conf_write_crc();
+    }
 
     srand(my_conf.badge_id);
 }

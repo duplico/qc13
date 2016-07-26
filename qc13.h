@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 0
+#define BADGE_ID 101
 
 #define COLLINSCODE 0b011000110110111101101111011010110110100101100101
 
@@ -105,7 +105,7 @@ void delay_millis(unsigned long);
 
 typedef struct {
     uint8_t proto_version;
-    uint8_t from_addr, base_addr; // base_addr is event_id, basically.
+    uint8_t badge_addr, base_addr; // base_addr is event_id, basically.
     uint8_t ttl;
     uint8_t ink_id;
     uint8_t flags;
@@ -117,7 +117,9 @@ typedef struct {
 #define RFBC_EVENT BIT1
 #define RFBC_INK BIT2
 #define RFBC_DINK BIT3
+#define RFBC_HATACK BIT4
 #define RFBC_HATHOLDER BIT5
+#define RFBC_HATOFFER BIT6
 #define RFBC_HANDLER_ON_DUTY BIT7
 
 typedef struct {

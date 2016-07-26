@@ -151,7 +151,7 @@ void complete_rfbc_payload(rfbcpayload *payload) {
     // TODO: not if retx from someone else:
     out_payload.seqnum = rfm75_seqnum;
     payload->base_addr = NOT_A_BASE;
-    payload->from_addr = my_conf.badge_id;
+    payload->badge_addr = my_conf.badge_id;
     if (is_handler(my_conf.badge_id) && (hat_state & HS_HANDLER))
         payload->flags |= RFBC_HANDLER_ON_DUTY;
     if (my_conf.hat_holder)
@@ -360,7 +360,7 @@ void radio_broadcast_received(rfbcpayload *payload) {
     //     ==Broadcast==
     //  # Beacon: Just the normal gaydar beacon
     if (payload->flags & RFBC_BEACON) {
-        radio_beacon_received(payload->from_addr, payload->flags & RFBC_HANDLER_ON_DUTY);
+        radio_beacon_received(payload->badge_addr, payload->flags & RFBC_HANDLER_ON_DUTY);
     }
     //  # Basic event: A basic check-in broadcast from the base station
     if (payload->flags & RFBC_EVENT) {
@@ -368,7 +368,7 @@ void radio_broadcast_received(rfbcpayload *payload) {
     }
     //  # Ink or super ink
     if (payload->flags & RFBC_INK) {
-        radio_ink_received(payload->ink_id, ((payload->flags & RFBC_DINK) ? 2 : 1), payload->from_addr);
+        radio_ink_received(payload->ink_id, ((payload->flags & RFBC_DINK) ? 2 : 1), payload->badge_addr);
     }
 }
 
