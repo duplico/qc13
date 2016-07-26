@@ -238,6 +238,15 @@ void start_button_longpressed() {
     }
 }
 
+void select_button_longpressed() {
+    radio_ink_received(my_conf.camo_id, LEG_INK_INDEX, my_conf.badge_id);
+
+    ink_cooldown = INK_OUT_COOLDOWN_SECS;
+    face_start_anim(FACE_ANIM_CUTESY);
+    eye_twinkle_on();
+    face_set_ambient_temp_direct(INKING_EYES);
+}
+
 void start_button_clicked() {
     button_press_window = button_press_window << 1;
     // start is 1.

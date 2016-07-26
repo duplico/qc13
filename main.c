@@ -372,6 +372,8 @@ void delay_millis(unsigned long mils) {
 
 uint8_t start_seconds_pressed = 0;
 uint8_t start_pressed = 0;
+uint8_t select_seconds_pressed = 0;
+uint8_t select_pressed = 0;
 
 void poll_buttons() {
     static uint8_t b_start_read_prev = 1;
@@ -463,6 +465,12 @@ void time_loop() {
                 start_button_longpressed();
             }
         }
+        if (select_pressed) {
+            select_seconds_pressed++;
+            if (select_seconds_pressed >= LONG_PRESS_THRESH) {
+                select_button_longpressed();
+            }
+        }
 
     }
 
@@ -529,11 +537,16 @@ int main(void)
 
         if (s_b_select == BUTTON_PRESS) {
             s_b_select = 0;
+            select_seconds_pressed = 0;
+            select_pressed = 1;
         }
 
         if (s_b_select == BUTTON_RELEASE) {
-            select_button_clicked();
             s_b_select = 0;
+            select_pressed = 0;
+            if (select_seconds_pressed < LONG_PRESS_THRESH) {
+                select_button_clicked();
+            }
         }
 
         if (s_b_ohai == BUTTON_PRESS) { // badges connected.
