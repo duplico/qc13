@@ -384,7 +384,7 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
 
     // Same one we last saw:
     if (payload->seqnum == rfm75_prev_seqnum) {
-//        return 0;
+        return 0;
     }
 
     // CRC it.
