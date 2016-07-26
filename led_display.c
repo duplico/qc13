@@ -143,9 +143,6 @@ uint64_t curr_frame = 0;
 
 uint8_t face_state = FACESTATE_AMBIENT;
 
-#define FACE_DUR_STEP 2
-#define LEGS_DUR_STEP 2
-
 uint8_t tentacle_anim_frame = 0;
 uint8_t tentacle_anim_id = 0;
 uint8_t tentacle_anim_type = 0;
@@ -416,7 +413,6 @@ void face_start_anim(uint8_t anim_index) {
 
 uint8_t tentacle_animation_state = 0;
 
-
 void tentacle_setup_transitions_and_go() {
     tentacle_hold_steps = tentacle_current_anim->durations[tentacle_anim_frame] / LEGS_DUR_STEP;
     tentacle_hold_index = 0;
@@ -547,6 +543,10 @@ void led_post() {
     }
 }
 
+// This gets called like... 700 times per second.
+//  That's like ... too many times.
+//  Let's call it more like 70 times per second instead.
+//  Then we can multiply all the DUR_STEPs by 10.
 void leds_timestep() {
     static uint8_t face_dirty = 1;
     static uint8_t legs_dirty = 1;
@@ -558,7 +558,7 @@ void leds_timestep() {
 
     if (eyes_twinkling) {
         face_anim_adj_index++;
-        if (face_anim_adj_index == 50) {
+        if (face_anim_adj_index == 100 / FACE_DUR_STEP) {
             face_anim_adj_index = 0;
             eye_twinkle_bits = 0;
             for (uint8_t i=0; i<64; i+=8) {
@@ -568,7 +568,7 @@ void leds_timestep() {
         }
     } else if (eyes_spinning) {
         face_anim_adj_index++;
-        if (face_anim_adj_index == 50) {
+        if (face_anim_adj_index == 100  / FACE_DUR_STEP) {
             if (eye_spin_index == 15) {
                 eye_spin_index = 0;
             }
@@ -612,7 +612,7 @@ void leds_timestep() {
     switch(tentacle_current_anim->anim_type) {
     case ANIM_TYPE_FASTTWINKLE:
         leg_anim_adj_index++;
-        if (leg_anim_adj_index == 50) {
+        if (leg_anim_adj_index == 100 / LEGS_DUR_STEP) {
             tentacle_twinkle_bits = rand() % 256;
             leg_anim_adj_index = 0;
             legs_dirty = 1;
@@ -620,7 +620,7 @@ void leds_timestep() {
         break;
     case ANIM_TYPE_SLOWTWINKLE:
         leg_anim_adj_index++;
-        if (leg_anim_adj_index == 400) {
+        if (leg_anim_adj_index == 800 / LEGS_DUR_STEP) {
             tentacle_twinkle_bits = rand() % 256;
             leg_anim_adj_index = 0;
             legs_dirty = 1;
@@ -628,7 +628,7 @@ void leds_timestep() {
         break;
     case ANIM_TYPE_HARDTWINKLE:
         leg_anim_adj_index++;
-        if (leg_anim_adj_index == 40) {
+        if (leg_anim_adj_index == 80 / LEGS_DUR_STEP) {
             tentacle_twinkle_bits = rand() % 256;
             leg_anim_adj_index = 0;
             legs_dirty = 1;
