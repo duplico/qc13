@@ -68,6 +68,9 @@ void delay_millis(unsigned long);
 
 #define ADC_WINDOW 32
 
+#define TEMP_THRESH_HOT  3000
+#define TEMP_THRESH_COLD 500
+
 #define SUPER_INK_WINDOW_SECS 1
 #define SUPER_INK_DECAY_SECS 10
 

@@ -157,6 +157,13 @@ void poll_adc() {
     temp = temp_tot / ADC_WINDOW;
 
     // Temp has 3 bands: COLD < NORMAL < HOT
+    if (temp > TEMP_THRESH_HOT) {
+        // hot
+    } else if (temp > TEMP_THRESH_COLD) {
+        // normal
+    } else {
+        // cold
+    }
 
     // Hat:
     hat_v_tot -= hat_potentials[hat_v_index];
