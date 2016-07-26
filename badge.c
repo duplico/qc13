@@ -216,6 +216,7 @@ void hat_change(uint8_t from, uint8_t to) {
         tentacle_start_anim(LEG_ANIM_HANDLER, LEG_CAMO_INDEX, 1, 1);
     } else if (from & HS_HANDLER && !(to & HS_HANDLER)) {
         face_set_baseline_ambient_direct(DEFAULT_EYES);
+        lock_camo(LEG_ANIM_HANDLER);
     }
 }
 
