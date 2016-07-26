@@ -27,7 +27,7 @@ void delay_millis(unsigned long);
 // Badge & system configuration /////////////////////////////////////
 
 #define BADGES_IN_SYSTEM 250
-#define EVENTS_IN_SYSTEM 1
+#define EVENTS_IN_SYSTEM 9
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
 
 // Special badge system setup:
