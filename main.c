@@ -6,6 +6,7 @@
 // Project includes:
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include "qc13.h"
 #include "rfm75.h"
 #include "led_display.h"
@@ -203,35 +204,39 @@ void term_gpio() {
 }
 
 void my_conf_write_crc() {
-
     CRC_setSeed(CRC_BASE, 0xc13c);
     for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
         CRC_set8BitData(CRC_BASE, ((uint8_t *) &default_conf)[i]);
     }
     my_conf.crc16 = CRC_getResult(CRC_BASE);
+    memcpy(&backup_conf, &my_conf, sizeof(qc13conf));
 }
 
-uint8_t my_conf_is_valid() {
+uint8_t conf_is_valid(qc13conf *conf) {
     // TODO: Additional validation?
 
     CRC_setSeed(CRC_BASE, 0xc13c);
     for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
-        CRC_set8BitData(CRC_BASE, ((uint8_t *) &default_conf)[i]);
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) conf)[i]);
     }
 
-    return my_conf.crc16 == CRC_getResult(CRC_BASE);
+    return conf->crc16 == CRC_getResult(CRC_BASE);
 }
 
 void make_fresh_conf() {
     fresh_power = 1;
 
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
+    memset(badges_seen, 0x00, BADGES_IN_SYSTEM);
+    memset(badges_mated, 0x00, BADGES_IN_SYSTEM);
+
     unlock_camo(LEG_ANIM_DEF);
     if (is_uber(my_conf.badge_id)) {
         unlock_camo(LEG_ANIM_UBER);
         my_conf.uber_hat_given = 0;
         award_hat(HAT_UBER);
-        my_conf.gilded = GILD_AVAIL;
+//        my_conf.gilded = GILD_AVAIL; // TODO
+        my_conf_write_crc();
     }
     if (is_handler(my_conf.badge_id)) {
         // We'll unlock the camo when we go on duty.
@@ -250,8 +255,12 @@ void make_fresh_conf() {
 }
 
 void setup_my_conf() {
-    if (!my_conf_is_valid()) {
-        make_fresh_conf();
+    if (!conf_is_valid(&my_conf)) {
+        if (conf_is_valid(&backup_conf)) {
+            memcpy(&my_conf, &backup_conf, sizeof(qc13conf));
+        } else {
+            make_fresh_conf();
+        }
     } else {
         my_conf_write_crc();
     }
