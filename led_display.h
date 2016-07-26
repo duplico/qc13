@@ -74,5 +74,6 @@ extern uint8_t wiggle_mask;
 extern const tentacle_animation_t *tentacle_current_anim;
 extern uint8_t tentacle_is_ambient;
 extern uint8_t current_ambient_correct;
+extern uint8_t eyes_spinning;
 
 #endif /* LED_DISPLAY_H_ */

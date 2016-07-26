@@ -167,6 +167,8 @@ uint8_t previous_ambient_correct = 0;
 
 uint64_t eye_twinkle_bits = 0xffffffffffffffff;
 uint8_t eyes_twinkling = 0;
+uint8_t eyes_spinning = 0;
+uint8_t eye_spin_index = 0;
 uint8_t tentacle_twinkle_bits = 0xea;
 uint16_t leg_anim_adj_index = 0;
 uint16_t face_anim_adj_index = 0;
@@ -220,7 +222,7 @@ void set_face(uint64_t frame) {
     for (uint8_t i=0; i<64; i++) {
         eye_mask = ((uint64_t) 1 << i);
         if (frame & eye_mask) {
-            if (!eyes_twinkling || (eye_twinkle_bits & eye_mask)) // not twinkling, or twinkle full
+            if ((!eyes_twinkling && !eyes_spinning) || (eye_twinkle_bits & eye_mask)) // not twinkling, or twinkle full
                 tlc_bank_gs[i/16][i%16] = face_ambient_brightness;
             else
                 tlc_bank_gs[i/16][i%16] = face_ambient_brightness << 2;
@@ -564,7 +566,20 @@ void leds_timestep() {
             }
             face_dirty = 1;
         }
+    } else if (eyes_spinning) {
+        face_anim_adj_index++;
+        if (face_anim_adj_index == 50) {
+            if (eye_spin_index == 15) {
+                eye_spin_index = 0;
+            }
+            face_anim_adj_index = 0;
+            eye_twinkle_bits = UINT64_MAX;
 
+            eye_twinkle_bits &= ~(((uint64_t)0x01) << (eye_spin_index+1));
+            eye_twinkle_bits &= ~(((uint64_t)0x01) << (eye_spin_index+1+32));
+
+            face_dirty = 1;
+        }
     }
 
     if (face_state == FACESTATE_ANIMATION) {

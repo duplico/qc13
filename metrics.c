@@ -33,10 +33,14 @@ uint8_t award_push_hat(uint8_t id) {
     // TODO: validate id
     if (my_conf.hat_holder)
         return 0; // TODO: This can't work.
+    if (id == HAT_UBER || id == HAT_HANDLER) { // TODO: Maybe we also except the donors from spinning?
+        my_conf.hat_claimed = 1;
+    }
     my_conf.achievements |= ((uint64_t) 0x01 << id);
     my_conf.hat_holder = 1;
     my_conf.hat_id = id;
     my_conf_write_crc();
+    eyes_spinning = my_conf.hat_holder && !my_conf.hat_claimed;
     return 1;
 }
 
@@ -59,6 +63,7 @@ void claim_hat(uint8_t id) {
     // TODO: validation?
     my_conf.hat_claimed = 1;
     my_conf_write_crc();
+    eyes_spinning = my_conf.hat_holder && !my_conf.hat_claimed;
 }
 
 uint8_t event_checkin(uint8_t event_id) {
