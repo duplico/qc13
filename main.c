@@ -213,9 +213,14 @@ void init() {
     setup_my_conf();
     __bis_SR_register(GIE);
 
-//    rfm75_init(); // Initialize our radio (including GPIO)
+    rfm75_init(); // Initialize our radio (including GPIO)
     init_oled();
 
+    // Buttons:
+
+    GPIO_setAsInputPin(GPIO_PORT_P3, GPIO_PIN4);
+    GPIO_setAsInputPin(GPIO_PORT_P3, GPIO_PIN5);
+    GPIO_setAsInputPin(GPIO_PORT_P3, GPIO_PIN6);
 
     // A0 / LED channel timer:    // Next we configure the clock that tells us when it's time to select the
     //  next LED channel bank.
@@ -311,7 +316,6 @@ uint8_t softkey_enabled(uint8_t index) {
 
 // unlocked:
 void disp_mode_idle() {
-    // TODO: locked
     if (idle_mode_softkey_dis) {
         f_br = f_bl = f_bs = 0;
     }
@@ -339,9 +343,6 @@ void disp_mode_idle() {
         switch (idle_mode_softkey_sel) {
         case SK_SEL_UNLOCK:
             enter_unlock();
-            s_new_pane = 1;
-            idle_mode_softkey_sel = SK_SEL_LOCK;
-            oled_draw_pane_and_flush(idle_mode_softkey_sel);
             break;
         case SK_SEL_LOCK:
             my_conf.locked = 1;
@@ -353,7 +354,6 @@ void disp_mode_idle() {
             my_conf.base_id = NOT_A_BASE;
             my_conf_write_crc();
             s_new_pane = 1;
-            oled_draw_pane_and_flush(idle_mode_softkey_sel);
             break;
         default:
             if (idle_mode_softkey_sel > SK_SEL_MAX) {
@@ -362,7 +362,7 @@ void disp_mode_idle() {
             // Base selected, setup for base.
             my_conf.base_id = idle_mode_softkey_sel - 1;
             my_conf_write_crc();
-            op_mode = OP_MODE_IDLE;
+            s_new_pane = 1;
         }
     }
 }
@@ -391,6 +391,9 @@ void time_loop() {
     static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
     static uint16_t second_loops = LOOPS_PER_SECOND;
     static uint8_t loops = 0;
+
+    static uint8_t display_loops = 10;
+
     if (second_loops) {
         second_loops--;
     } else {
@@ -407,7 +410,13 @@ void time_loop() {
         }
     }
 
-    handle_display();
+    if (display_loops) {
+        display_loops--;
+    } else {
+        poll_buttons();
+        handle_display();
+        display_loops = 10;
+    }
 
 }
 
@@ -418,7 +427,7 @@ uint8_t curr_char = ' ';
 uint8_t underchar_x = 0;
 uint8_t text_width = 0;
 uint8_t last_char_index = 0;
-uint8_t bs_down_loops = 0;
+uint16_t bs_down_loops = 0;
 const char undername[2] = {NAME_SEL_CHAR, 0};
 char name[NAME_MAX_LEN+1] = {' ', 0};
 
@@ -549,9 +558,13 @@ void disp_mode_unlock() {
         if (!strcmp(name, "OKHOMO")) {
             // unlock
             my_conf.locked = 0;
+            idle_mode_softkey_sel = SK_SEL_LOCK;
             my_conf_write_crc();
-            // TODO: return to MODE_IDLE
         }
+
+        op_mode = OP_MODE_IDLE;
+        s_new_pane = 1;
+
     }
 } // handle_mode_name
 
@@ -576,7 +589,6 @@ int main(void)
     while (1)
     {
         if (f_time_loop) {
-            poll_buttons();
             time_loop();
             f_time_loop = 0;
         }
@@ -599,5 +611,5 @@ int main(void)
 __interrupt void TIMER0_A0_ISR_HOOK(void)
 {
     f_time_loop = 1;
-    __bic_SR_register_on_exit(LPM0_bits);
+    __bic_SR_register_on_exit(SLEEP_BITS);
 }
