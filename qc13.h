@@ -220,6 +220,15 @@ typedef struct {
 #define HAT_LOW_MARGIN 45       // TODO
 #define HAT_BORROWER 46         // TODO
 
+#define BASE_TRANS 0
+#define BASE_BTHUMIX 1
+#define BASE_BTALK 2
+#define BASE_BFRIMIX 3
+#define BASE_BPOOL 4
+#define BASE_BWOMEN 5
+#define BASE_BSATMIX 6
+#define BASE_BKARAOKE 7
+#define BASE_BSUNMIX 8
 
 #define HAT_UBER 55
 #define HAT_HANDLER 56

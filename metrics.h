@@ -5,10 +5,11 @@
  *      Author: George
  */
 
-uint8_t award_hat(uint8_t id);
+uint8_t award_push_hat(uint8_t id);
 void claim_hat(uint8_t id);
 uint8_t has_achievement(uint8_t id);
-uint8_t achievement_get(uint8_t id);
+uint8_t make_eligible_for_pull_hat(uint8_t id);
+uint8_t event_checkin(uint8_t event_id);
 void set_badge_seen(uint8_t id, uint8_t handler_on_duty);
 void set_badge_mated(uint8_t id, uint8_t handler_on_duty);
 void tick_badge_seen(uint8_t id, uint8_t handler_on_duty);
