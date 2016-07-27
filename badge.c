@@ -175,6 +175,7 @@ void radio_broadcast_received(rfbcpayload *payload) {
     if (hat_award_state == HAS_OFFER && (payload->flags & RFBC_HATACK || payload->flags & RFBC_HATHOLDER) && payload->badge_addr == hat_award_to) {
         // We had an offer out, and it was ACKed or we saw that the person we offered it to became a hat holder:
         hat_award_state = HAS_SUCCEED;
+        neighbor_badges[hat_award_to] = 0;
     }
 }
 
