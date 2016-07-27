@@ -424,17 +424,16 @@ void handle_display() {
 void time_loop() {
     static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
     static uint16_t second_loops = LOOPS_PER_SECOND;
-    static uint16_t quarter_second_loops = LOOPS_PER_QUARTER_SECOND;
     static uint8_t loops = 0;
-    static uint8_t q_loops = 0;
+    static uint8_t tx_loops = 0;
 
     static uint8_t display_loops = 10;
 
-    if (q_loops) {
-        q_loops--;
+    if (tx_loops) {
+        tx_loops--;
     } else {
-        q_loops = LOOPS_PER_QUARTER_SECOND;
-        quarter_second();
+        tx_loops = LOOPS_PER_RE_OFFER;
+        re_offer();
     }
 
     if (second_loops) {
