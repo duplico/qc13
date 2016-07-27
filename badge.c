@@ -29,10 +29,12 @@ qc13conf my_conf = {0};
 uint64_t button_press_window = 0;
 uint8_t buttons_pressed = 0;
 
+#define HAT_AWARD_TRY_TIMES 50
+
 uint8_t hat_award_state = 0;
 uint8_t hat_award_offered = 0;
 uint8_t hat_award_to = DEDICATED_BASE_ID;
-uint8_t hat_award_tries = 10;
+uint8_t hat_award_tries = HAT_AWARD_TRY_TIMES;
 
 /*
  * typedef struct {
@@ -57,12 +59,12 @@ const qc13conf default_conf = {
 rfbcpayload in_payload, out_payload;
 
 void second() {
+}
+
+void quarter_second() {
     if (hat_award_state == HAS_OFFER) {
         send_hat_award();
     }
-}
-
-void two_seconds() {
 }
 
 void face_animation_done() {
@@ -99,7 +101,7 @@ void award_hat(uint8_t hat_id) {
     }
 
     hat_award_to = target_badge;
-    hat_award_tries = 10; // TODO
+    hat_award_tries = HAT_AWARD_TRY_TIMES; // TODO
     send_hat_award();
 }
 
