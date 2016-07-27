@@ -231,13 +231,20 @@ uint8_t conf_is_valid(qc13conf *conf) {
 }
 
 void make_fresh_conf() {
-    fresh_power = 1;
-
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
     memset(badges_seen, 0x00, BADGES_IN_SYSTEM);
     memset(badges_mated, 0x00, BADGES_IN_SYSTEM);
 
-    unlock_camo(LEG_ANIM_DEF);
+    if (my_conf.badge_id == GEORGE_ID) {
+        unlock_camo(LEG_ANIM_ZFLAG_LEATHER);
+    }
+    if (my_conf.badge_id == EVAN_ID) {
+        unlock_camo(LEG_ANIM_ZFLAG_BI);
+    }
+    if (my_conf.badge_id == JONATHAN_ID) {
+        unlock_camo(LEG_ANIM_ZFLAG_BEAR);
+    }
+
     if (is_uber(my_conf.badge_id)) {
         unlock_camo(LEG_ANIM_UBER);
         my_conf.uber_hat_given = 0;
@@ -256,11 +263,14 @@ void make_fresh_conf() {
         unlock_camo(LEG_ANIM_SHUTDOWN);
     }
 
+    unlock_camo(LEG_ANIM_DEF);
+
     set_badge_seen(my_conf.badge_id, is_handler(my_conf.badge_id));
     set_badge_mated(my_conf.badge_id, is_handler(my_conf.badge_id));
 }
 
 void setup_my_conf() {
+    fresh_power = 1;
     if (conf_is_valid(&my_conf)) {
         lock_camo(LEG_ANIM_HANDLER);
         my_conf_write_crc();

@@ -14,8 +14,8 @@ out, in, 700
 off, off, 300
 in, out, 700
 off, off, 300
-b, off, 700
+off, b, 700
 off, off, 300
-off, spazz, 700
+spazz, off, 700
 off, off, 1000
 blink, blink, 500

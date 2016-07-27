@@ -89,6 +89,7 @@ uint8_t event_checkin(uint8_t event_id) {
 
     switch(event_id) {
     case BASE_TRANS:
+        unlock_camo(LEG_ANIM_ZFLAG_TRANS);
         unlock_camo(LEG_ANIM_FOUND);
         break;
     case BASE_BTHUMIX:
@@ -223,7 +224,8 @@ void check_button_presses() {
     if (buttons_pressed >= 48 && ((button_press_window & 0x0000ffffffffffff) == COLLINSCODE)) {
         buttons_pressed = 0;
         // Collin's code:
-        make_eligible_for_pull_hat(HAT_COLLIN);
-        tentacle_start_anim(LEG_ANIM_POOLPARTY, 2, 3, 0);
+        do_brightness_correction(light_order+5, 1);
+        make_eligible_for_pull_hat(HAT_CONTEST);
+        tentacle_start_anim(LEG_ANIM_POOLPARTY, 2, 6, 0);
     }
 }
