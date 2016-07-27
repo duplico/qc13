@@ -48,7 +48,7 @@ uint8_t hat_award_tries = 10;
 const qc13conf default_conf = {
         DEDICATED_BASE_ID, // badge_id
         0, 0, 0, // seen_count, uber_seen_count, odh_seen_count;
-        0, 0, 0, 0, 0, // hat_sent_talk, hat_sent_pool_start, hat_sent_pool_end, hat_sent_sat_start, hat_sent_sat_end;
+        0, 0, 0, 0, 0, 0, // hat_sent_talk, hat_sent_pool_start, hat_sent_pool_end, hat_sent_sat_start, hat_sent_sat_end, hat_sent_sat_mix_start;
         1, // locked
         NOT_A_BASE, // base_id
         0 // crc16

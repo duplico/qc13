@@ -122,7 +122,8 @@ void enable_correct_softkeys() {
         softkey_en = BIT0;
     } else if ((my_conf.base_id == BASE_BPOOL && !my_conf.hat_sent_pool_start) ||
                (my_conf.base_id == BASE_BKARAOKE && !my_conf.hat_sent_sat_start) ||
-               (my_conf.base_id == BASE_BTALK && !my_conf.hat_sent_talk)) {
+               (my_conf.base_id == BASE_BTALK && !my_conf.hat_sent_talk) ||
+               (my_conf.base_id == BASE_BSATMIX && !my_conf.hat_sent_sat_mix_start)) {
         softkey_en = SK_MASK_STARTABLE;
     } else if ((my_conf.base_id == BASE_BPOOL && !my_conf.hat_sent_pool_end) ||
                (my_conf.base_id == BASE_BKARAOKE && !my_conf.hat_sent_sat_end)) {
@@ -374,6 +375,8 @@ void disp_mode_idle() {
                 award_hat(HAT_KARAOKE_FIRST);
             } else if (my_conf.base_id == BASE_BTALK) {
                 award_hat(HAT_BADGE_TALK);
+            } else if (my_conf.base_id == BASE_BSATMIX) {
+                award_hat(HAT_MIXER_SAT_FIRST);
             }
             update_disp = 1;
             op_mode = OP_MODE_TXT;
@@ -529,6 +532,9 @@ void disp_mode_txt() {
                 break;
             case HAT_KARAOKE_LAST:
                 my_conf.hat_sent_sat_end = 1;
+                break;
+            case HAT_MIXER_SAT_FIRST:
+                my_conf.hat_sent_sat_mix_start = 1;
                 break;
             }
             my_conf_write_crc();

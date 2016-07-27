@@ -160,7 +160,7 @@ typedef struct {
 typedef struct {
     uint8_t badge_id;
     uint8_t seen_count, uber_seen_count, odh_seen_count;
-    uint8_t hat_sent_talk, hat_sent_pool_start, hat_sent_pool_end, hat_sent_sat_start, hat_sent_sat_end;
+    uint8_t hat_sent_talk, hat_sent_pool_start, hat_sent_pool_end, hat_sent_sat_start, hat_sent_sat_end, hat_sent_sat_mix_start;
     uint8_t locked;
     uint8_t base_id;
     uint16_t crc16;
