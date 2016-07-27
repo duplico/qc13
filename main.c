@@ -532,6 +532,7 @@ void disp_mode_txt() {
                 break;
             }
             my_conf_write_crc();
+            s_new_pane = 0;
 
         }
 
