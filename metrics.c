@@ -221,7 +221,9 @@ void lock_camo(uint8_t camo_id) {
 void check_button_presses() {
     // Be sure to check buttons_pressed, and to reset it after accepting the code.
     if (buttons_pressed >= 48 && ((button_press_window & 0x0000ffffffffffff) == COLLINSCODE)) {
-        // TODO: do a thing.
         buttons_pressed = 0;
+        // Collin's code:
+        make_eligible_for_pull_hat(HAT_COLLIN);
+        tentacle_start_anim(LEG_ANIM_POOLPARTY, 2, 3, 0);
     }
 }

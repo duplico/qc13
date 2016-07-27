@@ -190,12 +190,12 @@ typedef struct {
 #define HAT_DONOR_HEATHER 14
 #define HAT_DONOR_ERIC 15
 #define HAT_DONOR_CHRIS 16
-#define HAT_BADGE_TALK 17       // TODO
-#define HAT_POOL_FIRST 18       // TODO
-#define HAT_POOL_LAST 19        // TODO
+#define HAT_BADGE_TALK 17
+#define HAT_POOL_FIRST 18
+#define HAT_POOL_LAST 19
 #define HAT_MIXER_SAT_FIRST 20  // TODO
-#define HAT_KARAOKE_FIRST 21    // TODO
-#define HAT_KARAOKE_LAST 22     // TODO
+#define HAT_KARAOKE_FIRST 21
+#define HAT_KARAOKE_LAST 22
 #define HAT_PEST 23             // TODO
 #define HAT_MORNING 24          // TODO
 #define HAT_HOT_COLD 25         // TODO
@@ -220,6 +220,8 @@ typedef struct {
 #define HAT_MARGIN_LOW 44       // TODO
 #define HAT_LOW_MARGIN 45       // TODO
 #define HAT_BORROWER 46         // TODO
+
+#define HAT_CONTEST 50
 
 #define BASE_TRANS 0
 #define BASE_BTHUMIX 1
