@@ -61,7 +61,7 @@ rfbcpayload in_payload, out_payload;
 void second() {
 }
 
-void quarter_second() {
+void re_offer() {
     if (hat_award_state == HAS_OFFER) {
         send_hat_award();
     }
@@ -116,6 +116,7 @@ void send_hat_award() {
     out_payload.badge_addr = hat_award_to;
     out_payload.ink_id = hat_award_offered;
     out_payload.flags = RFBC_HATOFFER;
+    out_payload.ttl = 3;
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
 }
@@ -124,6 +125,7 @@ void send_beacon() {
     out_payload.badge_addr = DEDICATED_BASE_ID;
     out_payload.ink_id = 211; // NOT_AN_INK
     out_payload.flags = RFBC_EVENT;
+    out_payload.ttl = 3;
     complete_rfbc_payload(&out_payload);
     rfm75_tx();
 }
