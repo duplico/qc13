@@ -425,8 +425,32 @@ extern uint16_t wrapup_4_doubleink_durations[];
 extern uint16_t wrapup_4_doubleink_fade_durs[];
 extern const tentacle_animation_t wrapup_4_doubleink;
 extern const tentacle_animation_t *wrapup_4_anim_set[3];
-#define LEG_ANIM_COUNT 24
-#define LEG_ANIM_COUNT_INCL_META 26
+// frames for camo
+extern const rgbcolor_t zflag_bear_camo_frames[][8];
+extern uint16_t zflag_bear_camo_durations[];
+extern uint16_t zflag_bear_camo_fade_durs[];
+extern const tentacle_animation_t zflag_bear_camo;
+extern const tentacle_animation_t *zflag_bear_anim_set[3];
+// frames for camo
+extern const rgbcolor_t zflag_bi_camo_frames[][8];
+extern uint16_t zflag_bi_camo_durations[];
+extern uint16_t zflag_bi_camo_fade_durs[];
+extern const tentacle_animation_t zflag_bi_camo;
+extern const tentacle_animation_t *zflag_bi_anim_set[3];
+// frames for camo
+extern const rgbcolor_t zflag_leather_camo_frames[][8];
+extern uint16_t zflag_leather_camo_durations[];
+extern uint16_t zflag_leather_camo_fade_durs[];
+extern const tentacle_animation_t zflag_leather_camo;
+extern const tentacle_animation_t *zflag_leather_anim_set[3];
+// frames for camo
+extern const rgbcolor_t zflag_trans_camo_frames[][8];
+extern uint16_t zflag_trans_camo_durations[];
+extern uint16_t zflag_trans_camo_fade_durs[];
+extern const tentacle_animation_t zflag_trans_camo;
+extern const tentacle_animation_t *zflag_trans_anim_set[3];
+#define LEG_ANIM_COUNT 28
+#define LEG_ANIM_COUNT_INCL_META 30
 #define LEG_ANIM_DEF 0
 #define LEG_ANIM_DOUBLEINK 1
 #define LEG_ANIM_FIRE 2
@@ -451,8 +475,12 @@ extern const tentacle_animation_t *wrapup_4_anim_set[3];
 #define LEG_ANIM_WRAPUP_2 21
 #define LEG_ANIM_WRAPUP_3 22
 #define LEG_ANIM_WRAPUP_4 23
-#define LEG_ANIM_META_SOCIAL 24
-#define LEG_ANIM_META_WAKEUP 25
+#define LEG_ANIM_ZFLAG_BEAR 24
+#define LEG_ANIM_ZFLAG_BI 25
+#define LEG_ANIM_ZFLAG_LEATHER 26
+#define LEG_ANIM_ZFLAG_TRANS 27
+#define LEG_ANIM_META_SOCIAL 28
+#define LEG_ANIM_META_WAKEUP 29
 #define ANIM_TYPE_SOLID 0
 #define ANIM_TYPE_FASTTWINKLE 1
 #define ANIM_TYPE_HARDTWINKLE 2

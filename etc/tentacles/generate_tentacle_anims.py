@@ -8,7 +8,15 @@ color_corrections = {
     "default" : (40*3.0/COLOR_SCALE_FACTOR,240*3.0/COLOR_SCALE_FACTOR,178*3.0/COLOR_SCALE_FACTOR),
     "white" : (255,128,255),
     "off" : (0,0,0),
-    "pink" : (240, 20, 60)
+    "pink" : (240, 20, 60),
+    "bipink" : (0xff, 0, 0xb0),
+    "bimiddle" : (0x53, 0x1f, 0x66),
+    "biblue" : (0x50, 0, 0xff),
+    "b1" : (0xc5,0x20,0x04),
+    "b2" : (0xd5, 0x63, 0),
+    "b3" : (0xfe, 0xdd, 0x63),
+    "b4" : (0xbe, 0xa6, 0x38),
+    "dim" : (0, 0, 15),
 }
 
 INK_LEN = 6000
@@ -174,12 +182,16 @@ def main():
             local_animation_names = []
             
             for l, lname, atype, wiggle in ((camo_frames, 'camo', anim_types[0], wiggles[0]), (ink_frames, 'ink', anim_types[1], wiggles[1]), (doubleink_frames, 'doubleink', anim_types[2], wiggles[2])):
+                if anim_name.startswith("zflag") and lname == 'ink': break
                 c_lines.append("// frames for %s" % lname)
                 c_lines.append("const rgbcolor_t %s_%s_frames[][8] = {" % (anim_name, lname))
                 h_lines.append("// frames for %s" % lname)
                 h_lines.append("extern const rgbcolor_t %s_%s_frames[][8];" % (anim_name, lname))
                 
-                local_animation_names += ["%s_%s" % (anim_name, lname)]
+                if anim_name.startswith("zflag"):
+                    local_animation_names += ["%s_%s" % (anim_name, lname)]*3
+                else:
+                    local_animation_names += ["%s_%s" % (anim_name, lname)]
                 
                 frames = []
                 metadata1 = []

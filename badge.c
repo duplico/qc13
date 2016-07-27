@@ -290,7 +290,7 @@ void start_button_clicked() {
 void select_button_clicked() {
     button_press_window = button_press_window << 1;
     // select is 0.
-    button_press_window |= 0x0000000000000001;
+    button_press_window &= ~0x0000000000000001;
     if (buttons_pressed < 64) buttons_pressed++;
     check_button_presses();
 
@@ -385,6 +385,10 @@ void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
         do_brightness_correction(light_order+8, 1);
     tentacle_start_anim(ink_id, ink_type, legs_all_anim_sets[ink_id][ink_type]->ink_loops, 0);
     face_start_anim(FACE_ANIM_META_INKED);
+    if (ink_id >= LEG_ANIM_ZFLAG_BEAR && ink_id <= LEG_ANIM_ZFLAG_TRANS) {
+        unlock_camo(ink_id);
+    }
+
 }
 
 void radio_broadcast_received(rfbcpayload *payload) {
