@@ -454,7 +454,7 @@ void rfm75_deferred_interrupt() {
         return;
     }
 
-    if (iv & BIT6 && rfm75_state != RFM75_RX_LISTEN) { // RX interrupt
+    if (iv & BIT6 && rfm75_state == RFM75_RX_LISTEN) { // RX interrupt
 
         // We've received something.
         rfm75_state = RFM75_RX_READY;
