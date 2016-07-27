@@ -50,7 +50,7 @@ void delay_millis(unsigned long);
 #define HAT_STATE_WAIT_SECS 3
 #define INK_OUT_COOLDOWN_SECS 4
 
-#define RF_RESEND_COUNT 3
+#define RF_RESEND_COUNT 0
 
 #define FACE_DIM_BRIGHTNESS 0x08f0
 
