@@ -22,3 +22,4 @@ uint8_t is_camo_avail(uint8_t camo_id);
 void unlock_camo(uint8_t camo_id);
 void lock_camo(uint8_t camo_id);
 void check_button_presses();
+void save_inks_and_check();
