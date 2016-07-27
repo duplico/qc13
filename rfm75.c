@@ -402,6 +402,8 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
+
+
     rfm75_prev_seqnum = payload->seqnum;
     // CRC checks out.
     return 1;
@@ -412,10 +414,7 @@ void rfm75_deferred_interrupt() {
     uint8_t iv = rfm75_get_status();
     __no_operation();
 
-    if (iv & BIT5) { // TX interrupt
-        if (rfm75_state != RFM75_TX_SEND) {
-            return; // TODO: reset?
-        }
+    if (iv & BIT5 && rfm75_state == RFM75_TX_SEND) { // TX interrupt
 
         // We sent a thing.
 
@@ -441,10 +440,7 @@ void rfm75_deferred_interrupt() {
         return;
     }
 
-    if (iv & BIT6) { // RX interrupt
-        if (rfm75_state != RFM75_RX_LISTEN) {
-            return; // TODO: reset?
-        }
+    if (iv & BIT6 && rfm75_state != RFM75_RX_LISTEN) { // RX interrupt
 
         // We've received something.
         rfm75_state = RFM75_RX_READY;
