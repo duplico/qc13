@@ -348,9 +348,10 @@ void set_tentacles(const rgbcolor_t* leg_colors) {
         static int8_t temp_tent = 0;
         temp_tent = tent-4;
 
-        // If we're upper, and our corresponding lower light is on:
-        // EVEN IF WE'RE NOT "RETRACTED".
-        if ((tent > 3) && (tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+1] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+2])) {
+        // If we're upper, and our corresponding lower light is on,
+        // OR if we're fading (meaning fading off lower lights won't ever
+        // make us change brightness suddenly, unless wiggling)
+        if ((tent > 3) && ((tentacle_current_anim->fade_durs[tentacle_anim_frame] && !tentacle_current_anim->wiggle) || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+1] || tlc_bank_gs[4+(temp_tent/4)][4+((temp_tent*3)%12)+2])) {
             // Dim it.
             r = r >> 3;
             g = g >> 3;
