@@ -569,6 +569,7 @@ void leds_timestep() {
     } else if (eyes_spinning) {
         face_anim_adj_index++;
         if (face_anim_adj_index == 100  / FACE_DUR_STEP) {
+            eye_spin_index++;
             if (eye_spin_index == 15) {
                 eye_spin_index = 0;
             }
