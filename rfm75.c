@@ -385,7 +385,7 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
     if (payload->flags & RFBC_HATOFFER) {
         if (payload->badge_addr != my_conf.badge_id)
             return 0; // it wasn't for me.
-        if (!(payload->base_addr == BASE_BTALK || payload->base_addr == BASE_BPOOL || payload->base_addr == BASE_BKARAOKE))
+        if (!(payload->base_addr == BASE_BTALK || payload->base_addr == BASE_BPOOL || payload->base_addr == BASE_BKARAOKE || payload->base_addr == BASE_BSATMIX))
             return 0; // wrong base
         if (payload->ink_id > 22 || payload->ink_id < 17)
             return 0; // not an appropriate hat
