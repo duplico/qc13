@@ -213,7 +213,7 @@ void term_gpio() {
 void my_conf_write_crc() {
     CRC_setSeed(CRC_BASE, 0xc13c);
     for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
-        CRC_set8BitData(CRC_BASE, ((uint8_t *) &default_conf)[i]);
+        CRC_set8BitData(CRC_BASE, ((uint8_t *) &my_conf)[i]);
     }
     my_conf.crc16 = CRC_getResult(CRC_BASE);
     memcpy(&backup_conf, &my_conf, sizeof(qc13conf));
