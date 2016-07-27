@@ -29,6 +29,7 @@ void delay_millis(unsigned long);
 #define BADGES_IN_SYSTEM 250
 #define EVENTS_IN_SYSTEM 9
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
+#define POWER_CYCLES_FOR_HAT 100
 
 // Special badge system setup:
 
@@ -169,6 +170,9 @@ typedef struct {
     uint8_t uber_hat_given;
     uint64_t achievements;
     uint8_t gilded;
+    int16_t ink_margin;
+    uint16_t ink_count, dink_count;
+    uint16_t power_cycles;
     uint16_t crc16;
 } qc13conf;
 
@@ -193,7 +197,7 @@ typedef struct {
 #define HAT_BADGE_TALK 17
 #define HAT_POOL_FIRST 18
 #define HAT_POOL_LAST 19
-#define HAT_MIXER_SAT_FIRST 20  // TODO
+#define HAT_MIXER_SAT_FIRST 20
 #define HAT_KARAOKE_FIRST 21
 #define HAT_KARAOKE_LAST 22
 #define HAT_PEST 23             // TODO
@@ -207,19 +211,19 @@ typedef struct {
 #define HAT_MATE_50 31          // TODO
 #define HAT_MATE_100 32         // TODO
 #define HAT_MATE_200 33         // TODO
-#define HAT_DINK_50 34          // TODO
+#define HAT_DINK_50 34
 #define HAT_TIME_NEAR_UBERS 35  // TODO
 #define HAT_NEAR_HANDLERS 36    // TODO
 #define HAT_TIME_NEAR_HANDLERS 37 // TODO
-#define HAT_ALL_MIXERS 38       // TODO
+#define HAT_ALL_MIXERS 38
 #define HAT_KONAMI 39           // TODO
 #define HAT_MINUTEMAN 40        // TODO
-#define HAT_POWER_CYCLES 41     // TODO
-#define HAT_SUPER_INK 42        // TODO
+#define HAT_POWER_CYCLES 41
+#define HAT_SUPER_INK 42
 #define HAT_MARGIN_HIGH 43      // TODO
 #define HAT_MARGIN_LOW 44       // TODO
 #define HAT_LOW_MARGIN 45       // TODO
-#define HAT_BORROWER 46         // TODO
+#define HAT_BORROWER 46
 
 #define HAT_CONTEST 50
 

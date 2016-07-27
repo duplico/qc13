@@ -50,6 +50,9 @@ const qc13conf default_conf = {
         0, // Uber hat not given out
         0, // No achievements
         0, // Not gilded.
+        0, // ink_margin
+        0, 0, // ink_count, dink_count
+        0, // power_cycles
         0 // blank CRC.
 };
 
@@ -447,4 +450,5 @@ void mate_end(uint8_t badge_id) {
 
 void borrowing_hat() {
     // TODO: shutdown
+    make_eligible_for_pull_hat(HAT_BORROWER);
 }

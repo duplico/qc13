@@ -229,3 +229,16 @@ void check_button_presses() {
         tentacle_start_anim(LEG_ANIM_POOLPARTY, 2, 6, 0);
     }
 }
+
+void save_inks_and_check() {
+    if (my_conf.ink_count > 10) {
+        // OK to check margin
+        // TODO: Figure out how to handle the race conditionish things here.
+    }
+
+    if (my_conf.dink_count >= 50) {
+        make_eligible_for_pull_hat(HAT_DINK_50);
+    } else if (my_conf.dink_count) {
+        make_eligible_for_pull_hat(HAT_SUPER_INK);
+    }
+}

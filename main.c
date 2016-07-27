@@ -273,6 +273,10 @@ void setup_my_conf() {
     fresh_power = 1;
     if (conf_is_valid(&my_conf)) {
         lock_camo(LEG_ANIM_HANDLER);
+        if (my_conf.power_cycles < POWER_CYCLES_FOR_HAT)
+            my_conf.power_cycles++;
+        else
+            make_eligible_for_pull_hat(HAT_POWER_CYCLES);
         my_conf_write_crc();
     } else {
         if (conf_is_valid(&backup_conf)) {
