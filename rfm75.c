@@ -402,6 +402,20 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
+    if (payload->ttl && payload->badge_addr != my_conf.badge_id) {
+        payload->ttl--;
+
+        CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
+        for (uint8_t i = 0; i < sizeof(rfbcpayload) - 2; i++) {
+            CRC_set8BitData(CRC_BASE, ((uint8_t *) payload)[i]);
+        }
+        payload->crc16 = CRC_getResult(CRC_BASE);
+
+        memcpy(&out_payload, payload, RFM75_PAYLOAD_SIZE);
+
+        rfm75_tx();
+    }
+
 
 
     rfm75_prev_seqnum = payload->seqnum;
