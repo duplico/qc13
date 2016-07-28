@@ -69,7 +69,7 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
         { 0x03, 0b00000001 }, //RX/TX address field width 3byte
         { 0x04, 0b00000000 }, //no auto-RT
         { 0x05, 0x53 }, //channel: 2400 + LS 7 bits of this field = channel (2.483)
-        { 0x06, 0b00000101 }, //air data rate-1M,out power 5dbm,setup LNA gain.
+        { 0x06, 0b00000111 }, //air data rate-1M,out power 5dbm,setup LNA gain.
         { 0x07, 0b01110000 }, // Clear interrupt flags
         // 0x0a - RX_ADDR_P0 - 3 bytes
         // 0x0b - RX_ADDR_P1 - 3 bytes
@@ -300,7 +300,7 @@ void rfm75_init()
             {0x00, 0x00, 0x4b, 0xc0}, // reserved (prescribed)
             {0x02, 0x8c, 0xfc, 0xd0}, // reserved (prescribed)
             {0x41, 0x39, 0x00, 0x99}, // reserved (prescribed)
-            {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us.
+            {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us.  // TODO: try 0x3b 82 96 f9
             {0xa6, 0x0f, 0x06, 0x24}, // 1 Mbps
     };
 
