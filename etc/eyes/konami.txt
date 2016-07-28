@@ -5,14 +5,13 @@ off, off, 300
 down, down, 700
 off, off, 300
 down, down, 700
-off, off, 300
-out, in, 700
-off, off, 300
 in, out, 700
 off, off, 300
 out, in, 700
 off, off, 300
 in, out, 700
+off, off, 300
+out, in, 700
 off, off, 300
 off, b, 700
 off, off, 300
