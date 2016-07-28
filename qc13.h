@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 101
+#define BADGE_ID 203
 
 #define COLLINSCODE 0b011000110110111101101111011010110110100101100101
 
@@ -48,7 +48,7 @@ void delay_millis(unsigned long);
 #define HANDLER_COUNT (HANDLER_MAX_INCLUSIVE + 1 - HANDLER_MIN_INCLUSIVE)
 
 #define HAT_STATE_WAIT_SECS 3
-#define INK_OUT_COOLDOWN_SECS 4
+#define INK_OUT_COOLDOWN_SECS 6
 
 #define RF_RESEND_COUNT 0
 

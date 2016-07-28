@@ -187,7 +187,7 @@ void send_ink() {
     inks_available--;
     ink_cooldown = INK_OUT_COOLDOWN_SECS;
     face_start_anim(FACE_ANIM_CUTESY);
-    tentacle_send_meta_mating(2, 13);
+    tentacle_send_meta_mating(2, 19);
     eye_twinkle_on();
     face_set_ambient_temp_direct(INKING_EYES);
     out_payload.ink_id = my_conf.camo_id;
