@@ -12,7 +12,7 @@
 extern const uint8_t mate_sync_bytes[MATE_NUM_SYNC_BYTES];
 
 #define MATE_PROTO_ACHIEVEMENTS BIT7 //1=achievements, 0=badge
-#define MATE_PROTO_BADGE BIT6 //0=achievements, 1=badge
+#define MATE_PROTO_BADGE BIT6 //0=achievements, 1=badge // TODO: remove
 #define MATE_CRC_SEED 0x1C03
 
 #define MS_IDLE 0

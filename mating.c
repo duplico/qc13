@@ -24,7 +24,7 @@
 matepayload mp_out = {
         MATE_VERSION | MATE_PROTO_BADGE,
         0, //my_conf.badge_id,
-        0xff,
+        0xff, // hat_award_id
         0, //my_conf.camo_id,
         BIT6,
         0x00
