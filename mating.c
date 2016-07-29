@@ -184,6 +184,8 @@ void mate_deferred_rx_interrupt() {
         if ((is_uber(mp_in.from_addr) || (mp_in.from_addr == DEDICATED_BASE_ID)) && mp_in.flags & M_HAT_AWARD) {
             if (award_push_hat(mp_in.hat_award_id)) {
                 mate_send_hat_response(1);
+                // yay, uber hat award!
+                tentacle_start_anim(LEG_ANIM_UBER, 2, 3, 0); // interrupt with a blinky.
             } else {
                 mate_send_hat_response(0);
             }
