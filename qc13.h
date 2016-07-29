@@ -30,6 +30,7 @@ void delay_millis(unsigned long);
 #define EVENTS_IN_SYSTEM 9
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
 #define POWER_CYCLES_FOR_HAT 100
+#define LIGHT_ORDER_MAX 7
 
 // Special badge system setup:
 
@@ -179,6 +180,7 @@ typedef struct {
     uint8_t been_hot, been_cold;
     uint8_t been_bright, been_dark;
     uint8_t uptime;
+    uint8_t freeze_ink_margin, freeze_minuteman;
     uint16_t crc16;
 } qc13conf;
 

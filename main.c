@@ -53,7 +53,6 @@ uint8_t s_hat_check = 0;
 //  light:
 uint16_t lights[ADC_WINDOW] = {0};
 uint16_t light = 0;
-#define LIGHT_ORDER_MAX 7
 uint8_t light_order = 0;
 uint16_t light_tot = 0;
 uint8_t light_index = 0;

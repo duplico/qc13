@@ -176,6 +176,10 @@ void mate_deferred_rx_interrupt() {
             if ((mp_in.flags & M_PIPE) && (mate_id == DEDICATED_BASE_ID)) {
                 // pipe
                 mate_state = MS_PIPE_PAIRED;
+                if (!my_conf.freeze_minuteman) {
+                    my_conf.freeze_minuteman = 1;
+                    my_conf_write_crc();
+                }
             } else if (!(mp_in.flags & M_PIPE) && mate_id != DEDICATED_BASE_ID){
                 // badge
                 mate_state = MS_PAIRED;
