@@ -38,9 +38,8 @@
 #define CE_DEACTIVATE P1OUT &= ~BIT2
 #endif
 
-uint8_t rx_addr_p0[3] = {0xff, 0xff, 0xff};
-uint8_t rx_addr_p1[3] = {0xff, 0xff, 0x00};
-uint8_t tx_addr[3] = {0xff, 0xff, 0xff};
+uint8_t rx_addr_p0[3] = {0xd6, 0xe7, 0x2a};
+uint8_t tx_addr[3] = {0xd6, 0xe7, 0x2a};
 
 uint8_t rfm75_retransmit_num = 0;
 uint32_t rfm75_seqnum = 0;
@@ -68,7 +67,7 @@ uint8_t rfm75_state = RFM75_BOOT;
 const uint8_t bank0_init_data[BANK0_INITS][2] = {
         { CONFIG, 0b00001111 }, //
         { 0x01, 0b00000000 }, //No auto-ack
-        { 0x02, 0b00000011 }, //Enable RX pipe 0 and 1
+        { 0x02, 0b00000001 }, //Enable RX pipe 0 and 1
         { 0x03, 0b00000001 }, //RX/TX address field width 3byte
         { 0x04, 0b00000000 }, //no auto-RT
         { 0x05, 0x53 }, //channel: 2400 + LS 7 bits of this field = channel (2.483)
@@ -78,7 +77,7 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
         // 0x0b - RX_ADDR_P1 - 3 bytes
         // 0x10 - TX_ADDR - 5 bytes
         { 0x11, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe0(32 byte)
-        { 0x12, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe1(32 byte)
+        { 0x12, 0 }, //Number of bytes in RX payload in data pipe1 - disable
         { 0x13, 0 }, //Number of bytes in RX payload in data pipe2 - disable
         { 0x14, 0 }, //Number of bytes in RX payload in data pipe3 - disable
         { 0x15, 0 }, //Number of bytes in RX payload in data pipe4 - disable
@@ -288,11 +287,9 @@ void rfm75_init()
     }
 
     // Next fill address buffers
-    //  Reg 0x0a: 5 bytes RX0 addr (unicast)
-    //  Reg 0x0b: 5 bytes RX1 addr (broadcast)
+    //  Reg 0x0a: 5 bytes RX0 addr (broadcast)
     //  Reg 0x10: 5 bytes TX0 addr (same as RX0)
-    rfm75_write_reg_buf(RX_ADDR_P0, rx_addr_p0, 3);
-    rfm75_write_reg_buf(RX_ADDR_P1, rx_addr_p1, 3);
+    rfm75_write_reg_buf(RX_ADDR_P0, rx_addr_p0, 3); // broadcast
     rfm75_write_reg_buf(TX_ADDR, tx_addr, 3);
 
     // OK, that's bank 0 done. Next is bank 1.
@@ -477,12 +474,10 @@ void rfm75_deferred_interrupt() {
         rfm75_write_reg(STATUS, BIT6);
         memcpy(&in_payload, &payload_in, RFM75_PAYLOAD_SIZE);
 
-        // There's a few types of payloads that this is allowed to be:
+        // There's one type of payloads that this is allowed to be:
         //     ==Broadcast==
         //   Handled in the handler...
         //   We also may need to repeat this type of message.
-        //     ===Unicast===
-        //  # Badge award from base station.
 
         if (radio_payload_validate(&in_payload))
             radio_broadcast_received(&in_payload);
