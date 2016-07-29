@@ -290,7 +290,7 @@ void rfm75_init()
             {0x00, 0x00, 0x4b, 0xc0}, // reserved (prescribed)
             {0x02, 0x8c, 0xfc, 0xd0}, // reserved (prescribed)
             {0x41, 0x39, 0x00, 0x99}, // reserved (prescribed)
-            {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us. // TODO: try 0x3b 82 96 f9
+            {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us.
             {0xa6, 0x0f, 0x06, 0x24}, // 1 Mbps
     };
 
@@ -299,7 +299,7 @@ void rfm75_init()
     }
 
     uint8_t bank1_config_0x0c[][4] = {
-            {0x00, 0x73, 0x12, 0x00}, // 120 us mode (PLL settle time?)
+            {0x05, 0x73, 0x10, 0x00}, // 130 us mode (PLL settle time?)
             {0x00, 0x80, 0xb4, 0x36}, // reserved?
     };
 
@@ -365,11 +365,10 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
-    // TODO:
     // incoming ID is same as local ID, and it's not from a base.
-//    if (payload->from_addr == my_conf.badge_id && payload->base_addr != NOT_A_BASE) {
-//        return 0;
-//    }
+    if (payload->badge_addr == my_conf.badge_id && payload->base_addr == NOT_A_BASE) {
+        return 0;
+    }
 
     // handler on duty but source isn't a handler
     if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->badge_addr)) {
@@ -426,14 +425,12 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
 void rfm75_deferred_interrupt() {
     // RFM75 interrupt:
     uint8_t iv = rfm75_get_status();
-    __no_operation();
 
     if (iv & BIT5 && rfm75_state == RFM75_TX_SEND) { // TX interrupt
 
         // We sent a thing.
+        // The ISR already took us back to standby.
 
-        // Go back to standby:
-        CE_DEACTIVATE;
         // Clear interrupt
         rfm75_write_reg(STATUS, BIT5);
         rfm75_state = RFM75_TX_DONE;
