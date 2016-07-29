@@ -78,6 +78,21 @@ uint8_t super_ink_waits_on_me = 0;
 uint16_t mate_ink_wait = 0;
 uint8_t in_rst = 1;
 
+unsigned short crc16(volatile unsigned char *sbuf,unsigned char len){
+    unsigned short crc=0xFFFF;
+
+    while(len){
+        crc=(unsigned char)(crc >> 8) | (crc << 8);
+        crc^=(unsigned char) *sbuf;
+        crc^=(unsigned char)(crc & 0xff) >> 4;
+        crc^=(crc << 8) << 4;
+        crc^=((crc & 0xff) << 4) << 1;
+        len--;
+        sbuf++;
+    }
+    return crc;
+}//crc16()
+
 void mate_over_cleanup() {
     mate_camo = LEG_ANIM_NONE;
     mate_state = MS_IDLE;
@@ -115,6 +130,10 @@ void mate_deferred_rx_interrupt() {
     // Load 'er up:
     memcpy(&mp_in, mate_payload_in, sizeof(matepayload));
     uart_in_ignore = 0;
+
+    if (mp_in.crc16 != crc16((uint8_t *) &mp_in, sizeof(matepayload)-2)) {
+        return; // Ignore invalid message.
+    }
 
     // Basic rules:
     //  If O_HAI isn't asserted, we stay in MS_IDLE.
@@ -185,7 +204,7 @@ void mate_deferred_rx_interrupt() {
             if (award_push_hat(mp_in.hat_award_id)) {
                 mate_send_hat_response(1);
                 // yay, uber hat award!
-                tentacle_start_anim(LEG_ANIM_UBER, 2, 3, 0); // interrupt with a blinky.
+                tentacle_start_anim(LEG_ANIM_HUMAN_HAT, 1, legs_all_anim_sets[LEG_ANIM_HUMAN_HAT][LEG_ANIM_DOUBLEINK]->ink_loops, 0); // interrupt with a blinky.
             } else {
                 mate_send_hat_response(0);
             }
@@ -256,12 +275,14 @@ void mate_send_preserve_flags() {
     if (my_conf.hat_claimed)
         mp_out.flags |= M_HAT_CLAIMED;
 
+    mp_out.crc16 = crc16((uint8_t *) &mp_out, sizeof(matepayload) - 2);
+
     // CRC it.
-    CRC_setSeed(CRC_BASE, MATE_CRC_SEED);
-    for (uint8_t i = 0; i < sizeof(matepayload) - 2; i++) {
-        CRC_set8BitData(CRC_BASE, ((uint8_t *) &mp_out)[i]);
-    }
-    mp_out.crc16 = CRC_getResult(CRC_BASE);
+//    CRC_setSeed(CRC_BASE, MATE_CRC_SEED);
+//    for (uint8_t i = 0; i < sizeof(matepayload) - 2; i++) {
+//        CRC_set8BitData(CRC_BASE, ((uint8_t *) &mp_out)[i]);
+//    }
+//    mp_out.crc16 = CRC_getResult(CRC_BASE);
 
     // Fill'er up:
     memcpy(mate_payload_out, mate_sync_bytes, MATE_NUM_SYNC_BYTES);
