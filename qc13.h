@@ -228,9 +228,9 @@ typedef struct {
 #define HAT_MINUTEMAN 40
 #define HAT_POWER_CYCLES 41
 #define HAT_SUPER_INK 42
-#define HAT_MARGIN_HIGH 43      // TODO
-#define HAT_MARGIN_LOW 44       // TODO
-#define HAT_LOW_MARGIN 45       // TODO
+#define HAT_MARGIN_HIGH 43
+#define HAT_MARGIN_LOW 44
+#define HAT_LOW_MARGIN 45
 #define HAT_BORROWER 46
 
 #define HAT_CONTEST 50
