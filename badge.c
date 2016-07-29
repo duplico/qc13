@@ -170,6 +170,7 @@ void minute() {
             make_eligible_for_pull_hat(HAT_HOT);
         } else if (temp_band == TEMP_COLD) {
             make_eligible_for_pull_hat(HAT_COLD);
+            unlock_camo(LEG_ANIM_PUSHOVER);
         }
     }
 

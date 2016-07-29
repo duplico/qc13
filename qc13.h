@@ -212,14 +212,14 @@ typedef struct {
 #define HAT_BRIGHT_DARK 26
 #define HAT_COLD 27
 #define HAT_HOT 28
-#define HAT_MATE_UBER 29        // TODO
-#define HAT_MATE_HANDLER 30     // TODO
-#define HAT_MATE_50 31          // TODO
-#define HAT_MATE_100 32         // TODO
-#define HAT_MATE_200 33         // TODO
+#define HAT_MATE_UBER 29
+#define HAT_MATE_HANDLER 30
+#define HAT_MATE_50 31
+#define HAT_MATE_100 32
+#define HAT_MATE_200 33
 #define HAT_DINK_50 34
 #define HAT_TIME_NEAR_UBERS 35  // TODO
-#define HAT_NEAR_HANDLERS 36    // TODO
+#define HAT_NEAR_HANDLERS 36
 #define HAT_TIME_NEAR_HANDLERS 37 // TODO
 #define HAT_ALL_MIXERS 38
 #define HAT_KONAMI 39           // TODO

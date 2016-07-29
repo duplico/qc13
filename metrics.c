@@ -33,7 +33,7 @@ uint8_t award_push_hat(uint8_t id) {
     // TODO: validate id
     if (my_conf.hat_holder)
         return 0; // TODO: This can't work.
-    if (id == HAT_UBER || id == HAT_HANDLER) { // TODO: Maybe we also except the donors from spinning?
+    if (id == HAT_UBER || id == HAT_HANDLER) {
         my_conf.hat_claimed = 1;
     }
     my_conf.achievements |= ((uint64_t) 0x01 << id);
@@ -152,9 +152,12 @@ void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
         // It's an on-duty handler, and we haven't seen it on duty before.
         my_conf.odh_seen_count++;
         badges_seen[id] |= ODH_SEEN_BITS;
+
+        if (my_conf.odh_seen_count == HANDLER_COUNT) {
+            make_eligible_for_pull_hat(HAT_NEAR_HANDLERS)
+        }
     }
 
-    // TODO: Check for achievements.
     my_conf_write_crc();
 }
 
@@ -172,9 +175,30 @@ void set_badge_mated(uint8_t id, uint8_t handler_on_duty) {
         badges_mated[id] = BADGE_MATED_BITS;
         my_conf.mate_count++;
 
+        if (my_conf.mate_count >= 10) {
+            unlock_camo(LEG_ANIM_LUSH);
+        }
+        if (my_conf.mate_count >= 50) {
+            make_eligible_for_pull_hat(HAT_MATE_50);
+        }
+        if (my_conf.mate_count >= 100) {
+            make_eligible_for_pull_hat(HAT_MATE_100);
+        }
+        if (my_conf.mate_count >= 200) {
+            make_eligible_for_pull_hat(HAT_MATE_200);
+        }
+
         if (is_uber(id) && my_conf.uber_mate_count < UBER_COUNT) {
             // it's uber:
             my_conf.uber_mate_count++;
+            if (my_conf.uber_mate_count == UBER_COUNT) {
+                make_eligible_for_pull_hat(HAT_MATE_UBER);
+            }
+
+            if (id != my_conf.badge_id) {
+                unlock_camo(LEG_ANIM_GLAM);
+            }
+
         }
 
         if (id != my_conf.badge_id)
@@ -185,6 +209,10 @@ void set_badge_mated(uint8_t id, uint8_t handler_on_duty) {
         // It's an on-duty handler, and we haven't mated w/ it on duty before.
         my_conf.odh_mate_count++;
         badges_mated[id] |= ODH_MATED_BITS;
+        if (my_conf.odh_mate_count == HANDLER_COUNT) {
+            make_eligible_for_pull_hat(HAT_MATE_HANDLER);
+            unlock_camo(LEG_ANIM_POWERHUNGRY);
+        }
     }
     // TODO: Check for achievements.
     my_conf_write_crc();
