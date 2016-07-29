@@ -474,7 +474,7 @@ void time_loop() {
         second_loops--;
     } else {
         second_minute_loops ++;
-        if (second_minute_loops >= 60) {
+        if (second_minute_loops >= SECONDS_PER_MINUTE) {
             second_minute_loops = 0;
             minute();
         }

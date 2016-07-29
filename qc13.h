@@ -56,6 +56,7 @@ void delay_millis(unsigned long);
 
 #define TIME_LOOP_PERIOD 50
 #define LOOPS_PER_SECOND 697
+#define SECONDS_PER_MINUTE 45 // because fuck you, that's why.
 
 #define LED_DUR_LOOPS 10
 
