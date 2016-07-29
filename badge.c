@@ -164,8 +164,7 @@ void face_animation_done() {
 // IMPORTANT: Call this last.
 //  DON'T change stuff after calling it.
 void complete_rfbc_payload(rfbcpayload *payload) {
-    // TODO: not if retx from someone else:
-    out_payload.seqnum = rfm75_seqnum;
+    payload->seqnum = rfm75_seqnum;
     payload->base_addr = NOT_A_BASE;
     payload->badge_addr = my_conf.badge_id;
     if (is_handler(my_conf.badge_id) && (hat_state & HS_HANDLER))
@@ -230,7 +229,7 @@ void hat_change(uint8_t from, uint8_t to) {
 }
 
 void start_button_longpressed() {
-    if (being_inked || waking_up || !my_conf.gilded) return; // nope!
+    if (being_inked || waking_up) return; // nope!
 
     if (mate_state == MS_IDLE && (my_conf.gilded & GILD_AVAIL)) {
         // gild on for ourselves
