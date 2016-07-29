@@ -233,9 +233,9 @@ void mate_deferred_rx_interrupt() {
         if ((mp_in.from_addr == DEDICATED_BASE_ID) && (mp_in.flags & M_HAT_CLAIM_FROM_PIPE)) {
             // If the incoming hat ID matches my current hat, OR it gets awarded successfully,
             //  CLAIM IT.
-            if ((mp_in.hat_award_id == my_conf.hat_id) || award_push_hat(mp_in.hat_award_id)) { // TODO: I suspect fragility.
-                mate_send_hat_response(1);
+            if ((mp_in.hat_award_id == my_conf.hat_id) || award_push_hat(mp_in.hat_award_id)) {
                 claim_hat(mp_in.hat_award_id);
+                mate_send_hat_response(1);
             } else {
                 mate_send_hat_response(0);
             }
