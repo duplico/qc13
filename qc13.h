@@ -70,8 +70,8 @@ void delay_millis(unsigned long);
 
 #define ADC_WINDOW 32
 
-#define TEMP_THRESH_HOT  3000
-#define TEMP_THRESH_COLD 500
+#define TEMP_THRESH_HOT  1100
+#define TEMP_THRESH_COLD  800
 
 #define SUPER_INK_WINDOW_SECS 1
 #define SUPER_INK_DECAY_SECS 10
@@ -176,6 +176,7 @@ typedef struct {
     int16_t ink_margin;
     uint16_t ink_count, dink_count;
     uint16_t power_cycles;
+    uint8_t been_hot, been_cold;
     uint16_t crc16;
 } qc13conf;
 
@@ -250,6 +251,10 @@ typedef struct {
 #define HS_HANDLER BIT4
 #define HS_UBER_HANDLER BIT4 | BIT2
 
+#define TEMP_COLD 0
+#define TEMP_HOT 2
+#define TEMP_NORMAL 1
+
 /////////////////////////////////////////////////////////////////////
 // Global declarations //////////////////////////////////////////////
 
@@ -263,6 +268,7 @@ extern uint16_t light;
 extern uint16_t light_tot;
 extern uint8_t light_order;
 extern uint16_t temp;
+extern uint8_t temp_band;
 extern qc13conf my_conf;
 extern qc13conf backup_conf;
 extern const qc13conf default_conf;

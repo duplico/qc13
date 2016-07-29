@@ -150,6 +150,20 @@ void second() {
 
 void minute() {
     inks_available = 3; // TODO
+    minutes_in_light_band++;
+    minutes_in_temp_band++;
+    if (minutes_in_temp_band == 6) {
+        if (temp_band == TEMP_HOT) {
+            my_conf.been_hot = 1;
+            my_conf_write_crc();
+        } else if (temp_band == TEMP_COLD) {
+            my_conf.been_cold = 1;
+            my_conf_write_crc();
+        }
+        if (my_conf.been_cold && my_conf.been_hot) {
+            make_eligible_for_pull_hat(HAT_HOT_COLD);
+        }
+    }
 }
 
 void face_animation_done() {
@@ -229,6 +243,18 @@ void hat_change(uint8_t from, uint8_t to) {
         lock_camo(LEG_ANIM_HANDLER);
     }
 }
+
+uint16_t minutes_in_temp_band = 0;
+uint16_t minutes_in_light_band = 0;
+
+void temp_band_change(uint8_t from, uint8_t to) {
+    minutes_in_temp_band = 0;
+}
+
+void light_band_change(uint8_t from, uint8_t to) {
+    minutes_in_light_band = 0;
+}
+
 
 void start_button_longpressed() {
     if (being_inked || waking_up) return; // nope!
