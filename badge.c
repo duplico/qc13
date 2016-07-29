@@ -107,7 +107,7 @@ void blink_or_make_face() {
     if (to_blink) {
         if (neighbor_count >= 10)
             blink_repeat_count = 3;
-        else if (neighbor_count >= 5)
+        else if (neighbor_count >= 3)
             blink_repeat_count = 2;
         else if (neighbor_count)
             blink_repeat_count = 1;
@@ -163,7 +163,8 @@ void face_animation_done() {
 
 // IMPORTANT: Call this last.
 //  DON'T change stuff after calling it.
-void complete_rfbc_payload(rfbcpayload *payload) {
+void complete_rfbc_payload(rfbcpayload *payload, uint8_t cascade_ttl) {
+    payload->ttl = cascade_ttl;
     payload->seqnum = rfm75_seqnum;
     payload->base_addr = NOT_A_BASE;
     payload->badge_addr = my_conf.badge_id;
@@ -191,7 +192,7 @@ void send_ink() {
     face_set_ambient_temp_direct(INKING_EYES);
     out_payload.ink_id = my_conf.camo_id;
     out_payload.flags = RFBC_INK;
-    complete_rfbc_payload(&out_payload);
+    complete_rfbc_payload(&out_payload, 2);
     rfm75_tx();
 }
 
@@ -199,14 +200,14 @@ void send_super_ink() {
     out_payload.ink_id = my_conf.camo_id;
     out_payload.flags = RFBC_INK | RFBC_DINK;
     eye_twinkle_on();
-    complete_rfbc_payload(&out_payload);
+    complete_rfbc_payload(&out_payload, 5);
     rfm75_tx();
 }
 
 void send_beacon() {
     out_payload.ink_id = LEG_ANIM_NONE;
     out_payload.flags = RFBC_BEACON;
-    complete_rfbc_payload(&out_payload);
+    complete_rfbc_payload(&out_payload, 1);
     rfm75_tx();
 }
 
@@ -418,7 +419,7 @@ void radio_broadcast_received(rfbcpayload *payload) {
             // Otherwise let it time out.
             out_payload.ink_id = my_conf.hat_id;
             out_payload.flags = RFBC_HATACK;
-            complete_rfbc_payload(&out_payload);
+            complete_rfbc_payload(&out_payload, 3);
             rfm75_tx();
         }
     }
