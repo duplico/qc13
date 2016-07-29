@@ -88,8 +88,6 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
         { 0x1d, 0b00000000 } // 00000 | DPL | ACK | DYN_ACK
 };
 
-uint8_t payload_serial_bytes[RFM75_PAYLOAD_SIZE] = {0xff, 0x00, 0xff, 0};
-
 uint8_t payload_in[RFM75_PAYLOAD_SIZE] = {0};
 uint8_t payload_out[RFM75_PAYLOAD_SIZE] = {0};
 
@@ -194,6 +192,27 @@ void rfm75_enter_prx() {
     CE_ACTIVATE;
 
     rfm75_state = RFM75_RX_LISTEN;
+}
+
+void rfm75_retx() {
+    rfm75_retransmit_num = 0;
+
+    // Fill'er up:
+    memcpy(payload_out, &cascade_payload, RFM75_PAYLOAD_SIZE);
+
+    rfm75_state = RFM75_TX_INIT;
+    CE_DEACTIVATE;
+    rfm75_select_bank(0);
+    rfm75_write_reg(CONFIG, 0b01011110);
+    // Clear interrupts: STATUS=BIT4|BIT5|BIT6
+    rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
+
+    rfm75_state = RFM75_TX_FIFO;
+    // Write the payload:
+    send_rfm75_cmd_buf(WR_TX_PLOAD, payload_out, RFM75_PAYLOAD_SIZE);
+    rfm75_state = RFM75_TX_SEND;
+    CE_ACTIVATE;
+    // Now we wait for an IRQ to let us know it's sent.
 }
 
 void rfm75_tx() {
@@ -375,11 +394,6 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
-    // Same one we last saw:
-    if (payload->seqnum == rfm75_prev_seqnum) {
-        return 0;
-    }
-
     // If it's a hat offer...
     if (payload->flags & RFBC_HATOFFER) {
         if (payload->badge_addr != my_conf.badge_id)
@@ -401,18 +415,16 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
-    if (payload->ttl && payload->badge_addr != my_conf.badge_id) {
-        payload->ttl--;
+    if (payload->ttl && payload->badge_addr != my_conf.badge_id && payload->crc16 != cascade_payload.crc16) {
+        memcpy(&cascade_payload, payload, sizeof(rfbcpayload));
+        payload_cascade = 1;
+        cascade_payload.ttl--;
 
         CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
         for (uint8_t i = 0; i < sizeof(rfbcpayload) - 2; i++) {
-            CRC_set8BitData(CRC_BASE, ((uint8_t *) payload)[i]);
+            CRC_set8BitData(CRC_BASE, ((uint8_t *) &cascade_payload)[i]);
         }
-        payload->crc16 = CRC_getResult(CRC_BASE);
-
-        memcpy(&out_payload, payload, RFM75_PAYLOAD_SIZE);
-
-        rfm75_tx();
+        cascade_payload.crc16 = CRC_getResult(CRC_BASE);
     }
 
 
@@ -435,11 +447,15 @@ void rfm75_deferred_interrupt() {
         rfm75_write_reg(STATUS, BIT5);
         rfm75_state = RFM75_TX_DONE;
 
-        if (rfm75_retransmit_num == RF_RESEND_COUNT) {
+        // Let's avoid amplification attacks, shall we?
+        // If it's not to us, short circuit:
+        if (payload_cascade || (rfm75_retransmit_num == RF_RESEND_COUNT)) {
             // Raise the I-just-sent-a-thing event
             radio_transmit_done();
-
             rfm75_seqnum++;
+
+            if (payload_cascade)
+                payload_cascade = 0;
 
             // Go back to listening.
             rfm75_enter_prx();
@@ -448,7 +464,6 @@ void rfm75_deferred_interrupt() {
             rfm75_tx();
             rfm75_retransmit_num = seqnum;
         }
-        return;
     }
 
     if (iv & BIT6 && rfm75_state == RFM75_RX_LISTEN) { // RX interrupt
@@ -476,7 +491,9 @@ void rfm75_deferred_interrupt() {
         // Assert CE: listen more.
         CE_ACTIVATE;
         rfm75_state = RFM75_RX_LISTEN;
-        return;
+    }
+    if (payload_cascade && rfm75_state == RFM75_RX_LISTEN) {
+
     }
 }
 

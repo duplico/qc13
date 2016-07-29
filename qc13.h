@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 248
+#define BADGE_ID 243
 
 #define COLLINSCODE 0b011000110110111101101111011010110110100101100101
 
@@ -263,7 +263,8 @@ extern uint16_t temp;
 extern qc13conf my_conf;
 extern qc13conf backup_conf;
 extern const qc13conf default_conf;
-extern rfbcpayload in_payload, out_payload;
+extern rfbcpayload in_payload, out_payload, cascade_payload;
+extern uint8_t payload_cascade;
 
 extern uint8_t badges_seen[BADGES_IN_SYSTEM];
 extern uint8_t badges_mated[BADGES_IN_SYSTEM];
