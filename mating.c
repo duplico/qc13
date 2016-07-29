@@ -226,7 +226,7 @@ void mate_deferred_rx_interrupt() {
     case MS_PIPE_PAIRED:
         // We might get a reply from the pipe. It may give us stuff!
         //  Or it'll just print and leave us hanging. That's OK too.
-        if ((mp_in.from_addr == DEDICATED_BASE_ID) && (mp_in.flags & M_CLAIMED_HAT)) {
+        if ((mp_in.from_addr == DEDICATED_BASE_ID) && (mp_in.flags & M_HAT_CLAIM_FROM_PIPE)) {
             // If the incoming hat ID matches my current hat, OR it gets awarded successfully,
             //  CLAIM IT.
             if ((mp_in.hat_award_id == my_conf.hat_id) || award_push_hat(mp_in.hat_award_id)) { // TODO: I suspect fragility.
@@ -275,7 +275,7 @@ void mate_send_preserve_flags() {
         mp_out.hat_award_id = my_conf.hat_id;
 
     if (my_conf.hat_claimed)
-        mp_out.flags |= M_HAT_CLAIMED;
+        mp_out.flags |= M_BADGE_HAS_CLAIMED_HAT;
 
     mp_out.crc16 = crc16((uint8_t *) &mp_out, sizeof(matepayload) - 2);
 

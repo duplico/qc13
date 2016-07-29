@@ -150,10 +150,10 @@ typedef struct {
 #define M_INK BIT4
 #define M_HAT_HOLDER BIT5
 #define M_RST BIT6
-#define M_HAT_CLAIMED BIT7 // comes from badge
+#define M_BADGE_HAS_CLAIMED_HAT BIT7 // comes from badge
 #define M_HANDLER_ON_DUTY BIT8
 #define M_PIPE BIT9 // 0=badge; 1=pipe
-#define M_CLAIMED_HAT BITA // comes from pipe
+#define M_HAT_CLAIM_FROM_PIPE BITA // comes from pipe
 #define M_REPRINT_HAT BITB
 #define M_BESTOW_GILD BITF
 
