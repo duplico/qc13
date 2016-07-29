@@ -177,6 +177,8 @@ typedef struct {
     uint16_t ink_count, dink_count;
     uint16_t power_cycles;
     uint8_t been_hot, been_cold;
+    uint8_t been_bright, been_dark;
+    uint8_t uptime;
     uint16_t crc16;
 } qc13conf;
 
@@ -204,12 +206,12 @@ typedef struct {
 #define HAT_MIXER_SAT_FIRST 20
 #define HAT_KARAOKE_FIRST 21
 #define HAT_KARAOKE_LAST 22
-#define HAT_PEST 23             // TODO
-#define HAT_MORNING 24          // TODO
-#define HAT_HOT_COLD 25         // TODO
-#define HAT_BRIGHT_DARK 26      // TODO
-#define HAT_COLD 27             // TODO
-#define HAT_HOT 28              // TODO
+#define HAT_PEST 23
+#define HAT_MORNING 24
+#define HAT_HOT_COLD 25
+#define HAT_BRIGHT_DARK 26
+#define HAT_COLD 27
+#define HAT_HOT 28
 #define HAT_MATE_UBER 29        // TODO
 #define HAT_MATE_HANDLER 30     // TODO
 #define HAT_MATE_50 31          // TODO
@@ -221,7 +223,7 @@ typedef struct {
 #define HAT_TIME_NEAR_HANDLERS 37 // TODO
 #define HAT_ALL_MIXERS 38
 #define HAT_KONAMI 39           // TODO
-#define HAT_MINUTEMAN 40        // TODO
+#define HAT_MINUTEMAN 40
 #define HAT_POWER_CYCLES 41
 #define HAT_SUPER_INK 42
 #define HAT_MARGIN_HIGH 43      // TODO

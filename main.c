@@ -53,6 +53,7 @@ uint8_t s_hat_check = 0;
 //  light:
 uint16_t lights[ADC_WINDOW] = {0};
 uint16_t light = 0;
+#define LIGHT_ORDER_MAX 7
 uint8_t light_order = 0;
 uint16_t light_tot = 0;
 uint8_t light_index = 0;
@@ -242,6 +243,8 @@ void make_fresh_conf() {
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
     memset(badges_seen, 0x00, BADGES_IN_SYSTEM);
     memset(badges_mated, 0x00, BADGES_IN_SYSTEM);
+
+    make_eligible_for_pull_hat(HAT_MINUTEMAN);
 
     if (my_conf.badge_id == GEORGE_ID) {
         unlock_camo(LEG_ANIM_ZFLAG_LEATHER);
