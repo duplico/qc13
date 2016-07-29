@@ -154,7 +154,7 @@ void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
         badges_seen[id] |= ODH_SEEN_BITS;
 
         if (my_conf.odh_seen_count == HANDLER_COUNT) {
-            make_eligible_for_pull_hat(HAT_NEAR_HANDLERS)
+            make_eligible_for_pull_hat(HAT_NEAR_HANDLERS);
         }
     }
 
@@ -259,9 +259,25 @@ void check_button_presses() {
 }
 
 void save_inks_and_check() {
-    if (my_conf.ink_count > 10) {
+    if (my_conf.ink_count == UINT16_MAX)
+        my_conf.ink_count = 256;
+    if (my_conf.ink_margin > 10000) my_conf.ink_margin = 10000;
+    if (my_conf.ink_margin < -10000) my_conf.ink_margin = -10000;
+    if (my_conf.ink_count > 200 && !(my_conf.ink_count % 128) && !my_conf.freeze_ink_margin) {
         // OK to check margin
-        // TODO: Figure out how to handle the race conditionish things here.
+        if (my_conf.ink_margin > 500) {
+            my_conf.freeze_ink_margin = 1;
+            my_conf_write_crc();
+            make_eligible_for_pull_hat(HAT_MARGIN_HIGH);
+        } else if (my_conf.ink_margin < -500) {
+            my_conf.freeze_ink_margin = 1;
+            my_conf_write_crc();
+            make_eligible_for_pull_hat(HAT_MARGIN_LOW);
+        } else if (my_conf.ink_margin < 50 && my_conf.ink_margin > -50) {
+            my_conf.freeze_ink_margin = 1;
+            my_conf_write_crc();
+            make_eligible_for_pull_hat(HAT_LOW_MARGIN);
+        }
     }
 
     if (my_conf.dink_count >= 50) {

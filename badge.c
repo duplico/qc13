@@ -38,6 +38,9 @@ uint8_t badges_mated[BADGES_IN_SYSTEM] = {0};
 uint64_t button_press_window = 0;
 uint8_t buttons_pressed = 0;
 
+uint16_t minutes_in_temp_band = 0;
+uint16_t minutes_in_light_band = 0;
+
 #pragma DATA_SECTION (default_conf, ".infoB"); // B is initialized on bootstrap
 const qc13conf default_conf = {
         BADGE_ID,
@@ -190,7 +193,7 @@ void minute() {
     if (my_conf.uptime < 10) {
         my_conf.uptime++;
         my_conf_write_crc();
-    } else {
+    } else if (!my_conf.freeze_minuteman) {
         my_conf.achievements &= ~((uint64_t) 0x01 << HAT_MINUTEMAN);
         my_conf_write_crc();
     }
@@ -239,6 +242,9 @@ void send_ink() {
     out_payload.flags = RFBC_INK;
     complete_rfbc_payload(&out_payload, 2);
     rfm75_tx();
+
+    my_conf.ink_margin--;
+    save_inks_and_check();
 }
 
 void send_super_ink() {
@@ -273,9 +279,6 @@ void hat_change(uint8_t from, uint8_t to) {
         lock_camo(LEG_ANIM_HANDLER);
     }
 }
-
-uint16_t minutes_in_temp_band = 0;
-uint16_t minutes_in_light_band = 0;
 
 void temp_band_change(uint8_t from, uint8_t to) {
     minutes_in_temp_band = 0;
@@ -323,7 +326,7 @@ void start_button_clicked() {
     check_button_presses();
 
     if (ink_cooldown) {
-        tentacle_start_anim(LEG_ANIM_META_WAKEUP, 1, 1, 0); // blinky.
+        tentacle_start_anim(LEG_ANIM_META_WAKEUP, 1, 0, 0); // blinky.
         return;
     }
     if (being_inked || waking_up) return; // nope!
@@ -453,6 +456,11 @@ void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr) {
     face_start_anim(FACE_ANIM_META_INKED);
     if (ink_id >= LEG_ANIM_ZFLAG_BEAR && ink_id <= LEG_ANIM_ZFLAG_TRANS) {
         unlock_camo(ink_id);
+    }
+    if (from_addr != my_conf.badge_id) {
+        // not a self-ink:
+        my_conf.ink_margin--;
+        save_inks_and_check();
     }
 
 }
