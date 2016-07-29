@@ -18,6 +18,8 @@ void start_button_clicked(); // The start button was pressed and released
 void start_button_longpressed(); // Start button press & hold (fired before release)
 void select_button_longpressed(); // Select button press & hold (fired before release)
 void hat_change(uint8_t from, uint8_t to); // The hat we're wearing has changed.
+void temp_band_change(uint8_t from, uint8_t to); // Temp band has changed
+void light_band_change(uint8_t from, uint8_t to); // Temp band has changed
 void select_button_clicked(); // The select button was pressed and released
 void radio_ink_received(uint8_t ink_id, uint8_t ink_type, uint8_t from_addr);
 void radio_broadcast_received(rfbcpayload *payload); // Received a radio message

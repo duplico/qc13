@@ -60,6 +60,7 @@ uint8_t light_index = 0;
 //  temp:
 uint16_t temps[ADC_WINDOW] = {0};
 uint16_t temp = 0;
+uint8_t temp_band = TEMP_NORMAL;
 uint16_t temp_tot = 0;
 uint8_t temp_index = 0;
 
@@ -137,6 +138,7 @@ void init_adc() {
 }
 
 void poll_adc() {
+    static uint8_t prev_temp_band = 5;
 
     if (!being_inked) {
         // Light:
@@ -158,11 +160,17 @@ void poll_adc() {
 
     // Temp has 3 bands: COLD < NORMAL < HOT
     if (temp > TEMP_THRESH_HOT) {
-        // hot
+        temp_band = TEMP_HOT;
     } else if (temp > TEMP_THRESH_COLD) {
-        // normal
+        temp_band = TEMP_NORMAL;
     } else {
-        // cold
+        temp_band = TEMP_COLD;
+    }
+
+    if (temp_band != prev_temp_band) {
+        // changed
+        temp_band_change(prev_temp_band, temp_band);
+        prev_temp_band = temp_band;
     }
 
     // Hat:

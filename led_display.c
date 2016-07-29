@@ -182,6 +182,7 @@ inline uint8_t log2(uint16_t v) {
 }
 
 void do_light_step() {
+    static uint8_t prev_light_order = 0;
     // Do the light averaging:
     // This can go up to 12 bits:
     light = light_tot * 0.8 / ADC_WINDOW;
@@ -196,6 +197,13 @@ void do_light_step() {
     } else {
         light_order-=2;
     }
+
+    if (light_order != prev_light_order) {
+        // light change
+        light_band_change(prev_light_order, light_order);
+        prev_light_order = light_order;
+    }
+
     // 0 .. 10
 }
 
