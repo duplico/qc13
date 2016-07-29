@@ -263,7 +263,6 @@ void mate_send_preserve_flags() {
 
     mp_out.from_addr = my_conf.badge_id;
     mp_out.camo_id = my_conf.camo_id;
-
     mp_out.achievements = my_conf.achievements;
 
     if (0) // TODO
@@ -271,6 +270,9 @@ void mate_send_preserve_flags() {
 
     if (my_conf.hat_holder)
         mp_out.flags |= M_HAT_HOLDER;
+
+    if (my_conf.hat_holder && !(mp_out.flags & M_HAT_AWARD))
+        mp_out.hat_award_id = my_conf.hat_id;
 
     if (my_conf.hat_claimed)
         mp_out.flags |= M_HAT_CLAIMED;
