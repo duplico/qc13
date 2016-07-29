@@ -194,6 +194,8 @@ void do_light_step() {
     // Do some correction:
     if (light_order <=2) {
         light_order = 0;
+    } else if (light_order > LIGHT_ORDER_MAX+2) {
+        light_order = 7;
     } else {
         light_order-=2;
     }

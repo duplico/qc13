@@ -53,7 +53,7 @@ const qc13conf default_conf = {
         0, // ink_margin
         0, 0, // ink_count, dink_count
         0, // power_cycles
-        0 // blank CRC.
+        0 // rest is 0:
 };
 
 rfbcpayload in_payload, out_payload, cascade_payload;
@@ -163,6 +163,35 @@ void minute() {
         if (my_conf.been_cold && my_conf.been_hot) {
             make_eligible_for_pull_hat(HAT_HOT_COLD);
         }
+    }
+
+    if (minutes_in_temp_band == 200) {
+        if (temp_band == TEMP_HOT) {
+            make_eligible_for_pull_hat(HAT_HOT);
+        } else if (temp_band == TEMP_COLD) {
+            make_eligible_for_pull_hat(HAT_COLD);
+        }
+    }
+
+    if (minutes_in_light_band == 60) {
+        if (light_order == LIGHT_ORDER_MAX) {
+            my_conf.been_bright = 1;
+            my_conf_write_crc();
+        } else if (light_order == 0) {
+            my_conf.been_dark = 1;
+            my_conf_write_crc();
+        }
+        if (my_conf.been_bright && my_conf.been_dark) {
+            make_eligible_for_pull_hat(HAT_BRIGHT_DARK);
+        }
+    }
+
+    if (my_conf.uptime < 10) {
+        my_conf.uptime++;
+        my_conf_write_crc();
+    } else {
+        my_conf.achievements &= ~((uint64_t) 0x01 << HAT_MINUTEMAN);
+        my_conf_write_crc();
     }
 }
 
