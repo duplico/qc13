@@ -264,6 +264,12 @@ void mate_send_preserve_flags() {
     mp_out.from_addr = my_conf.badge_id;
     mp_out.camo_id = my_conf.camo_id;
     mp_out.achievements = my_conf.achievements;
+    mp_out.odh_mate_count = my_conf.odh_mate_count;
+    mp_out.odh_seen_count = my_conf.odh_seen_count;
+    mp_out.uber_mate_count = my_conf.uber_mate_count;
+    mp_out.uber_seen_count = my_conf.uber_seen_count;
+    mp_out.mate_count = my_conf.mate_count;
+    mp_out.seen_count = my_conf.seen_count;
 
     if (0) // TODO
         mp_out.flags |= M_HANDLER_ON_DUTY;

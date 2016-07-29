@@ -139,10 +139,12 @@ typedef struct {
     uint8_t camo_id;
     uint16_t flags;
     uint64_t achievements;
+    uint8_t seen_count, uber_seen_count, odh_seen_count;
+    uint8_t mate_count, uber_mate_count, odh_mate_count;
     uint16_t crc16;
 } matepayload;
 
-#define MATE_VERSION 1
+#define MATE_VERSION 2
 
 #define M_HAT_AWARD BIT1 // Award = PUSH hat. From badge.
 #define M_HAT_AWARD_ACK BIT2
