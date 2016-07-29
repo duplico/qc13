@@ -56,7 +56,8 @@ const qc13conf default_conf = {
         0 // blank CRC.
 };
 
-rfbcpayload in_payload, out_payload;
+rfbcpayload in_payload, out_payload, cascade_payload;
+uint8_t payload_cascade = 0;
 
 uint8_t being_inked = 0;
 uint8_t mated = 0;
@@ -368,6 +369,8 @@ void radio_beacon_interval() {
 }
 
 void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
+    if (neighbor_badges[from_id] == RECEIVE_WINDOW)
+        return; // Already seen this time around.
     neighbor_badges[from_id] = RECEIVE_WINDOW;
     set_badge_seen(from_id, on_duty);
     tick_badge_seen(from_id, on_duty);
