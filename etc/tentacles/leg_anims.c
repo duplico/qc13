@@ -677,10 +677,10 @@ const tentacle_animation_t meta_wakeup_camo = {meta_wakeup_camo_frames, meta_wak
 const rgbcolor_t meta_wakeup_ink_frames[][8] = {
     {{0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}},
 };
-uint16_t meta_wakeup_ink_durations[] = {300};
+uint16_t meta_wakeup_ink_durations[] = {150};
 uint16_t meta_wakeup_ink_fade_durs[] = {0};
 // the animation:
-const tentacle_animation_t meta_wakeup_ink = {meta_wakeup_ink_frames, meta_wakeup_ink_durations, meta_wakeup_ink_fade_durs, 1, ANIM_TYPE_SOLID, 0, 20};
+const tentacle_animation_t meta_wakeup_ink = {meta_wakeup_ink_frames, meta_wakeup_ink_durations, meta_wakeup_ink_fade_durs, 1, ANIM_TYPE_SOLID, 0, 40};
 // frames for doubleink
 const rgbcolor_t meta_wakeup_doubleink_frames[][8] = {
     {{0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}, {0x0, 0x0, 0x0}},

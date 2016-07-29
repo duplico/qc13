@@ -266,7 +266,11 @@ void start_button_clicked() {
     if (buttons_pressed < 64) buttons_pressed++;
     check_button_presses();
 
-    if (being_inked || waking_up || ink_cooldown) return; // nope!
+    if (ink_cooldown) {
+        tentacle_start_anim(LEG_ANIM_META_WAKEUP, 1, 1, 0); // blinky.
+        return;
+    }
+    if (being_inked || waking_up) return; // nope!
 
     switch (mate_state) {
     case MS_IDLE:
