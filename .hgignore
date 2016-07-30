@@ -3,3 +3,5 @@ Debug/
 src/
 .settings/
 *.gdoc
+qc13 release/*
+Release/*
