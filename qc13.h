@@ -220,9 +220,9 @@ typedef struct {
 #define HAT_MATE_100 32
 #define HAT_MATE_200 33
 #define HAT_DINK_50 34
-#define HAT_TIME_NEAR_UBERS 35  // TODO
+#define HAT_TIME_NEAR_UBERS 35
 #define HAT_NEAR_HANDLERS 36
-#define HAT_TIME_NEAR_HANDLERS 37 // TODO
+#define HAT_TIME_NEAR_HANDLERS 37
 #define HAT_ALL_MIXERS 38
 #define HAT_KONAMI 39           // TODO
 #define HAT_MINUTEMAN 40
@@ -280,8 +280,10 @@ extern rfbcpayload in_payload, out_payload, cascade_payload;
 extern uint8_t payload_cascade;
 
 extern uint8_t badges_seen[BADGES_IN_SYSTEM];
+extern uint8_t odh_badges_ticks[HANDLER_MAX_INCLUSIVE+1];
 extern uint8_t badges_mated[BADGES_IN_SYSTEM];
 extern uint8_t neighbor_badges[BADGES_IN_SYSTEM];
+extern uint8_t uber_badges_ticks[UBER_COUNT];
 extern uint8_t neighbor_count;
 
 extern uint8_t hat_state;

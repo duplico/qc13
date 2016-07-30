@@ -242,6 +242,8 @@ void make_fresh_conf() {
     memcpy(&my_conf, &default_conf, sizeof(qc13conf));
     memset(badges_seen, 0x00, BADGES_IN_SYSTEM);
     memset(badges_mated, 0x00, BADGES_IN_SYSTEM);
+    memset(odh_badges_ticks, 0x00, HANDLER_MAX_INCLUSIVE+1);
+    memset(uber_badges_ticks, 0x00, UBER_COUNT);
 
     make_eligible_for_pull_hat(HAT_MINUTEMAN);
 

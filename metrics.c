@@ -162,7 +162,21 @@ void set_badge_seen(uint8_t id, uint8_t handler_on_duty) {
 }
 
 void tick_badge_seen(uint8_t id, uint8_t handler_on_duty) {
-    // TODO: Handle incrementing ubers' and handlers' timers.
+    if (is_uber(id)) {
+        uber_badges_ticks[id]++;
+        if (uber_badges_ticks[id] > 8) {
+            uber_badges_ticks[id] = 8;
+            make_eligible_for_pull_hat(HAT_TIME_NEAR_UBERS);
+        }
+    }
+
+    if (is_handler(id) && handler_on_duty) {
+        odh_badges_ticks[id]++;
+        if (odh_badges_ticks[id] > 8) {
+            odh_badges_ticks[id] = 8;
+            make_eligible_for_pull_hat(HAT_TIME_NEAR_HANDLERS);
+        }
+    }
 }
 
 void set_badge_mated(uint8_t id, uint8_t handler_on_duty) {
