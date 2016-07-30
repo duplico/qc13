@@ -101,9 +101,6 @@ void blink_or_make_face() {
     if (!to_blink) {
         thing_to_do = rand() % FACE_ANIM_COUNT;
 
-        // TODO: !!!!
-        thing_to_do = FACE_ANIM_KONAMI;
-
         if (thing_to_do == FACE_ANIM_SAD && neighbor_count > 0) {
             thing_to_do = FACE_ANIM_CUTESY;
         } else if (thing_to_do == FACE_ANIM_CUTESY && neighbor_count == 0) {
@@ -303,6 +300,11 @@ void hat_change(uint8_t from, uint8_t to) {
     } else if (from & HS_HANDLER && !(to & HS_HANDLER)) {
         face_set_baseline_ambient_direct(DEFAULT_EYES);
         lock_camo(LEG_ANIM_HANDLER);
+    }
+
+    if (to == HS_HUMAN && my_conf.hat_claimed && my_conf.hat_holder && my_conf.hat_id < HAT_UBER) {
+        // I just put on my human hat!
+        unlock_camo(LEG_ANIM_HUMAN_HAT);
     }
 }
 

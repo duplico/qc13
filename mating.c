@@ -112,6 +112,8 @@ void enter_super_inking() {
     mate_ink_wait = 0;
     just_sent_superink = 1;
     mate_state = MS_SUPER_INK;
+    if (my_conf.dink_count < UINT32_MAX) my_conf.dink_count++;
+    save_inks_and_check();
 }
 
 void ink_wait_timeout() {
