@@ -31,6 +31,7 @@ void delay_millis(unsigned long);
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
 #define POWER_CYCLES_FOR_HAT 100
 #define LIGHT_ORDER_MAX 7
+#define INKS_PER_MINUTE 3
 
 // Special badge system setup:
 
@@ -65,7 +66,7 @@ void delay_millis(unsigned long);
 #define LEGS_DUR_STEP (2 * LED_DUR_LOOPS)
 
 #define RECEIVE_WINDOW 10
-#define BEACON_INTERVAL_SECS 10 // TODO
+#define BEACON_INTERVAL_SECS 10
 
 #define LONG_PRESS_THRESH 2
 
@@ -224,7 +225,7 @@ typedef struct {
 #define HAT_NEAR_HANDLERS 36
 #define HAT_TIME_NEAR_HANDLERS 37
 #define HAT_ALL_MIXERS 38
-#define HAT_KONAMI 39           // TODO
+#define HAT_KONAMI 39
 #define HAT_MINUTEMAN 40
 #define HAT_POWER_CYCLES 41
 #define HAT_SUPER_INK 42

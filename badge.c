@@ -23,7 +23,7 @@ uint8_t blink_repeat_count = 0;
 
 uint8_t ink_cooldown = 0;
 
-uint8_t inks_available = 3; // TODO: config
+uint8_t inks_available = INKS_PER_MINUTE;
 
 #pragma DATA_SECTION (my_conf, ".infoA"); // A is .noinit
 qc13conf my_conf = {0};
@@ -158,7 +158,7 @@ void second() {
 
 void minute() {
     static uint8_t hour_mins = 0;
-    inks_available = 3; // TODO
+    inks_available = INKS_PER_MINUTE;
     minutes_in_light_band++;
     minutes_in_temp_band++;
     if (minutes_in_temp_band == 6) {
@@ -563,6 +563,6 @@ void mate_end(uint8_t badge_id) {
 }
 
 void borrowing_hat() {
-    // TODO: shutdown
     make_eligible_for_pull_hat(HAT_BORROWER);
+    radio_ink_received(LEG_ANIM_SHUTDOWN, 2, my_conf.badge_id);
 }

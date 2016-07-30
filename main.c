@@ -228,8 +228,6 @@ void my_conf_write_crc() {
 }
 
 uint8_t conf_is_valid(qc13conf *conf) {
-    // TODO: Additional validation?
-
     CRC_setSeed(CRC_BASE, 0xc13c);
     for (uint8_t i = 0; i < sizeof(qc13conf) - 2; i++) {
         CRC_set8BitData(CRC_BASE, ((uint8_t *) conf)[i]);
@@ -372,8 +370,6 @@ void init() {
     init_adc();   // Start up the ADC for light and temp sensors.
 }
 
-void set_face(uint64_t frame); // TODO
-
 void post() {
     // test LEDs:
     if (fresh_power) {
@@ -456,11 +452,11 @@ void do_hat_check() {
     hat_potential = hat_v_tot / ADC_WINDOW;
 
     uint8_t hat_type_detected = HS_NONE;
-    if (1750 < hat_potential && hat_potential < 1950) { // 1.5 V
+    if (1750 < hat_potential && hat_potential < 1900) {
         hat_type_detected = HS_HANDLER;
-    } else if (hat_potential > 3950) {
+    } else if (hat_potential > 4050) {
         hat_type_detected = HS_HUMAN;
-    } else if (3000 < hat_potential && hat_potential < 3200) { // 2.5 V
+    } else if (2250 < hat_potential && hat_potential < 2350) {
         hat_type_detected = HS_UBER;
     }
 
@@ -565,7 +561,7 @@ int main(void)
             f_rfm75_interrupt = 0;
         }
 
-        if (s_hat_check) {
+        if (s_hat_check && !waking_up) {
             do_hat_check();
             s_hat_check = 0;
         }

@@ -30,9 +30,8 @@ uint8_t is_gilder(uint8_t badge_id) {
 
 // Returns 1 if accepted.
 uint8_t award_push_hat(uint8_t id) {
-    // TODO: validate id
     if (my_conf.hat_holder)
-        return 0; // TODO: This can't work.
+        return 0;
     if (id == HAT_UBER || id == HAT_HANDLER) {
         my_conf.hat_claimed = 1;
     }
@@ -60,7 +59,6 @@ uint8_t make_eligible_for_pull_hat(uint8_t id) {
 }
 
 void claim_hat(uint8_t id) {
-    // TODO: validation?
     my_conf.hat_claimed = 1;
     my_conf_write_crc();
     eyes_spinning = my_conf.hat_holder && !my_conf.hat_claimed;
@@ -233,7 +231,6 @@ void set_badge_mated(uint8_t id, uint8_t handler_on_duty) {
             unlock_camo(LEG_ANIM_POWERHUNGRY);
         }
     }
-    // TODO: Check for achievements.
     my_conf_write_crc();
 }
 

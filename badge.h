@@ -35,6 +35,7 @@ void borrowing_hat();
 
 extern uint8_t just_sent_superink;
 extern uint8_t being_inked;
+extern uint8_t waking_up;
 extern uint64_t button_press_window;
 extern uint8_t buttons_pressed;
 
