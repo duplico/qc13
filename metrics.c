@@ -323,6 +323,7 @@ void save_inks_and_check() {
         make_eligible_for_pull_hat(HAT_DINK_50);
     } else if (my_conf.dink_count) {
         make_eligible_for_pull_hat(HAT_SUPER_INK);
+        unlock_camo(LEG_ANIM_DOUBLEINK);
     }
 
     my_conf_write_crc();
