@@ -15,6 +15,7 @@
 #include "metrics.h"
 #include "badge.h"
 
+uint8_t neighbors_on_duty[HANDLER_MAX_INCLUSIVE+1] = {0};
 uint8_t neighbor_badges[BADGES_IN_SYSTEM] = {0};
 uint8_t neighbor_count = 0;
 
@@ -32,6 +33,10 @@ qc13conf backup_conf = {0};
 
 #pragma PERSISTENT (badges_seen)
 uint8_t badges_seen[BADGES_IN_SYSTEM] = {0};
+#pragma PERSISTENT (odh_badges_ticks)
+uint8_t odh_badges_ticks[HANDLER_MAX_INCLUSIVE+1] = {0};
+#pragma PERSISTENT (uber_badges_ticks)
+uint8_t uber_badges_ticks[UBER_COUNT] = {0};
 #pragma PERSISTENT (badges_mated)
 uint8_t badges_mated[BADGES_IN_SYSTEM] = {0};
 
@@ -96,6 +101,9 @@ void blink_or_make_face() {
     if (!to_blink) {
         thing_to_do = rand() % FACE_ANIM_COUNT;
 
+        // TODO: !!!!
+        thing_to_do = FACE_ANIM_KONAMI;
+
         if (thing_to_do == FACE_ANIM_SAD && neighbor_count > 0) {
             thing_to_do = FACE_ANIM_CUTESY;
         } else if (thing_to_do == FACE_ANIM_CUTESY && neighbor_count == 0) {
@@ -152,6 +160,7 @@ void second() {
 }
 
 void minute() {
+    static uint8_t hour_mins = 0;
     inks_available = 3; // TODO
     minutes_in_light_band++;
     minutes_in_temp_band++;
@@ -196,6 +205,23 @@ void minute() {
     } else if (!my_conf.freeze_minuteman) {
         my_conf.achievements &= ~((uint64_t) 0x01 << HAT_MINUTEMAN);
         my_conf_write_crc();
+    }
+
+    hour_mins++;
+    if (hour_mins == 60) {
+        uint8_t neighbor_is_odh = 0;
+        hour_mins = 0;
+        for (uint8_t i=0; i<=HANDLER_MAX_INCLUSIVE; i++) {
+            if (i == my_conf.badge_id) {
+                continue;
+            }
+            if (neighbor_badges[i]) {
+                neighbor_is_odh = 0;
+                if (is_handler(i) && neighbors_on_duty[i])
+                    neighbor_is_odh = 1;
+                tick_badge_seen(i, neighbor_is_odh);
+            }
+        }
     }
 }
 
@@ -329,6 +355,15 @@ void start_button_clicked() {
         tentacle_start_anim(LEG_ANIM_META_WAKEUP, 1, 0, 0); // blinky.
         return;
     }
+
+    if (face_current_animation == FACE_ANIM_KONAMI && (face_curr_anim_frame == face_all_animations[FACE_ANIM_KONAMI]->len-1)) {
+        // start was pressed at end of konami code.
+        tentacle_start_anim(LEG_ANIM_GAMER, 2, 2, 0);
+        unlock_camo(LEG_ANIM_GAMER);
+        make_eligible_for_pull_hat(HAT_KONAMI);
+        return;
+    }
+
     if (being_inked || waking_up) return; // nope!
 
     switch (mate_state) {
@@ -435,8 +470,14 @@ void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
     if (neighbor_badges[from_id] == RECEIVE_WINDOW)
         return; // Already seen this time around.
     neighbor_badges[from_id] = RECEIVE_WINDOW;
+
+    if (on_duty && is_handler(from_id)) {
+        neighbors_on_duty[from_id] = 1;
+    } else if (from_id <= HANDLER_MAX_INCLUSIVE) {
+        neighbors_on_duty[from_id] = 0;
+    }
+
     set_badge_seen(from_id, on_duty);
-    tick_badge_seen(from_id, on_duty);
 }
 
 void radio_basic_base_received(uint8_t base_id) {
