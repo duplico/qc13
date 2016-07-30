@@ -27,7 +27,7 @@ void delay_millis(unsigned long);
 // Badge & system configuration /////////////////////////////////////
 
 #define BADGES_IN_SYSTEM 250
-#define EVENTS_IN_SYSTEM 9
+#define EVENTS_IN_SYSTEM 10
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
 #define POWER_CYCLES_FOR_HAT 100
 #define LIGHT_ORDER_MAX 7
@@ -168,7 +168,7 @@ typedef struct {
     uint8_t seen_count, uber_seen_count, odh_seen_count;
     uint8_t mate_count, uber_mate_count, odh_mate_count;
     uint8_t hat_holder, hat_claimed, hat_id;
-    uint8_t event_checkins[9];
+    uint8_t event_checkins[EVENTS_IN_SYSTEM];
     uint32_t camo_unlocks;
     uint8_t camo_id;
     uint8_t uber_hat_given;
@@ -244,6 +244,7 @@ typedef struct {
 #define BASE_BSATMIX 6
 #define BASE_BKARAOKE 7
 #define BASE_BSUNMIX 8
+#define BASE_BTHUPARTY 9
 
 #define HAT_UBER 55
 #define HAT_HANDLER 56

@@ -70,6 +70,7 @@ uint8_t event_checkin(uint8_t event_id) {
     /*
      * Possible events:
      * QC Trans Meetup - awards camo found
+     * Thursday party  - awards camo giver
      * Thursday Mixer  - awards camo mixologist, ticks mixers
      * Badge talk      - awards camo learned
      * Friday mixer    - awards camo mixologist, ticks mixers
@@ -91,6 +92,9 @@ uint8_t event_checkin(uint8_t event_id) {
     case BASE_TRANS:
         unlock_camo(LEG_ANIM_ZFLAG_TRANS);
         unlock_camo(LEG_ANIM_FOUND);
+        break;
+    case BASE_BTHUPARTY:
+        unlock_camo(LEG_ANIM_GIVER);
         break;
     case BASE_BTHUMIX:
         unlock_camo(LEG_ANIM_MIXOLOGIST);
@@ -119,6 +123,7 @@ uint8_t event_checkin(uint8_t event_id) {
             // If we attended all the mixers:
             make_eligible_for_pull_hat(HAT_ALL_MIXERS);
         }
+        // TODO: wrapup
         break;
     default:
         return 0;
@@ -275,21 +280,26 @@ void check_button_presses() {
 void save_inks_and_check() {
     if (my_conf.ink_count == UINT16_MAX)
         my_conf.ink_count = 256;
+
+    if (my_conf.ink_count >= 50) {
+        unlock_camo(LEG_ANIM_KARATEKID);
+    }
+    if (my_conf.ink_count >= 20) {
+        unlock_camo(LEG_ANIM_FIRE);
+    }
+
     if (my_conf.ink_margin > 10000) my_conf.ink_margin = 10000;
     if (my_conf.ink_margin < -10000) my_conf.ink_margin = -10000;
     if (my_conf.ink_count > 200 && !(my_conf.ink_count % 128) && !my_conf.freeze_ink_margin) {
         // OK to check margin
         if (my_conf.ink_margin > 500) {
             my_conf.freeze_ink_margin = 1;
-            my_conf_write_crc();
             make_eligible_for_pull_hat(HAT_MARGIN_HIGH);
         } else if (my_conf.ink_margin < -500) {
             my_conf.freeze_ink_margin = 1;
-            my_conf_write_crc();
             make_eligible_for_pull_hat(HAT_MARGIN_LOW);
         } else if (my_conf.ink_margin < 50 && my_conf.ink_margin > -50) {
             my_conf.freeze_ink_margin = 1;
-            my_conf_write_crc();
             make_eligible_for_pull_hat(HAT_LOW_MARGIN);
         }
     }
@@ -299,4 +309,6 @@ void save_inks_and_check() {
     } else if (my_conf.dink_count) {
         make_eligible_for_pull_hat(HAT_SUPER_INK);
     }
+
+    my_conf_write_crc();
 }

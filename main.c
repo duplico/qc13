@@ -67,7 +67,7 @@ uint8_t temp_index = 0;
 // hat voltage:
 uint16_t hat_potentials[ADC_WINDOW] = {0};
 uint16_t hat_potential = 0;
-uint16_t hat_v_tot = 0;
+uint32_t hat_v_tot = 0;
 uint8_t hat_v_index = 0;
 
 // Initialization functions
