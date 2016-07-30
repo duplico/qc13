@@ -256,7 +256,6 @@ void make_fresh_conf() {
     }
 
     if (is_uber(my_conf.badge_id)) {
-        unlock_camo(LEG_ANIM_UBER);
         my_conf.uber_hat_given = 0;
         award_push_hat(HAT_UBER);
         my_conf_write_crc();

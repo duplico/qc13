@@ -302,6 +302,10 @@ void hat_change(uint8_t from, uint8_t to) {
         lock_camo(LEG_ANIM_HANDLER);
     }
 
+    if (to & HS_UBER && is_uber(my_conf.badge_id)) {
+        unlock_camo(LEG_ANIM_UBER);
+    }
+
     if (to == HS_HUMAN && my_conf.hat_claimed && my_conf.hat_holder && my_conf.hat_id < HAT_UBER) {
         // I just put on my human hat!
         unlock_camo(LEG_ANIM_HUMAN_HAT);

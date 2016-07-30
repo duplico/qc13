@@ -120,8 +120,26 @@ uint8_t event_checkin(uint8_t event_id) {
         if (my_conf.event_checkins[BASE_BTHUMIX] && my_conf.event_checkins[BASE_BFRIMIX] && my_conf.event_checkins[BASE_BSATMIX]) {
             // If we attended all the mixers:
             make_eligible_for_pull_hat(HAT_ALL_MIXERS);
+            if (!is_camo_avail(LEG_ANIM_WRAPUP_1) && !is_camo_avail(LEG_ANIM_WRAPUP_2) && !is_camo_avail(LEG_ANIM_WRAPUP_3) && !is_camo_avail(LEG_ANIM_WRAPUP_4)) {
+                // haven't wrapped up yet, so...
+                uint8_t ach_total = 0;
+                for (uint8_t i=0; i<=HAT_HANDLER; i++) {
+                    if (my_conf.achievements & ((uint64_t) 0x01 << i)) {
+                        ach_total++;
+                    }
+                }
+
+                if (ach_total > 19) {
+                    unlock_camo(LEG_ANIM_WRAPUP_4);
+                } else if (ach_total > 15) {
+                    unlock_camo(LEG_ANIM_WRAPUP_3);
+                } else if (ach_total > 7) {
+                    unlock_camo(LEG_ANIM_WRAPUP_2);
+                } else {
+                    unlock_camo(LEG_ANIM_WRAPUP_1);
+                }
+            }
         }
-        // TODO: wrapup
         break;
     default:
         return 0;
