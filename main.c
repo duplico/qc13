@@ -456,7 +456,7 @@ void do_hat_check() {
         hat_type_detected = HS_HANDLER;
     } else if (hat_potential > 4050) {
         hat_type_detected = HS_HUMAN;
-    } else if (2250 < hat_potential && hat_potential < 2350) {
+    } else if (1250 < hat_potential && hat_potential < 1350) {
         hat_type_detected = HS_UBER;
     }
 
