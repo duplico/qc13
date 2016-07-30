@@ -18,5 +18,3 @@ if __name__ == "__main__":
         ti_txt_out += line
     with open('tmp.txt', 'w') as tmp_out:
         tmp_out.write(ti_txt_out)
-    #os.system("msp430flasher -w tmp.txt")
-    subprocess.call(['msp430flasher', '-w', 'tmp.txt'], stdout=subprocess.PIPE)
