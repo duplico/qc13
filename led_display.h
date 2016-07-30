@@ -49,6 +49,7 @@ typedef struct {
 
 void led_post();
 
+void set_face(uint64_t frame);
 void face_set_ambient_direct(uint64_t amb);
 void face_set_baseline_ambient_direct(uint64_t amb);
 void face_restore_ambient();

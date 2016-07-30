@@ -41,7 +41,6 @@ uint8_t mate_state = 0;
 volatile uint8_t uart_in_ignore = 0;
 volatile uint8_t uart_in_synced = 0;
 volatile uint8_t uart_in_index = 0;
-volatile uint8_t uart_in_len = 0;
 volatile uint8_t uart_out_index = 0;
 volatile uint8_t uart_sending = 0;
 volatile uint8_t uart_out_len = sizeof(matepayload) + MATE_NUM_SYNC_BYTES;
@@ -143,10 +142,8 @@ void mate_deferred_rx_interrupt() {
     //  If we get a RST anywhere outside PLUG or HALF_PAIR we go back to PLUG.
     if (mate_state > MS_HALF_PAIR && mp_in.flags & M_RST) {
         mate_state = MS_PLUG;
-        // TODO: CLEAN SWEEP
     }
 
-    // TODO: Make sure these are all the same.
     mate_camo = mp_in.camo_id;
     mate_id = mp_in.from_addr;
     mate_on_duty = (mp_in.flags & M_HANDLER_ON_DUTY)? 1 : 0;
@@ -253,7 +250,6 @@ void mate_deferred_rx_interrupt() {
             my_conf.uber_hat_given = 1;
             my_conf_write_crc();
             mate_state = MS_PAIRED;
-            // TODO: save
         } else if (mp_in.flags & M_HAT_AWARD_NACK) {
             // nuttin.
             mate_state = MS_PAIRED;
@@ -264,7 +260,7 @@ void mate_deferred_rx_interrupt() {
 void mate_send_preserve_flags() {
     if (uart_sending) {
         __no_operation();
-        return; // don't. // TODO: like an ass.
+        return; // don't.
     }
 
     mp_out.from_addr = my_conf.badge_id;
@@ -277,7 +273,7 @@ void mate_send_preserve_flags() {
     mp_out.mate_count = my_conf.mate_count;
     mp_out.seen_count = my_conf.seen_count;
 
-    if (0) // TODO
+    if (hat_state & HS_HANDLER && is_handler(my_conf.badge_id))
         mp_out.flags |= M_HANDLER_ON_DUTY;
 
     if (my_conf.hat_holder)
@@ -300,7 +296,7 @@ void mate_send_preserve_flags() {
 
     // Fill'er up:
     memcpy(mate_payload_out, mate_sync_bytes, MATE_NUM_SYNC_BYTES);
-    memcpy(mate_payload_out+MATE_NUM_SYNC_BYTES, &mp_out, sizeof(matepayload)); // TODO: assert/confirm proper length
+    memcpy(mate_payload_out+MATE_NUM_SYNC_BYTES, &mp_out, sizeof(matepayload));
 
     uart_out_index = 0;
     uart_sending = 1;
@@ -311,14 +307,13 @@ void mate_send_preserve_flags() {
 void mate_send_flags(uint16_t flags) {
     if (uart_sending) {
         __no_operation();
-        return; // don't. // TODO: like an ass.
+        return; // don't.
     }
     mp_out.flags = flags;
     mate_send_preserve_flags();
 }
 
 void mate_send_uber_hat_bestow() {
-    // TODO: Make sure our partner doesn't have a hat already.
     mp_out.hat_award_id = my_conf.badge_id;
     mate_state = MS_UBER_HAT_OFFER;
     mate_send_flags(M_HAT_AWARD);
@@ -369,15 +364,8 @@ __interrupt void EUSCI_A1_ISR(void)
             }
         } else { // If we are, let's add it to the payload.
             mate_payload_in[uart_in_index] = uart_in_byte;
-            if (uart_in_index == 0) { // the protocol one:
-                uart_in_len = sizeof(matepayload);
-            } else {
-                // broken
-                // ???? TODO ????
-                //  CLEAN SWEEP
-            }
             uart_in_index++;
-            if (uart_in_index >= uart_in_len) {
+            if (uart_in_index >= sizeof(matepayload)) {
                 // Payload received.
                 uart_in_ignore = 1; // Don't clobber good stuff with new stuff.
                 f_mate_interrupt = 1;
