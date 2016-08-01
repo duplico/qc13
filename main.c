@@ -46,6 +46,7 @@ const char sk_labels[SK_SEL_MAX+1][12] = {
         "E: sat mix",
         "E: karaoke",
         "E: sun mix",
+        "E: th prty",
         "psh F hat",
         "psh L hat",
 };
@@ -60,6 +61,7 @@ const char base_labels[][12] = {
         "sat mix",
         "karaoke",
         "sun mix",
+        "th prty",
 };
 
 uint8_t op_mode = OP_MODE_IDLE; // In the "modal" sense:
@@ -425,7 +427,7 @@ void time_loop() {
     static uint8_t interval_seconds_remaining = BEACON_INTERVAL_SECS;
     static uint16_t second_loops = LOOPS_PER_SECOND;
     static uint8_t loops = 0;
-    static uint8_t tx_loops = 0;
+    static uint16_t tx_loops = 0;
 
     static uint8_t display_loops = 10;
 
