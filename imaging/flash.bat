@@ -1,2 +1,2 @@
-python flash.py
-msp430flasher -w tmp.txt
+python flash.py %1
+msp430flasher -v -w tmp.txt
