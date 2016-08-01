@@ -645,7 +645,7 @@ void disp_mode_unlock() {
 
         suppress_softkey = 1;
 
-        if (!strcmp(name, "AA")) {
+        if (!strcmp(name, "EVQAXIII")) {
             // unlock
             my_conf.locked = 0;
             idle_mode_softkey_sel = SK_SEL_LOCK;

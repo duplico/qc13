@@ -72,7 +72,8 @@ void face_animation_done() {
 
 // IMPORTANT: Call this last.
 //  DON'T change stuff after calling it.
-void complete_rfbc_payload(rfbcpayload *payload) {
+void complete_rfbc_payload(rfbcpayload *payload, uint8_t cascade_ttl) {
+    payload->ttl = cascade_ttl;
     payload->seqnum = rfm75_seqnum;
     payload->base_addr = my_conf.base_id;
 
@@ -116,8 +117,7 @@ void send_hat_award() {
     out_payload.badge_addr = hat_award_to;
     out_payload.ink_id = hat_award_offered;
     out_payload.flags = RFBC_HATOFFER;
-    out_payload.ttl = 3;
-    complete_rfbc_payload(&out_payload);
+    complete_rfbc_payload(&out_payload, 3);
     rfm75_tx();
 }
 
@@ -125,8 +125,7 @@ void send_beacon() {
     out_payload.badge_addr = DEDICATED_BASE_ID;
     out_payload.ink_id = 211; // NOT_AN_INK
     out_payload.flags = RFBC_EVENT;
-    out_payload.ttl = 3;
-    complete_rfbc_payload(&out_payload);
+    complete_rfbc_payload(&out_payload, 2);
     rfm75_tx();
 }
 
@@ -162,8 +161,6 @@ void radio_beacon_interval() {
 
 void radio_beacon_received(uint8_t from_id, uint8_t on_duty) {
     neighbor_badges[from_id] = RECEIVE_WINDOW;
-    set_badge_seen(from_id, on_duty);
-    tick_badge_seen(from_id, on_duty);
 }
 
 void radio_broadcast_received(rfbcpayload *payload) {

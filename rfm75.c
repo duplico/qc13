@@ -31,13 +31,12 @@
 #define CSN_LOW_START RFM75_CSN_OUT &= ~RFM75_CSN_PIN
 #define CSN_HIGH_END  RFM75_CSN_OUT |= RFM75_CSN_PIN
 
-// Target is the actual badge:
 #define CE_ACTIVATE P1OUT   |=  BIT0
 #define CE_DEACTIVATE P1OUT &= ~BIT0
 
-uint8_t rx_addr_p0[3] = {0xff, 0xff, 0xff};
-uint8_t rx_addr_p1[3] = {0xff, 0xff, 0x00};
-uint8_t tx_addr[3] = {0xff, 0xff, 0xff};
+uint8_t rx_addr_p0[3] = {0xd6, 0xe7, 0x2a};
+uint8_t tx_addr[3] = {0xd6, 0xe7, 0x2a};
+
 
 uint8_t rfm75_retransmit_num = 0;
 uint32_t rfm75_seqnum = 0;
@@ -65,17 +64,17 @@ uint8_t rfm75_state = RFM75_BOOT;
 const uint8_t bank0_init_data[BANK0_INITS][2] = {
         { CONFIG, 0b00001111 }, //
         { 0x01, 0b00000000 }, //No auto-ack
-        { 0x02, 0b00000011 }, //Enable RX pipe 0 and 1
+        { 0x02, 0b00000001 }, //Enable RX pipe 0 and 1
         { 0x03, 0b00000001 }, //RX/TX address field width 3byte
         { 0x04, 0b00000000 }, //no auto-RT
         { 0x05, 0x53 }, //channel: 2400 + LS 7 bits of this field = channel (2.483)
-        { 0x06, 0b00000111 }, //air data rate-1M,out power 5dbm,setup LNA gain.
+        { 0x06, 0b00000111 }, //air data rate-1M,out power max, setup LNA gain high.
         { 0x07, 0b01110000 }, // Clear interrupt flags
         // 0x0a - RX_ADDR_P0 - 3 bytes
         // 0x0b - RX_ADDR_P1 - 3 bytes
         // 0x10 - TX_ADDR - 5 bytes
         { 0x11, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe0(32 byte)
-        { 0x12, RFM75_PAYLOAD_SIZE }, //Number of bytes in RX payload in data pipe1(32 byte)
+        { 0x12, 0 }, //Number of bytes in RX payload in data pipe1 - disable
         { 0x13, 0 }, //Number of bytes in RX payload in data pipe2 - disable
         { 0x14, 0 }, //Number of bytes in RX payload in data pipe3 - disable
         { 0x15, 0 }, //Number of bytes in RX payload in data pipe4 - disable
@@ -84,6 +83,7 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
         { 0x1c, 0x00 }, // No dynamic packet length
         { 0x1d, 0b00000000 } // 00000 | DPL | ACK | DYN_ACK
 };
+
 
 uint8_t payload_serial_bytes[RFM75_PAYLOAD_SIZE] = {0xff, 0x00, 0xff, 0};
 
@@ -279,11 +279,9 @@ void rfm75_init()
     }
 
     // Next fill address buffers
-    //  Reg 0x0a: 5 bytes RX0 addr (unicast)
-    //  Reg 0x0b: 5 bytes RX1 addr (broadcast)
+    //  Reg 0x0a: 5 bytes RX0 addr (broadcast)
     //  Reg 0x10: 5 bytes TX0 addr (same as RX0)
-    rfm75_write_reg_buf(RX_ADDR_P0, rx_addr_p0, 3);
-    rfm75_write_reg_buf(RX_ADDR_P1, rx_addr_p1, 3);
+    rfm75_write_reg_buf(RX_ADDR_P0, rx_addr_p0, 3); // broadcast
     rfm75_write_reg_buf(TX_ADDR, tx_addr, 3);
 
     // OK, that's bank 0 done. Next is bank 1.
@@ -300,7 +298,7 @@ void rfm75_init()
             {0x00, 0x00, 0x4b, 0xc0}, // reserved (prescribed)
             {0x02, 0x8c, 0xfc, 0xd0}, // reserved (prescribed)
             {0x41, 0x39, 0x00, 0x99}, // reserved (prescribed)
-            {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us.  // TODO: try 0x3b 82 96 f9
+            {0x1b, 0x82, 0x96, 0xf9}, // 1 Mbps // The user guide flips it for us.
             {0xa6, 0x0f, 0x06, 0x24}, // 1 Mbps
     };
 
@@ -309,9 +307,10 @@ void rfm75_init()
     }
 
     uint8_t bank1_config_0x0c[][4] = {
-            {0x00, 0x73, 0x12, 0x00}, // 120 us mode (PLL settle time?)
+            {0x05, 0x73, 0x10, 0x00}, // 130 us mode (PLL settle time?)
             {0x00, 0x80, 0xb4, 0x36}, // reserved?
     };
+
 
     for (uint8_t i=0; i<2; i++) {
         rfm75_write_reg_buf(0x0c+i, bank1_config_0x0c[i], 4);
@@ -376,11 +375,10 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
-    // TODO:
-    // incoming ID is same as local ID
-    //    if (payload.badge_addr == my_conf.badge_id) {
-    //    	return 0;
-    //    }
+    // handler on duty but source isn't a handler
+    if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->badge_addr)) {
+        return 0;
+    }
 
     // Same one we last saw:
     if (payload->seqnum == rfm75_prev_seqnum) {
@@ -406,11 +404,33 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
 void rfm75_deferred_interrupt() {
     // RFM75 interrupt:
     uint8_t iv = rfm75_get_status();
-    __no_operation();
-    if (iv & BIT6) { // RX interrupt
-        if (rfm75_state != RFM75_RX_LISTEN) {
-            return; // TODO: reset?
+
+    if (iv & BIT5 && rfm75_state == RFM75_TX_SEND) { // TX interrupt
+
+        // We sent a thing.
+
+        // Go back to standby:
+        CE_DEACTIVATE;
+        // Clear interrupt
+        rfm75_write_reg(STATUS, BIT5);
+        rfm75_state = RFM75_TX_DONE;
+
+        if (rfm75_retransmit_num == RF_RESEND_COUNT) {
+            // Raise the I-just-sent-a-thing event
+            radio_transmit_done();
+
+            rfm75_seqnum++;
+
+            // Go back to listening.
+            rfm75_enter_prx();
+        } else {
+            uint8_t seqnum = rfm75_retransmit_num + 1;
+            rfm75_tx();
+            rfm75_retransmit_num = seqnum;
         }
+    }
+
+    if (iv & BIT6 && rfm75_state == RFM75_RX_LISTEN) { // RX interrupt
 
         // We've received something.
         rfm75_state = RFM75_RX_READY;
@@ -435,34 +455,6 @@ void rfm75_deferred_interrupt() {
         // Assert CE: listen more.
         CE_ACTIVATE;
         rfm75_state = RFM75_RX_LISTEN;
-    }
-
-    if (iv & BIT5) { // TX interrupt
-        if (rfm75_state != RFM75_TX_SEND) {
-            return; // TODO: reset?
-        }
-
-        // We sent a thing.
-
-        // Go back to standby:
-        CE_DEACTIVATE;
-        // Clear interrupt
-        rfm75_write_reg(STATUS, BIT5);
-        rfm75_state = RFM75_TX_DONE;
-
-        if (rfm75_retransmit_num == RF_RESEND_COUNT) {
-            // Raise the I-just-sent-a-thing event
-            radio_transmit_done();
-
-            rfm75_seqnum++;
-
-            // Go back to listening.
-            rfm75_enter_prx();
-        } else {
-            uint8_t seqnum = rfm75_retransmit_num + 1;
-            rfm75_tx();
-            rfm75_retransmit_num = seqnum;
-        }
     }
 }
 
