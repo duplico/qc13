@@ -19,7 +19,7 @@ void usci_a_send(uint16_t base, uint8_t data);
 void delay_millis(unsigned long);
 
 #define BADGE_TARGET 1
-#define BADGE_ID 0
+#define BADGE_ID 0xAA
 
 #define COLLINSCODE 0b011000110110111101101111011010110110100101100101
 
@@ -27,8 +27,11 @@ void delay_millis(unsigned long);
 // Badge & system configuration /////////////////////////////////////
 
 #define BADGES_IN_SYSTEM 250
-#define EVENTS_IN_SYSTEM 1
+#define EVENTS_IN_SYSTEM 10
 #define SLEEP_BITS LPM1_bits // We need SMCLK at all times.
+#define POWER_CYCLES_FOR_HAT 100
+#define LIGHT_ORDER_MAX 7
+#define INKS_PER_MINUTE 3
 
 // Special badge system setup:
 
@@ -43,13 +46,13 @@ void delay_millis(unsigned long);
 #define JASON_ID 7
 #define JONATHAN_ID 9
 
-#define UBER_COUNT UBER_MAX_INCLUSIVE + 1 - UBER_MIN_INCLUSIVE
-#define HANDLER_COUNT HANDLER_MAX_INCLUSIVE + 1 - HANDLER_MIN_INCLUSIVE
+#define UBER_COUNT (UBER_MAX_INCLUSIVE + 1 - UBER_MIN_INCLUSIVE)
+#define HANDLER_COUNT (HANDLER_MAX_INCLUSIVE + 1 - HANDLER_MIN_INCLUSIVE)
 
 #define HAT_STATE_WAIT_SECS 3
-#define INK_OUT_COOLDOWN_SECS 5
+#define INK_OUT_COOLDOWN_SECS 6
 
-#define RF_RESEND_COUNT 3
+#define RF_RESEND_COUNT 2
 
 #define FACE_DIM_BRIGHTNESS 0x08f0
 
@@ -125,22 +128,17 @@ typedef struct {
 
 typedef struct {
     uint8_t proto_version;
-    uint8_t to_addr; // redundant
-    uint8_t hat_id;
-    uint16_t crc16;
-} rfucpayload;
-
-typedef struct {
-    uint8_t proto_version;
-    uint8_t badge_addr;
+    uint8_t from_addr;
     uint8_t hat_award_id;
     uint8_t camo_id;
     uint16_t flags;
     uint64_t achievements;
+    uint8_t seen_count, uber_seen_count, odh_seen_count;
+    uint8_t mate_count, uber_mate_count, odh_mate_count;
     uint16_t crc16;
 } matepayload;
 
-#define MATE_VERSION 1
+#define MATE_VERSION 2
 
 #define M_HAT_AWARD BIT1 // Award = PUSH hat. From badge.
 #define M_HAT_AWARD_ACK BIT2
@@ -148,10 +146,10 @@ typedef struct {
 #define M_INK BIT4
 #define M_HAT_HOLDER BIT5
 #define M_RST BIT6
-#define M_HAT_CLAIMED BIT7
+#define M_BADGE_HAS_CLAIMED_HAT BIT7 // comes from badge
 #define M_HANDLER_ON_DUTY BIT8
 #define M_PIPE BIT9 // 0=badge; 1=pipe
-#define M_CLAIMED_HAT BITA // comes from pipe
+#define M_HAT_CLAIM_FROM_PIPE BITA // comes from pipe
 #define M_REPRINT_HAT BITB
 #define M_BESTOW_GILD BITF
 
@@ -235,7 +233,8 @@ extern volatile uint8_t f_rfm75_interrupt;
 
 extern qc13conf my_conf;
 extern const qc13conf default_conf;
-extern rfbcpayload in_payload, out_payload;
+extern rfbcpayload in_payload, out_payload, cascade_payload;
+extern uint8_t payload_cascade;
 
 extern uint8_t badges_seen[BADGES_IN_SYSTEM];
 extern uint8_t badges_mated[BADGES_IN_SYSTEM];

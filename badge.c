@@ -56,7 +56,8 @@ const qc13conf default_conf = {
         0 // crc16
 };
 
-rfbcpayload in_payload, out_payload;
+rfbcpayload in_payload, out_payload, cascade_payload;
+uint8_t payload_cascade = 0;
 
 void second() {
 }

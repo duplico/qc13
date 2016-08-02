@@ -176,6 +176,8 @@ void setup_my_conf() {
         my_conf_write_crc();
     }
 
+    my_conf.base_id = BASE_BKARAOKE;
+
     srand(my_conf.badge_id);
 }
 
@@ -440,9 +442,11 @@ void time_loop() {
 
     if (second_loops) {
         second_loops--;
+        __no_operation();
     } else {
         loops += 1;
         second_loops = LOOPS_PER_SECOND;
+        __no_operation();
         second();
         if (interval_seconds_remaining) {
             interval_seconds_remaining--;
@@ -647,7 +651,8 @@ void disp_mode_unlock() {
 
         suppress_softkey = 1;
 
-        if (!strcmp(name, "EVQAXIII")) {
+//        if (!strcmp(name, "EVQAXIII")) {
+        if (!strcmp(name, "AA")) {
             // unlock
             my_conf.locked = 0;
             idle_mode_softkey_sel = SK_SEL_LOCK;
@@ -673,6 +678,7 @@ void delay(unsigned int i) {
 
 int main(void)
 {
+
     init();
     post();
     intro();
