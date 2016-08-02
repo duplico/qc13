@@ -85,8 +85,6 @@ const uint8_t bank0_init_data[BANK0_INITS][2] = {
 };
 
 
-uint8_t payload_serial_bytes[RFM75_PAYLOAD_SIZE] = {0xff, 0x00, 0xff, 0};
-
 uint8_t payload_in[RFM75_PAYLOAD_SIZE] = {0};
 uint8_t payload_out[RFM75_PAYLOAD_SIZE] = {0};
 
@@ -191,6 +189,27 @@ void rfm75_enter_prx() {
     CE_ACTIVATE;
 
     rfm75_state = RFM75_RX_LISTEN;
+}
+
+void rfm75_retx() {
+    rfm75_retransmit_num = 0;
+
+    // Fill'er up:
+    memcpy(payload_out, &cascade_payload, RFM75_PAYLOAD_SIZE);
+
+    rfm75_state = RFM75_TX_INIT;
+    CE_DEACTIVATE;
+    rfm75_select_bank(0);
+    rfm75_write_reg(CONFIG, 0b01011110);
+    // Clear interrupts: STATUS=BIT4|BIT5|BIT6
+    rfm75_write_reg(STATUS, BIT4|BIT5|BIT6);
+
+    rfm75_state = RFM75_TX_FIFO;
+    // Write the payload:
+    send_rfm75_cmd_buf(WR_TX_PLOAD, payload_out, RFM75_PAYLOAD_SIZE);
+    rfm75_state = RFM75_TX_SEND;
+    CE_ACTIVATE;
+    // Now we wait for an IRQ to let us know it's sent.
 }
 
 void rfm75_tx() {
@@ -311,7 +330,6 @@ void rfm75_init()
             {0x00, 0x80, 0xb4, 0x36}, // reserved?
     };
 
-
     for (uint8_t i=0; i<2; i++) {
         rfm75_write_reg_buf(0x0c+i, bank1_config_0x0c[i], 4);
     }
@@ -375,13 +393,18 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
-    // handler on duty but source isn't a handler
-    if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->badge_addr)) {
+    // event flag when base_addr overflows
+    if (payload->flags & RFBC_EVENT && payload->base_addr >= EVENTS_IN_SYSTEM) {
         return 0;
     }
 
-    // Same one we last saw:
-    if (payload->seqnum == rfm75_prev_seqnum) {
+    // incoming ID is same as local ID, and it's not from a base.
+    if (payload->badge_addr == my_conf.badge_id && payload->base_addr == NOT_A_BASE) {
+        return 0;
+    }
+
+    // handler on duty but source isn't a handler
+    if (payload->flags & RFBC_HANDLER_ON_DUTY && !is_handler(payload->badge_addr)) {
         return 0;
     }
 
@@ -396,6 +419,20 @@ uint8_t radio_payload_validate(rfbcpayload *payload) {
         return 0;
     }
 
+    if (payload->ttl && payload->badge_addr != my_conf.badge_id && payload->crc16 != cascade_payload.crc16) {
+        memcpy(&cascade_payload, payload, sizeof(rfbcpayload));
+        payload_cascade = 1;
+        cascade_payload.ttl--;
+
+        CRC_setSeed(CRC_BASE, RFM75_CRC_SEED);
+        for (uint8_t i = 0; i < sizeof(rfbcpayload) - 2; i++) {
+            CRC_set8BitData(CRC_BASE, ((uint8_t *) &cascade_payload)[i]);
+        }
+        cascade_payload.crc16 = CRC_getResult(CRC_BASE);
+    }
+
+
+
     rfm75_prev_seqnum = payload->seqnum;
     // CRC checks out.
     return 1;
@@ -408,18 +445,21 @@ void rfm75_deferred_interrupt() {
     if (iv & BIT5 && rfm75_state == RFM75_TX_SEND) { // TX interrupt
 
         // We sent a thing.
+        // The ISR already took us back to standby.
 
-        // Go back to standby:
-        CE_DEACTIVATE;
         // Clear interrupt
         rfm75_write_reg(STATUS, BIT5);
         rfm75_state = RFM75_TX_DONE;
 
-        if (rfm75_retransmit_num == RF_RESEND_COUNT) {
+        // Let's avoid amplification attacks, shall we?
+        // If it's not to us, short circuit:
+        if (payload_cascade || (rfm75_retransmit_num == RF_RESEND_COUNT)) {
             // Raise the I-just-sent-a-thing event
             radio_transmit_done();
-
             rfm75_seqnum++;
+
+            if (payload_cascade)
+                payload_cascade = 0;
 
             // Go back to listening.
             rfm75_enter_prx();
@@ -441,12 +481,10 @@ void rfm75_deferred_interrupt() {
         rfm75_write_reg(STATUS, BIT6);
         memcpy(&in_payload, &payload_in, RFM75_PAYLOAD_SIZE);
 
-        // There's a few types of payloads that this is allowed to be:
+        // There's one type of payloads that this is allowed to be:
         //     ==Broadcast==
         //   Handled in the handler...
         //   We also may need to repeat this type of message.
-        //     ===Unicast===
-        //  # Badge award from base station.
 
         if (radio_payload_validate(&in_payload))
             radio_broadcast_received(&in_payload);
@@ -455,6 +493,9 @@ void rfm75_deferred_interrupt() {
         // Assert CE: listen more.
         CE_ACTIVATE;
         rfm75_state = RFM75_RX_LISTEN;
+    }
+    if (payload_cascade && rfm75_state == RFM75_RX_LISTEN) {
+
     }
 }
 
