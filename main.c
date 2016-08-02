@@ -176,7 +176,7 @@ void setup_my_conf() {
         my_conf_write_crc();
     }
 
-    my_conf.base_id = BASE_BKARAOKE;
+    my_conf.base_id = NOT_A_BASE;
 
     srand(my_conf.badge_id);
 }
@@ -651,8 +651,7 @@ void disp_mode_unlock() {
 
         suppress_softkey = 1;
 
-//        if (!strcmp(name, "EVQAXIII")) {
-        if (!strcmp(name, "AA")) {
+        if (!strcmp(name, "EVQAXIII")) {
             // unlock
             my_conf.locked = 0;
             idle_mode_softkey_sel = SK_SEL_LOCK;
