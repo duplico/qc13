@@ -1,0 +1,1 @@
+msp430flasher -v -w qc13base.txt
