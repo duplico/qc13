@@ -7,7 +7,7 @@ CC BY-SA 4.0 <http://creativecommons.org/licenses/by-sa/4.0/>.
 Animations
 ==========
 
-Animations are (c) 2015 Jonathan Nelson and George Louthan and
+Animations are (c) 2016 Jonathan Nelson and George Louthan and
 released under CC BY-SA 4.0 <http://creativecommons.org/licenses/by-sa/4.0/>.
 
 Software
